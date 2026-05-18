@@ -359,7 +359,7 @@ def theoretical_shortcut_work(n: int, m: int, rho: float, omega: float = 3.0) ->
     Bound from Theorem 2: O~(m + n * rho^{2*omega - 2}).
     """
     log_n = max(1.0, math.log2(n + 2))
-    return log_n * (m + n * (rho ** (2 * omega - 2)))
+    return log_n * (m + n * math.pow(rho, 2 * omega - 2))
 
 
 def theoretical_shortcut_depth(n: int, rho: float) -> float:
@@ -388,5 +388,5 @@ def theoretical_hopset_depth(n: int, m: int, rho: float) -> float:
     We approximate the o(1) term with a single log factor.
     """
     log_n = max(1.0, math.log2(n + 2))
-    depth = ((n ** 3) / max(1, m)) ** 0.25 / rho
+    depth = math.pow((n ** 3) / max(1, m), 0.25) / rho
     return log_n * depth

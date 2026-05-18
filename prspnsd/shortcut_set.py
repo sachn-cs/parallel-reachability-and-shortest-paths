@@ -10,7 +10,7 @@ Key references:
 
 import math
 import random
-from typing import Optional
+from typing import Optional, cast
 
 from prspnsd.graph import Digraph
 from prspnsd.reachability import compute_r_minus, compute_r_plus
@@ -263,8 +263,8 @@ def build_shortcut_set_for_reachability(
                     shortcuts.add((scc_list[i], scc_list[j]))
 
     for u_idx, v_idx in dag_shortcuts:
-        u_rep = list(sccs[u_idx])[0]
-        v_rep = list(sccs[v_idx])[0]
+        u_rep = list(sccs[cast(int, u_idx)])[0]
+        v_rep = list(sccs[cast(int, v_idx)])[0]
         shortcuts.add((u_rep, v_rep))
 
     return shortcuts, beta

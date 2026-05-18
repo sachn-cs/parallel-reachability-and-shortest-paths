@@ -50,7 +50,7 @@ def assert_hopbound(
     """
     from collections import deque
 
-    dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[dict-item]
+    dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[misc]
     dist[source] = 0
     q: deque = deque([source])
     out = graph._out_edges

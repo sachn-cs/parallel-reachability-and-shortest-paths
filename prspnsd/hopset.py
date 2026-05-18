@@ -21,7 +21,7 @@ original implementation.
 
 import math
 import random
-from typing import Optional
+from typing import Optional, cast
 
 from prspnsd.graph import WeightedDigraph
 from prspnsd.shortest_paths import (
@@ -129,6 +129,7 @@ def cfr_hopset(
         for v in d_ancestors:
             weight = dists_to_p.get(v, float("inf"))
             if weight < float("inf") and v != p:
+                assert isinstance(weight, int)
                 hopset[(v, p)] = weight
             labels[v].add(f"{p} d-reaches me")
             labels[v].add(f"{p}Anc_d")
@@ -136,6 +137,7 @@ def cfr_hopset(
         for v in d_descendants:
             weight = dists_from_p.get(v, float("inf"))
             if weight < float("inf") and v != p:
+                assert isinstance(weight, int)
                 hopset[(p, v)] = weight
             labels[v].add(f"I d-reach {p}")
             labels[v].add(f"{p}Des_d")
@@ -157,7 +159,7 @@ def cfr_hopset(
                 else None,
             )
             for edge, weight in sub_hopset.items():
-                hopset[edge] = min(hopset.get(edge, float("inf")), weight)
+                hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
 
     return hopset
 
@@ -229,6 +231,7 @@ def cfr_with_truncsssp_pruning(
         for v in d_ancestors:
             weight = dists_to_p.get(v, float("inf"))
             if weight < float("inf") and v != p:
+                assert isinstance(weight, int)
                 hopset[(v, p)] = weight
             labels[v].add(f"{p} d-reaches me")
             labels[v].add(f"{p}Anc_d")
@@ -236,6 +239,7 @@ def cfr_with_truncsssp_pruning(
         for v in d_descendants:
             weight = dists_from_p.get(v, float("inf"))
             if weight < float("inf") and v != p:
+                assert isinstance(weight, int)
                 hopset[(p, v)] = weight
             labels[v].add(f"I d-reach {p}")
             labels[v].add(f"{p}Des_d")
@@ -243,7 +247,7 @@ def cfr_with_truncsssp_pruning(
         if len(d_ball) <= truncsssp_threshold:
             trunc_edges = _compute_truncated_sssp_structure(graph, d_ball, d)
             for edge, weight in trunc_edges.items():
-                hopset[edge] = min(hopset.get(edge, float("inf")), weight)
+                hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
 
     parts = _partition_by_weighted_labels(graph.vertices(), labels)
 
@@ -263,7 +267,7 @@ def cfr_with_truncsssp_pruning(
                 else None,
             )
             for edge, weight in sub_hopset.items():
-                hopset[edge] = min(hopset.get(edge, float("inf")), weight)
+                hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
 
     return hopset
 
@@ -330,11 +334,11 @@ def build_hopset_for_sssp(
             for v, d in dists.items():
                 if u != v:
                     key = (u, v)
-                    hopset[key] = min(hopset.get(key, float("inf")), d)
+                    hopset[key] = cast(int, min(hopset.get(key, float("inf")), d))
 
     for u_idx, v_idx in dag_hopset:
-        u_rep = list(sccs[u_idx])[0]
-        v_rep = list(sccs[v_idx])[0]
+        u_rep = list(sccs[cast(int, u_idx)])[0]
+        v_rep = list(sccs[cast(int, v_idx)])[0]
         weight = dag_hopset[(u_idx, v_idx)]
         if (u_rep, v_rep) in hopset:
             hopset[(u_rep, v_rep)] = min(hopset[(u_rep, v_rep)], weight)

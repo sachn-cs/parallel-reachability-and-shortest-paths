@@ -15,7 +15,7 @@ def dijkstra(graph: WeightedDigraph, source: object) -> dict[object, int]:
 
     Time: O(m log n). Space: O(n).
     """
-    distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[misc]
     distances[source] = 0
     heap: list[tuple[int, object]] = [(0, source)]
     visited: set[object] = set()
@@ -51,9 +51,9 @@ def astar(
     if source == target:
         return 0
 
-    g_score: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    g_score: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[misc]
     g_score[source] = 0
-    f_score: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    f_score: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[misc]
     f_score[source] = heuristic(source)
 
     heap: list[tuple[int, int, object]] = [(f_score[source], 0, source)]
@@ -135,7 +135,7 @@ def shortest_path_hopbound(
 
     Sequential simulation; span bounds are NOT DETERMINED.
     """
-    distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[misc]
     distances[source] = 0
     heap: list[tuple[int, int, object]] = [(0, 0, source)]
     out = graph._out_edges
@@ -169,7 +169,7 @@ def shortest_path_tree(
     Returns a parent map where parent[v] is the predecessor of v, or None
     for the source itself.
     """
-    distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[misc]
     parent: dict[object, Optional[object]] = dict.fromkeys(graph.vertices())
     distances[source] = 0
     heap: list[tuple[int, object]] = [(0, source)]

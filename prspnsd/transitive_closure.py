@@ -15,6 +15,8 @@ try:
 except ImportError:
     HAS_NUMPY = False
 
+from typing import Any
+
 from prspnsd.graph import Digraph
 
 
@@ -61,7 +63,7 @@ def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
     index_map, vertices = _vertex_to_index(graph)
 
     # Build adjacency matrix over the Boolean semiring {0, 1} with OR/AND.
-    adj = np.zeros((n, n), dtype=np.int8)
+    adj: Any = np.zeros((n, n), dtype=np.int8)
     for u, v in graph.edges():
         adj[index_map[u], index_map[v]] = 1
 
