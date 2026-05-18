@@ -76,13 +76,13 @@ def _compute_r_sets_for_vertices(
 
 
 def compute_ancestors(graph: Digraph, path_vertices: List[object]) -> Set[object]:
-    """Compute R^-(G, P) \ R^+(G, P): ancestors of path P."""
+    """Compute R^-(G, P) \\ R^+(G, P): ancestors of path P."""
     r_minus, r_plus = _compute_r_sets_for_vertices(graph, path_vertices)
     return r_minus - r_plus
 
 
 def compute_descendants(graph: Digraph, path_vertices: List[object]) -> Set[object]:
-    """Compute R^+(G, P) \ R^-(G, P): descendants of path P."""
+    """Compute R^+(G, P) \\ R^-(G, P): descendants of path P."""
     r_minus, r_plus = _compute_r_sets_for_vertices(graph, path_vertices)
     return r_plus - r_minus
 

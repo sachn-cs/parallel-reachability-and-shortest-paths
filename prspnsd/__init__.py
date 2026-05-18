@@ -47,6 +47,27 @@ from prspnsd.hopset import (
     cfr_with_truncsssp_pruning,
     build_hopset_for_sssp,
 )
+from prspnsd.generators import (
+    cycle_graph,
+    dense_graph,
+    erdos_renyi_digraph,
+    graph_with_sccs,
+    grid_graph,
+    layered_dag,
+    path_graph,
+    random_dag,
+    weighted_dense_graph,
+    weighted_path_graph,
+    weighted_random_dag,
+)
+from prspnsd.serialization import (
+    digraph_from_json,
+    digraph_to_json,
+    weighted_digraph_from_json,
+    weighted_digraph_to_json,
+)
+from prspnsd.work_depth import WorkDepthAccountant
+from prspnsd import invariants
 
 __all__ = [
     "Digraph",
@@ -79,4 +100,21 @@ __all__ = [
     "cfr_hopset",
     "cfr_with_truncsssp_pruning",
     "build_hopset_for_sssp",
+    "cycle_graph",
+    "dense_graph",
+    "erdos_renyi_digraph",
+    "graph_with_sccs",
+    "grid_graph",
+    "layered_dag",
+    "path_graph",
+    "random_dag",
+    "weighted_dense_graph",
+    "weighted_path_graph",
+    "weighted_random_dag",
+    "digraph_from_json",
+    "digraph_to_json",
+    "weighted_digraph_from_json",
+    "weighted_digraph_to_json",
+    "WorkDepthAccountant",
+    "invariants",
 ]

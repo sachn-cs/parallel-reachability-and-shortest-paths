@@ -50,10 +50,10 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/example/prspnsd"
-Documentation = "https://prspnsd.readthedocs.io"
-Repository = "https://github.com/example/prspnsd"
-Issues = "https://github.com/example/prspnsd/issues"
+Homepage = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths"
+Documentation = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/tree/master/docs"
+Repository = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths.git"
+Issues = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/issues"
 
 [tool.setuptools.packages.find]
 where = ["."]

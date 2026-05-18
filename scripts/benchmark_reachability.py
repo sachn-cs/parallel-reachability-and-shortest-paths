@@ -1,0 +1,153 @@
+"""Benchmark script for shortcut set construction and reachability queries.
+
+Produces tabular output comparing construction time, shortcut set size,
+and observed hop counts across varying graph sizes and densities.
+"""
+
+from __future__ import annotations
+
+import argparse
+import csv
+import sys
+import time
+from typing import Dict, List, Tuple
+
+from prspnsd.generators import complete_dag, cycle_graph, dense_graph, erdos_renyi_digraph, layered_dag, path_graph, random_dag
+from prspnsd.graph import Digraph
+from prspnsd.reachability import bfs_reachability, parallel_bfs
+from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+from prspnsd.work_depth import WorkDepthAccountant
+
+
+def _measure_shortcut_construction(
+    graph: Digraph, omega: float, seed: int
+) -> Tuple[Set[Tuple[object, object]], float, float, float, float]:
+    """Build shortcut set and return metrics.
+
+    Returns: (shortcuts, beta, elapsed_seconds, max_hops, work_estimate)
+    """
+    accountant = WorkDepthAccountant()
+    accountant.start_timer()
+    start = time.perf_counter()
+    shortcuts, beta = build_shortcut_set_for_reachability(
+        graph, omega=omega, random_seed=seed
+    )
+    elapsed = time.perf_counter() - start
+    accountant.stop_timer()
+
+    # Measure max hops from a random source in the largest weak component
+    # For simplicity, use vertex 0 if present
+    source = 0 if graph.has_edge(0, 1) or graph.num_vertices() > 0 else None
+    if source is not None:
+        hop_dists = _hop_count_bfs(graph, source, shortcuts)
+        reachable = {v for v, d in hop_dists.items() if d < float("inf")}
+        max_hops = max((hop_dists[v] for v in reachable), default=0)
+    else:
+        max_hops = 0
+
+    return shortcuts, beta, elapsed, max_hops, accountant.work
+
+
+def _hop_count_bfs(
+    graph: Digraph, source: object, shortcuts: set
+) -> Dict[object, int]:
+    """BFS returning hop counts."""
+    from collections import deque
+
+    dist: Dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[dict-item]
+    dist[source] = 0
+    q: deque = deque([source])
+    out = graph._out_edges
+    s_list = list(shortcuts)
+    while q:
+        u = q.popleft()
+        for v in out.get(u, set()):
+            if dist[v] == float("inf"):
+                dist[v] = dist[u] + 1
+                q.append(v)
+        for a, b in s_list:
+            if a == u and dist[b] == float("inf"):
+                dist[b] = dist[u] + 1
+                q.append(b)
+    return dist
+
+
+def benchmark_suite(
+    sizes: List[int],
+    densities: List[float],
+    omega: float,
+    seed: int,
+    output_csv: Optional[str],
+) -> None:
+    """Run benchmarks across sizes and densities."""
+    rows: List[Dict[str, object]] = []
+    for n in sizes:
+        for density in densities:
+            # Approximate edge count from density
+            max_edges = n * (n - 1)
+            edge_count = int(density * max_edges)
+            if edge_count < n - 1 and density > 0:
+                # Ensure enough edges for a non-trivial graph
+                edge_count = min(max_edges, n)
+
+            graph = dense_graph(n, edge_count, random_seed=seed)
+            shortcuts, beta, elapsed, max_hops, work = _measure_shortcut_construction(
+                graph, omega, seed
+            )
+            row = {
+                "n": n,
+                "m": graph.num_edges(),
+                "density": density,
+                "omega": omega,
+                "beta_target": beta,
+                "shortcut_size": len(shortcuts),
+                "elapsed_sec": elapsed,
+                "max_hops_observed": max_hops,
+                "simulated_work": work,
+            }
+            rows.append(row)
+            print(
+                f"n={n:5d} m={graph.num_edges():7d} density={density:.3f} "
+                f"beta={beta:8.2f} |H|={len(shortcuts):7d} "
+                f"time={elapsed:.3f}s max_hops={max_hops}"
+            )
+
+    if output_csv:
+        with open(output_csv, "w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+            writer.writeheader()
+            writer.writerows(rows)
+        print(f"Results written to {output_csv}")
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Benchmark shortcut set construction for reachability"
+    )
+    parser.add_argument(
+        "--sizes",
+        type=int,
+        nargs="+",
+        default=[20, 50, 100, 200],
+        help="Graph sizes (number of vertices) to benchmark",
+    )
+    parser.add_argument(
+        "--densities",
+        type=float,
+        nargs="+",
+        default=[0.1, 0.3, 0.5, 0.8],
+        help="Edge density fractions relative to complete digraph",
+    )
+    parser.add_argument(
+        "--omega", type=float, default=3.0, help="Matrix multiplication exponent"
+    )
+    parser.add_argument("--seed", type=int, default=42, help="Random seed")
+    parser.add_argument(
+        "--output", type=str, default=None, help="Optional CSV output path"
+    )
+    args = parser.parse_args()
+    benchmark_suite(args.sizes, args.densities, args.omega, args.seed, args.output)
+
+
+if __name__ == "__main__":
+    main()
