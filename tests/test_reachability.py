@@ -5,14 +5,12 @@ import pytest
 from prspnsd.graph import Digraph
 from prspnsd.reachability import (
     bfs_reachability,
-    reverse_bfs_reachability,
-    compute_r_plus,
-    compute_r_minus,
-    compute_r_ball,
     compute_ancestors,
-    compute_descendants,
     compute_bridges,
+    compute_descendants,
+    compute_r_ball,
     parallel_bfs,
+    reverse_bfs_reachability,
     strongly_connected_components,
     topological_sort,
 )

@@ -4,21 +4,21 @@ Implements Dijkstra's algorithm, A* search, truncated SSSP, and d-ball
 computations as used in the hopset construction (Section 6).
 """
 
-from typing import Callable, Dict, List, Set, Tuple, Optional
 import heapq
+from typing import Callable, Optional
 
 from prspnsd.graph import WeightedDigraph
 
 
-def dijkstra(graph: WeightedDigraph, source: object) -> Dict[object, int]:
+def dijkstra(graph: WeightedDigraph, source: object) -> dict[object, int]:
     """Compute exact shortest-path distances from source.
 
     Time: O(m log n). Space: O(n).
     """
-    distances: Dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
     distances[source] = 0
-    heap: List[Tuple[int, object]] = [(0, source)]
-    visited: Set[object] = set()
+    heap: list[tuple[int, object]] = [(0, source)]
+    visited: set[object] = set()
     out = graph._out_edges
 
     while heap:
@@ -51,13 +51,13 @@ def astar(
     if source == target:
         return 0
 
-    g_score: Dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    g_score: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
     g_score[source] = 0
-    f_score: Dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    f_score: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
     f_score[source] = heuristic(source)
 
-    heap: List[Tuple[int, int, object]] = [(f_score[source], 0, source)]
-    visited: Set[object] = set()
+    heap: list[tuple[int, int, object]] = [(f_score[source], 0, source)]
+    visited: set[object] = set()
     out = graph._out_edges
 
     while heap:
@@ -78,14 +78,14 @@ def astar(
 
 def truncated_dijkstra(
     graph: WeightedDigraph, source: object, max_distance: int
-) -> Dict[object, int]:
+) -> dict[object, int]:
     """Compute distances from source, truncated at max_distance.
 
     Returns vertices v with dist(source, v) ≤ max_distance.
     """
-    distances: Dict[object, int] = {source: 0}
-    heap: List[Tuple[int, object]] = [(0, source)]
-    visited: Set[object] = set()
+    distances: dict[object, int] = {source: 0}
+    heap: list[tuple[int, object]] = [(0, source)]
+    visited: set[object] = set()
     out = graph._out_edges
 
     while heap:
@@ -103,14 +103,14 @@ def truncated_dijkstra(
 
 def compute_d_descendants(
     graph: WeightedDigraph, vertex: object, distance: int
-) -> Set[object]:
+) -> set[object]:
     """Compute R^+_d(G, v) = {t : v ⪯_d t}."""
     return set(truncated_dijkstra(graph, vertex, distance).keys())
 
 
 def compute_d_ancestors(
     graph: WeightedDigraph, vertex: object, distance: int
-) -> Set[object]:
+) -> set[object]:
     """Compute R^-_d(G, v) = {s : s ⪯_d v}."""
     rev = graph.reversed()
     return set(truncated_dijkstra(rev, vertex, distance).keys())
@@ -118,7 +118,7 @@ def compute_d_ancestors(
 
 def compute_d_ball(
     graph: WeightedDigraph, vertex: object, distance: int
-) -> Set[object]:
+) -> set[object]:
     """Compute R_d(G, v) = R^+_d(G, v) ∪ R^-_d(G, v)."""
     return compute_d_descendants(graph, vertex, distance) | compute_d_ancestors(
         graph, vertex, distance
@@ -127,17 +127,17 @@ def compute_d_ball(
 
 def shortest_path_hopbound(
     graph: WeightedDigraph,
-    hopset_edges: Dict[Tuple[object, object], int],
+    hopset_edges: dict[tuple[object, object], int],
     source: object,
     max_hops: int,
-) -> Dict[object, int]:
+) -> dict[object, int]:
     """Compute shortest paths using at most max_hops hops in G ∪ H.
 
     Sequential simulation; span bounds are NOT DETERMINED.
     """
-    distances: Dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
     distances[source] = 0
-    heap: List[Tuple[int, int, object]] = [(0, 0, source)]
+    heap: list[tuple[int, int, object]] = [(0, 0, source)]
     out = graph._out_edges
 
     while heap:
@@ -163,17 +163,17 @@ def shortest_path_hopbound(
 
 def shortest_path_tree(
     graph: WeightedDigraph, source: object
-) -> Dict[object, Optional[object]]:
+) -> dict[object, Optional[object]]:
     """Compute a shortest path tree from source using Dijkstra.
 
     Returns a parent map where parent[v] is the predecessor of v, or None
     for the source itself.
     """
-    distances: Dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
-    parent: Dict[object, Optional[object]] = {v: None for v in graph.vertices()}
+    distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[dict-item]
+    parent: dict[object, Optional[object]] = dict.fromkeys(graph.vertices())
     distances[source] = 0
-    heap: List[Tuple[int, object]] = [(0, source)]
-    visited: Set[object] = set()
+    heap: list[tuple[int, object]] = [(0, source)]
+    visited: set[object] = set()
     out = graph._out_edges
 
     while heap:

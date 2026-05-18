@@ -18,7 +18,6 @@ from __future__ import annotations
 import math
 import time
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -28,7 +27,7 @@ class OperationRecord:
     name: str
     work: float
     depth: float
-    details: Optional[str] = None
+    details: str | None = None
 
 
 @dataclass
@@ -43,8 +42,8 @@ class WorkDepthAccountant:
     work: float = 0.0
     depth: float = 0.0
     elapsed_seconds: float = 0.0
-    _operations: List[OperationRecord] = field(default_factory=list)
-    _start_time: Optional[float] = field(default=None, repr=False)
+    _operations: list[OperationRecord] = field(default_factory=list)
+    _start_time: float | None = field(default=None, repr=False)
 
     def start_timer(self) -> None:
         """Begin measuring wall-clock time."""
@@ -61,7 +60,7 @@ class WorkDepthAccountant:
         name: str,
         work: float,
         depth: float,
-        details: Optional[str] = None,
+        details: str | None = None,
     ) -> None:
         """Record a single primitive operation.
 
@@ -84,7 +83,7 @@ class WorkDepthAccountant:
         self.depth += other.depth
         self._operations.extend(other._operations)
 
-    def parallel_composition(self, others: List[WorkDepthAccountant]) -> None:
+    def parallel_composition(self, others: list[WorkDepthAccountant]) -> None:
         """Combine several accountants in parallel.
 
         Work sums; depth is the maximum across all branches.
@@ -96,7 +95,7 @@ class WorkDepthAccountant:
         for o in others:
             self._operations.extend(o._operations)
 
-    def summary(self) -> Dict[str, float]:
+    def summary(self) -> dict[str, float]:
         """Return a dict with total work, depth, and elapsed time."""
         return {
             "work": self.work,
@@ -104,7 +103,7 @@ class WorkDepthAccountant:
             "elapsed_seconds": self.elapsed_seconds,
         }
 
-    def operations(self) -> List[OperationRecord]:
+    def operations(self) -> list[OperationRecord]:
         """Return the list of recorded operations."""
         return list(self._operations)
 
@@ -116,10 +115,10 @@ class WorkDepthAccountant:
 
 
 def record_bfs(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
     m: int,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record a BFS/DFS traversal on a digraph with n vertices and m edges.
 
@@ -135,10 +134,10 @@ def record_bfs(
 
 
 def record_reverse_bfs(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
     m: int,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record a reverse BFS traversal. Same bounds as BFS."""
     if accountant is None:
@@ -147,10 +146,10 @@ def record_reverse_bfs(
 
 
 def record_dijkstra(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
     m: int,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record Dijkstra’s algorithm on a graph with n vertices and m edges.
 
@@ -166,10 +165,10 @@ def record_dijkstra(
 
 
 def record_truncated_dijkstra(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
     m: int,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record a truncated Dijkstra run.
 
@@ -180,10 +179,10 @@ def record_truncated_dijkstra(
 
 
 def record_matrix_multiply(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
     omega: float = 3.0,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record an n x n matrix multiplication.
 
@@ -202,10 +201,10 @@ def record_matrix_multiply(
 
 
 def record_transitive_closure(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
     omega: float = 3.0,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record transitive closure via repeated squaring.
 
@@ -220,10 +219,10 @@ def record_transitive_closure(
 
 
 def record_tc_pruning(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     ball_size: int,
     omega: float = 3.0,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record TC-Pruning on a ball of size |R(G,p)|.
 
@@ -243,9 +242,9 @@ def record_tc_pruning(
 
 
 def record_truncsssp_pruning(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     ball_size: int,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record TruncSSSP-Pruning on a ball of size |R_d(G,p)|.
 
@@ -268,10 +267,10 @@ def record_truncsssp_pruning(
 
 
 def record_scc_decomposition(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
     m: int,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record Kosaraju SCC decomposition.
 
@@ -284,9 +283,9 @@ def record_scc_decomposition(
 
 
 def record_partition(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record label-based vertex partitioning.
 
@@ -299,12 +298,12 @@ def record_partition(
 
 
 def record_shortcut_set_construction(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
     m: int,
     rho: float,
     omega: float = 3.0,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record the overall JLS + TC-Pruning shortcut set construction.
 
@@ -328,12 +327,12 @@ def record_shortcut_set_construction(
 
 
 def record_hopset_construction(
-    accountant: Optional[WorkDepthAccountant],
+    accountant: WorkDepthAccountant | None,
     n: int,
     m: int,
     rho: float,
     epsilon: float,
-    details: Optional[str] = None,
+    details: str | None = None,
 ) -> None:
     """Record the overall CFR + TruncSSSP-Pruning hopset construction.
 

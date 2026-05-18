@@ -1,15 +1,14 @@
 """Tests for hopset construction (CFR with TruncSSSP-Pruning)."""
 
-import math
 import pytest
 
-from prspnsd.graph import WeightedDigraph, Digraph
-from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
+from prspnsd.graph import WeightedDigraph
 from prspnsd.hopset import (
+    build_hopset_for_sssp,
     cfr_hopset,
     cfr_with_truncsssp_pruning,
-    build_hopset_for_sssp,
 )
+from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
 
 
 class TestCfrHopset:

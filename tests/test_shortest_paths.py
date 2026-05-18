@@ -1,19 +1,17 @@
 """Tests for shortest path algorithms."""
 
-import math
 
-import pytest
 
 from prspnsd.graph import WeightedDigraph
 from prspnsd.shortest_paths import (
-    dijkstra,
     astar,
-    truncated_dijkstra,
-    compute_d_descendants,
     compute_d_ancestors,
     compute_d_ball,
+    compute_d_descendants,
+    dijkstra,
     shortest_path_hopbound,
     shortest_path_tree,
+    truncated_dijkstra,
 )
 
 

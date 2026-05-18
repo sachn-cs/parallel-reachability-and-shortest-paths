@@ -1,6 +1,5 @@
 """Tests for transitive closure computation."""
 
-import pytest
 
 from prspnsd.graph import Digraph
 from prspnsd.transitive_closure import (

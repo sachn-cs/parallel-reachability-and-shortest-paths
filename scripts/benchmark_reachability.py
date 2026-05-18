@@ -8,20 +8,19 @@ from __future__ import annotations
 
 import argparse
 import csv
-import sys
 import time
-from typing import Dict, List, Tuple
 
-from prspnsd.generators import complete_dag, cycle_graph, dense_graph, erdos_renyi_digraph, layered_dag, path_graph, random_dag
+from prspnsd.generators import (
+    dense_graph,
+)
 from prspnsd.graph import Digraph
-from prspnsd.reachability import bfs_reachability, parallel_bfs
 from prspnsd.shortcut_set import build_shortcut_set_for_reachability
 from prspnsd.work_depth import WorkDepthAccountant
 
 
 def _measure_shortcut_construction(
     graph: Digraph, omega: float, seed: int
-) -> Tuple[Set[Tuple[object, object]], float, float, float, float]:
+) -> tuple[set[tuple[object, object]], float, float, float, float]:
     """Build shortcut set and return metrics.
 
     Returns: (shortcuts, beta, elapsed_seconds, max_hops, work_estimate)
@@ -50,11 +49,11 @@ def _measure_shortcut_construction(
 
 def _hop_count_bfs(
     graph: Digraph, source: object, shortcuts: set
-) -> Dict[object, int]:
+) -> dict[object, int]:
     """BFS returning hop counts."""
     from collections import deque
 
-    dist: Dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[dict-item]
+    dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[dict-item]
     dist[source] = 0
     q: deque = deque([source])
     out = graph._out_edges
@@ -73,14 +72,14 @@ def _hop_count_bfs(
 
 
 def benchmark_suite(
-    sizes: List[int],
-    densities: List[float],
+    sizes: list[int],
+    densities: list[float],
     omega: float,
     seed: int,
-    output_csv: Optional[str],
+    output_csv: str | None,
 ) -> None:
     """Run benchmarks across sizes and densities."""
-    rows: List[Dict[str, object]] = []
+    rows: list[dict[str, object]] = []
     for n in sizes:
         for density in densities:
             # Approximate edge count from density

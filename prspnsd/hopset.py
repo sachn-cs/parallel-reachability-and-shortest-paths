@@ -21,23 +21,23 @@ original implementation.
 
 import math
 import random
-from typing import Dict, List, Set, Tuple, Optional
+from typing import Optional
 
-from prspnsd.graph import WeightedDigraph, Digraph
+from prspnsd.graph import WeightedDigraph
 from prspnsd.shortest_paths import (
-    dijkstra,
     compute_d_ancestors,
-    compute_d_descendants,
     compute_d_ball,
+    compute_d_descendants,
+    dijkstra,
 )
 
 
 def _partition_by_weighted_labels(
-    vertices: Set[object],
-    labels: Dict[object, Set[str]],
-) -> List[Set[object]]:
+    vertices: set[object],
+    labels: dict[object, set[str]],
+) -> list[set[object]]:
     """Partition vertices into equivalence classes by exact label equality."""
-    groups: Dict[frozenset, Set[object]] = {}
+    groups: dict[frozenset, set[object]] = {}
     for v in vertices:
         key = frozenset(labels.get(v, set()))
         groups.setdefault(key, set()).add(v)
@@ -46,9 +46,9 @@ def _partition_by_weighted_labels(
 
 def _compute_truncated_sssp_structure(
     graph: WeightedDigraph,
-    vertex_subset: Set[object],
+    vertex_subset: set[object],
     max_distance: int,
-) -> Dict[Tuple[object, object], int]:
+) -> dict[tuple[object, object], int]:
     """Compute all-pairs shortest paths within vertex_subset, truncated at max_distance.
 
     This is the TruncSSSP-Pruning analogue of TC(G[R(G, p)]):
@@ -60,7 +60,7 @@ def _compute_truncated_sssp_structure(
     including only pairs with finite distance <= max_distance.
     """
     subgraph = graph.induced_subgraph(vertex_subset)
-    edges: Dict[Tuple[object, object], int] = {}
+    edges: dict[tuple[object, object], int] = {}
     for u in vertex_subset:
         dists = dijkstra(subgraph, u)
         for v, d in dists.items():
@@ -77,7 +77,7 @@ def cfr_hopset(
     n_global: int,
     level: int = 0,
     random_seed: Optional[int] = None,
-) -> Dict[Tuple[object, object], int]:
+) -> dict[tuple[object, object], int]:
     """Construct the CFR hopset (reconstructed from [CFR20], Section 6.1).
 
     This is the baseline hopset algorithm without TruncSSSP-Pruning.
@@ -114,8 +114,8 @@ def cfr_hopset(
 
     pivots = [v for v in graph.vertices() if rng.random() < prob]
 
-    hopset: Dict[Tuple[object, object], int] = {}
-    labels: Dict[object, Set[str]] = {v: set() for v in graph.vertices()}
+    hopset: dict[tuple[object, object], int] = {}
+    labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
 
     for p in pivots:
         d = distance_scale * int(max(1, log_n))
@@ -171,7 +171,7 @@ def cfr_with_truncsssp_pruning(
     n_global: int,
     level: int = 0,
     random_seed: Optional[int] = None,
-) -> Dict[Tuple[object, object], int]:
+) -> dict[tuple[object, object], int]:
     """Construct the CFR hopset with TruncSSSP-Pruning (Section 6.3, Theorem 4).
 
     This is the main sequential hopset construction.
@@ -210,8 +210,8 @@ def cfr_with_truncsssp_pruning(
 
     pivots = [v for v in graph.vertices() if rng.random() < prob]
 
-    hopset: Dict[Tuple[object, object], int] = {}
-    labels: Dict[object, Set[str]] = {v: set() for v in graph.vertices()}
+    hopset: dict[tuple[object, object], int] = {}
+    labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
 
     truncsssp_threshold = (k ** 2) * (log_n ** 2) * (rho ** 2)
 
@@ -272,7 +272,7 @@ def build_hopset_for_sssp(
     graph: WeightedDigraph,
     epsilon: float = 0.1,
     random_seed: Optional[int] = None,
-) -> Tuple[Dict[Tuple[object, object], int], float]:
+) -> tuple[dict[tuple[object, object], int], float]:
     """High-level wrapper to build a (beta, epsilon)-hopset matching Theorem 4.
 
     Automatically selects parameters based on graph density.
@@ -296,7 +296,7 @@ def build_hopset_for_sssp(
     sccs = strongly_connected_components(graph.to_unweighted())
 
     dag = WeightedDigraph()
-    scc_map: Dict[object, int] = {}
+    scc_map: dict[object, int] = {}
     for idx, scc in enumerate(sccs):
         dag.add_vertex(idx)
         for v in scc:
@@ -306,10 +306,7 @@ def build_hopset_for_sssp(
         if scc_map[u] != scc_map[v]:
             dag.add_edge(scc_map[u], scc_map[v], w)
 
-    if m > 0:
-        beta = (n ** 3 / m) ** 0.25
-    else:
-        beta = float("inf")
+    beta = (n ** 3 / m) ** 0.25 if m > 0 else float("inf")
 
     k = max(2.0, math.log2(n))
     rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
@@ -321,7 +318,7 @@ def build_hopset_for_sssp(
         random_seed=random_seed,
     )
 
-    hopset: Dict[Tuple[object, object], int] = {}
+    hopset: dict[tuple[object, object], int] = {}
 
     for scc in sccs:
         scc_list = list(scc)

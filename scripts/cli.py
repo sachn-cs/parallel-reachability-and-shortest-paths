@@ -11,19 +11,16 @@ Provides subcommands:
 from __future__ import annotations
 
 import argparse
-import json
 import math
 import sys
 import time
-from typing import Optional
 
 from prspnsd.generators import (
+    complete_dag,
     cycle_graph,
     dense_graph,
     erdos_renyi_digraph,
     graph_with_sccs,
-    grid_graph,
-    layered_dag,
     path_graph,
     random_dag,
     weighted_dense_graph,
@@ -43,20 +40,20 @@ from prspnsd.shortcut_set import build_shortcut_set_for_reachability
 from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
 from prspnsd.work_depth import (
     WorkDepthAccountant,
-    theoretical_shortcut_depth,
-    theoretical_shortcut_work,
     theoretical_hopset_depth,
     theoretical_hopset_work,
+    theoretical_shortcut_depth,
+    theoretical_shortcut_work,
 )
 
 
 def _load_digraph(path: str) -> Digraph:
-    with open(path, "r") as f:
+    with open(path) as f:
         return digraph_from_json(f.read())
 
 
 def _load_weighted_digraph(path: str) -> WeightedDigraph:
-    with open(path, "r") as f:
+    with open(path) as f:
         return weighted_digraph_from_json(f.read())
 
 

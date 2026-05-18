@@ -7,7 +7,7 @@ library.
 from __future__ import annotations
 
 import json
-from typing import Any, Dict, List, Tuple
+from typing import Any
 
 from prspnsd.graph import Digraph, WeightedDigraph
 
@@ -28,7 +28,7 @@ def _vertex_from_json(data: Any) -> object:
     return data
 
 
-def digraph_to_dict(graph: Digraph) -> Dict[str, Any]:
+def digraph_to_dict(graph: Digraph) -> dict[str, Any]:
     """Convert an unweighted Digraph to a dict representation."""
     return {
         "type": "Digraph",
@@ -40,7 +40,7 @@ def digraph_to_dict(graph: Digraph) -> Dict[str, Any]:
     }
 
 
-def weighted_digraph_to_dict(graph: WeightedDigraph) -> Dict[str, Any]:
+def weighted_digraph_to_dict(graph: WeightedDigraph) -> dict[str, Any]:
     """Convert a WeightedDigraph to a dict representation."""
     return {
         "type": "WeightedDigraph",
@@ -52,7 +52,7 @@ def weighted_digraph_to_dict(graph: WeightedDigraph) -> Dict[str, Any]:
     }
 
 
-def digraph_from_dict(data: Dict[str, Any]) -> Digraph:
+def digraph_from_dict(data: dict[str, Any]) -> Digraph:
     """Reconstruct a Digraph from a dict."""
     if data.get("type") != "Digraph":
         raise ValueError("Expected type 'Digraph' in serialized data")
@@ -65,7 +65,7 @@ def digraph_from_dict(data: Dict[str, Any]) -> Digraph:
     return g
 
 
-def weighted_digraph_from_dict(data: Dict[str, Any]) -> WeightedDigraph:
+def weighted_digraph_from_dict(data: dict[str, Any]) -> WeightedDigraph:
     """Reconstruct a WeightedDigraph from a dict."""
     if data.get("type") != "WeightedDigraph":
         raise ValueError("Expected type 'WeightedDigraph' in serialized data")

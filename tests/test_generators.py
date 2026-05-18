@@ -17,7 +17,7 @@ from prspnsd.generators import (
     weighted_path_graph,
     weighted_random_dag,
 )
-from prspnsd.graph import Digraph, WeightedDigraph
+from prspnsd.graph import WeightedDigraph
 from prspnsd.reachability import strongly_connected_components
 
 
@@ -160,7 +160,7 @@ class TestWeightedRandomDag:
         g1 = weighted_random_dag(10, 0.3, weight_range=(1, 5), random_seed=7)
         g2 = weighted_random_dag(10, 0.3, weight_range=(1, 5), random_seed=7)
         assert set(g1.edges()) == set(g2.edges())
-        for u, v, w in g1.edges():
+        for _u, _v, w in g1.edges():
             assert 1 <= w <= 5
 
 

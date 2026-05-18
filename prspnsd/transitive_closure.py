@@ -8,7 +8,6 @@ We provide both a matrix-multiplication-based implementation (using numpy)
 and a brute-force BFS-based implementation for small graphs or verification.
 """
 
-from typing import Dict, List, Set, Tuple
 
 try:
     import numpy as np
@@ -19,14 +18,14 @@ except ImportError:
 from prspnsd.graph import Digraph
 
 
-def transitive_closure_brute_force(graph: Digraph) -> Set[Tuple[object, object]]:
+def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]:
     """Compute TC(G) using BFS from every vertex.
 
     Returns all pairs (u, v) such that there is a path from u to v in G.
     Time complexity: O(n * m) which is O(n^3) in the worst case.
     """
     from prspnsd.reachability import compute_r_plus
-    result: Set[Tuple[object, object]] = set()
+    result: set[tuple[object, object]] = set()
     for u in graph.vertices():
         reachable = compute_r_plus(graph, u)
         for v in reachable:
@@ -34,14 +33,14 @@ def transitive_closure_brute_force(graph: Digraph) -> Set[Tuple[object, object]]
     return result
 
 
-def _vertex_to_index(graph: Digraph) -> Tuple[Dict[object, int], List[object]]:
+def _vertex_to_index(graph: Digraph) -> tuple[dict[object, int], list[object]]:
     """Create a bijection between vertices and indices [0, n-1]."""
     vertices = list(graph.vertices())
     index_map = {v: i for i, v in enumerate(vertices)}
     return index_map, vertices
 
 
-def transitive_closure_matrix(graph: Digraph) -> Set[Tuple[object, object]]:
+def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
     """Compute TC(G) using matrix multiplication (repeated squaring).
 
     This implements the paper's approach (Section 4.2).
@@ -80,14 +79,14 @@ def transitive_closure_matrix(graph: Digraph) -> Set[Tuple[object, object]]:
         if np.array_equal(tc, old):
             break
 
-    result: Set[Tuple[object, object]] = set()
+    result: set[tuple[object, object]] = set()
     rows, cols = np.where(tc)
     for i, j in zip(rows, cols):
         result.add((vertices[i], vertices[j]))
     return result
 
 
-def transitive_closure_on_subset(graph: Digraph, subset: Set[object]) -> Set[Tuple[object, object]]:
+def transitive_closure_on_subset(graph: Digraph, subset: set[object]) -> set[tuple[object, object]]:
     """Compute TC(G[subset]): transitive closure of the induced subgraph.
 
     Used by TC-Pruning (Section 4.2): "add all edges in TC(G[R(G, p)]) to H."

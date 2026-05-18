@@ -10,21 +10,21 @@ Key references:
 
 import math
 import random
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Optional
 
 from prspnsd.graph import Digraph
-from prspnsd.reachability import compute_r_minus, compute_r_plus, compute_r_ball
+from prspnsd.reachability import compute_r_minus, compute_r_plus
 from prspnsd.transitive_closure import transitive_closure_on_subset
 
 
 def _partition_by_labels(
-    vertices: Set[object], labels: Dict[object, Set[str]]
-) -> List[Set[object]]:
+    vertices: set[object], labels: dict[object, set[str]]
+) -> list[set[object]]:
     """Partition vertices into equivalence classes by exact label equality.
 
     Corresponds to Step 3 of JLS (Section 4.1).
     """
-    groups: Dict[frozenset, Set[object]] = {}
+    groups: dict[frozenset, set[object]] = {}
     for v in vertices:
         key = frozenset(labels.get(v, set()))
         groups.setdefault(key, set()).add(v)
@@ -32,10 +32,10 @@ def _partition_by_labels(
 
 
 def _sample_pivots(
-    vertices: Set[object],
+    vertices: set[object],
     prob: float,
     rng: random.Random,
-) -> List[object]:
+) -> list[object]:
     """Sample each vertex independently with probability prob."""
     return [v for v in vertices if rng.random() < prob]
 
@@ -47,7 +47,7 @@ def jls_shortcut_set(
     n_global: int,
     level: int = 0,
     random_seed: Optional[int] = None,
-) -> Set[Tuple[object, object]]:
+) -> set[tuple[object, object]]:
     """Construct the JLS shortcut set (Section 4.1, Proposition 4.1).
 
     This is the baseline algorithm from [JLS19] without any pruning.
@@ -80,8 +80,8 @@ def jls_shortcut_set(
     prob = min(1.0, 100.0 * (k ** (level + 1)) * log_n / n_global)
 
     pivots = _sample_pivots(graph.vertices(), prob, rng)
-    shortcuts: Set[Tuple[object, object]] = set()
-    labels: Dict[object, Set[str]] = {v: set() for v in graph.vertices()}
+    shortcuts: set[tuple[object, object]] = set()
+    labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
 
     for p in pivots:
         r_minus = compute_r_minus(graph, p)
@@ -127,7 +127,7 @@ def jls_with_tc_pruning(
     n_global: int,
     level: int = 0,
     random_seed: Optional[int] = None,
-) -> Set[Tuple[object, object]]:
+) -> set[tuple[object, object]]:
     """Construct the JLS shortcut set with TC-Pruning (Section 4.2, Theorem 5).
 
     This is the main sequential construction from Theorem 2.
@@ -160,8 +160,8 @@ def jls_with_tc_pruning(
     prob = min(1.0, 100.0 * (k ** (level + 1)) * log_n / n_global)
 
     pivots = _sample_pivots(graph.vertices(), prob, rng)
-    shortcuts: Set[Tuple[object, object]] = set()
-    labels: Dict[object, Set[str]] = {v: set() for v in graph.vertices()}
+    shortcuts: set[tuple[object, object]] = set()
+    labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
 
     tc_pruning_threshold = (k ** 2) * (log_n ** 2) * (rho ** 2)
 
@@ -208,7 +208,7 @@ def build_shortcut_set_for_reachability(
     graph: Digraph,
     omega: float = 3.0,
     random_seed: Optional[int] = None,
-) -> Tuple[Set[Tuple[object, object]], float]:
+) -> tuple[set[tuple[object, object]], float]:
     """High-level wrapper to build a beta-shortcut set matching Theorem 2.
 
     Automatically selects parameters based on graph density and omega.
@@ -232,7 +232,7 @@ def build_shortcut_set_for_reachability(
     sccs = strongly_connected_components(graph)
 
     dag = Digraph()
-    scc_map: Dict[object, int] = {}
+    scc_map: dict[object, int] = {}
     for idx, scc in enumerate(sccs):
         dag.add_vertex(idx)
         for v in scc:
@@ -242,10 +242,7 @@ def build_shortcut_set_for_reachability(
         if scc_map[u] != scc_map[v]:
             dag.add_edge(scc_map[u], scc_map[v])
 
-    if m > 0:
-        beta = (n ** omega / m) ** (1.0 / (2.0 * omega - 2.0))
-    else:
-        beta = float("inf")
+    beta = (n ** omega / m) ** (1.0 / (2.0 * omega - 2.0)) if m > 0 else float("inf")
 
     k = max(2.0, math.log2(n))
     rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
@@ -256,7 +253,7 @@ def build_shortcut_set_for_reachability(
         dag, k, rho, max_level, dag.num_vertices(), level=0, random_seed=random_seed
     )
 
-    shortcuts: Set[Tuple[object, object]] = set()
+    shortcuts: set[tuple[object, object]] = set()
 
     for scc in sccs:
         scc_list = list(scc)

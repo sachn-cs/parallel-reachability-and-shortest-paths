@@ -1,11 +1,9 @@
 """Tests for theorem-oriented validation helpers."""
 
-import math
 
 import pytest
 
-from prspnsd.generators import cycle_graph, graph_with_sccs, path_graph, weighted_path_graph
-from prspnsd.graph import Digraph, WeightedDigraph
+from prspnsd.generators import cycle_graph, path_graph, weighted_path_graph
 from prspnsd.invariants import (
     assert_distance_approximation,
     assert_hopbound,
@@ -17,7 +15,6 @@ from prspnsd.invariants import (
     check_equivalence_classes,
 )
 from prspnsd.shortcut_set import build_shortcut_set_for_reachability, jls_shortcut_set
-from prspnsd.shortest_paths import dijkstra
 
 
 class TestReachabilityPreserved:

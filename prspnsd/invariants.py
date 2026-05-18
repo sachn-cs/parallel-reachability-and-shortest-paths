@@ -8,7 +8,6 @@ for production hot paths.
 from __future__ import annotations
 
 import math
-from typing import Dict, List, Optional, Set, Tuple
 
 from prspnsd.graph import Digraph, WeightedDigraph
 from prspnsd.reachability import bfs_reachability, parallel_bfs, strongly_connected_components
@@ -17,8 +16,8 @@ from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
 
 def assert_reachability_preserved(
     graph: Digraph,
-    shortcuts: Set[Tuple[object, object]],
-    msg: Optional[str] = None,
+    shortcuts: set[tuple[object, object]],
+    msg: str | None = None,
 ) -> None:
     """Verify that shortcuts do not alter reachability.
 
@@ -40,9 +39,9 @@ def assert_reachability_preserved(
 def assert_hopbound(
     graph: Digraph,
     source: object,
-    shortcuts: Set[Tuple[object, object]],
+    shortcuts: set[tuple[object, object]],
     beta: float,
-    msg: Optional[str] = None,
+    msg: str | None = None,
 ) -> int:
     """Compute the actual hop count from source and assert it ≤ beta.
 
@@ -51,7 +50,7 @@ def assert_hopbound(
     """
     from collections import deque
 
-    dist: Dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[dict-item]
+    dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[dict-item]
     dist[source] = 0
     q: deque = deque([source])
     out = graph._out_edges
@@ -80,8 +79,8 @@ def assert_hopbound(
 
 def assert_scc_shortcuts_form_cliques(
     graph: Digraph,
-    shortcuts: Set[Tuple[object, object]],
-    msg: Optional[str] = None,
+    shortcuts: set[tuple[object, object]],
+    msg: str | None = None,
 ) -> None:
     """Verify that every SCC becomes a clique in G ∪ H.
 
@@ -107,8 +106,8 @@ def assert_scc_shortcuts_form_cliques(
 
 def assert_partition_correctness(
     graph: Digraph,
-    parts: List[Set[object]],
-    msg: Optional[str] = None,
+    parts: list[set[object]],
+    msg: str | None = None,
 ) -> None:
     """Verify that parts form a partition of V(G).
 
@@ -117,7 +116,7 @@ def assert_partition_correctness(
     2. Parts are pairwise disjoint.
     """
     vertices = graph.vertices()
-    union: Set[object] = set()
+    union: set[object] = set()
     for part in parts:
         if not part.issubset(vertices):
             extra = part - vertices
@@ -140,12 +139,12 @@ def assert_partition_correctness(
 
 def assert_distance_approximation(
     graph: WeightedDigraph,
-    hopset: Dict[Tuple[object, object], int],
+    hopset: dict[tuple[object, object], int],
     source: object,
     epsilon: float,
     max_hops: int,
-    msg: Optional[str] = None,
-) -> Dict[object, float]:
+    msg: str | None = None,
+) -> dict[object, float]:
     """Verify that hopset distances are within (1 + epsilon) of true distances.
 
     Computes exact distances with Dijkstra and approximate distances with
@@ -155,7 +154,7 @@ def assert_distance_approximation(
     """
     original = dijkstra(graph, source)
     approx = shortest_path_hopbound(graph, hopset, source, max_hops)
-    ratios: Dict[object, float] = {}
+    ratios: dict[object, float] = {}
     for v in graph.vertices():
         orig_d = original.get(v, float("inf"))
         if orig_d == float("inf"):
@@ -179,9 +178,9 @@ def assert_distance_approximation(
 
 def assert_shortcut_set_size_bound(
     graph: Digraph,
-    shortcuts: Set[Tuple[object, object]],
+    shortcuts: set[tuple[object, object]],
     rho: float,
-    msg: Optional[str] = None,
+    msg: str | None = None,
 ) -> None:
     """Verify that |H| is consistent with the O~(n * rho^2) bound.
 
@@ -199,10 +198,10 @@ def assert_shortcut_set_size_bound(
 
 def assert_hopset_size_bound(
     graph: WeightedDigraph,
-    hopset: Dict[Tuple[object, object], int],
+    hopset: dict[tuple[object, object], int],
     epsilon: float,
     rho: float,
-    msg: Optional[str] = None,
+    msg: str | None = None,
 ) -> None:
     """Verify that |H| is consistent with the O~(n/epsilon^2 + n*rho^2) bound.
 
@@ -219,15 +218,15 @@ def assert_hopset_size_bound(
 
 
 def check_equivalence_classes(
-    labels: Dict[object, Set[str]],
-    parts: List[Set[object]],
-    msg: Optional[str] = None,
+    labels: dict[object, set[str]],
+    parts: list[set[object]],
+    msg: str | None = None,
 ) -> None:
     """Verify that label-based partitioning matches the equivalence classes.
 
     Every part should consist of vertices with identical label sets.
     """
-    label_to_part: Dict[frozenset, Set[object]] = {}
+    label_to_part: dict[frozenset, set[object]] = {}
     for part in parts:
         for v in part:
             key = frozenset(labels.get(v, set()))

@@ -8,7 +8,6 @@ libraries.
 from __future__ import annotations
 
 import random
-from typing import Dict, List, Optional, Set, Tuple
 
 from prspnsd.graph import Digraph, WeightedDigraph
 
@@ -48,9 +47,9 @@ def complete_dag(n: int) -> Digraph:
 
 
 def layered_dag(
-    layers: List[int],
+    layers: list[int],
     edge_probability: float = 0.3,
-    random_seed: Optional[int] = None,
+    random_seed: int | None = None,
 ) -> Digraph:
     """Create a layered DAG with given layer sizes.
 
@@ -65,7 +64,7 @@ def layered_dag(
     """
     rng = random.Random(random_seed)
     g = Digraph()
-    vertices: List[List[Tuple[int, int]]] = []
+    vertices: list[list[tuple[int, int]]] = []
     for layer_idx, size in enumerate(layers):
         layer_vertices = []
         for j in range(size):
@@ -85,7 +84,7 @@ def layered_dag(
 def random_dag(
     n: int,
     edge_probability: float = 0.3,
-    random_seed: Optional[int] = None,
+    random_seed: int | None = None,
 ) -> Digraph:
     """Create a random DAG by topologically ordering vertices and sampling edges.
 
@@ -108,7 +107,7 @@ def random_dag(
 def erdos_renyi_digraph(
     n: int,
     edge_probability: float = 0.3,
-    random_seed: Optional[int] = None,
+    random_seed: int | None = None,
 ) -> Digraph:
     """Create a random directed graph (not necessarily acyclic).
 
@@ -129,7 +128,7 @@ def erdos_renyi_digraph(
 def dense_graph(
     n: int,
     edge_count: int,
-    random_seed: Optional[int] = None,
+    random_seed: int | None = None,
 ) -> Digraph:
     """Create a dense digraph with exactly edge_count edges.
 
@@ -162,9 +161,9 @@ def dense_graph(
 
 
 def graph_with_sccs(
-    scc_sizes: List[int],
+    scc_sizes: list[int],
     inter_edge_probability: float = 0.1,
-    random_seed: Optional[int] = None,
+    random_seed: int | None = None,
 ) -> Digraph:
     """Create a digraph with specified SCC sizes.
 
@@ -183,7 +182,7 @@ def graph_with_sccs(
     """
     rng = random.Random(random_seed)
     g = Digraph()
-    sccs: List[List[int]] = []
+    sccs: list[list[int]] = []
     next_vertex = 0
     for size in scc_sizes:
         scc = list(range(next_vertex, next_vertex + size))
@@ -224,8 +223,8 @@ def grid_graph(n: int, m: int) -> WeightedDigraph:
 
 def weighted_path_graph(
     n: int,
-    weight_range: Tuple[int, int] = (1, 10),
-    random_seed: Optional[int] = None,
+    weight_range: tuple[int, int] = (1, 10),
+    random_seed: int | None = None,
 ) -> WeightedDigraph:
     """Create a weighted directed path on n vertices.
 
@@ -245,8 +244,8 @@ def weighted_path_graph(
 def weighted_random_dag(
     n: int,
     edge_probability: float = 0.3,
-    weight_range: Tuple[int, int] = (1, 10),
-    random_seed: Optional[int] = None,
+    weight_range: tuple[int, int] = (1, 10),
+    random_seed: int | None = None,
 ) -> WeightedDigraph:
     """Create a weighted random DAG.
 
@@ -268,8 +267,8 @@ def weighted_random_dag(
 def weighted_dense_graph(
     n: int,
     edge_count: int,
-    weight_range: Tuple[int, int] = (1, 10),
-    random_seed: Optional[int] = None,
+    weight_range: tuple[int, int] = (1, 10),
+    random_seed: int | None = None,
 ) -> WeightedDigraph:
     """Create a dense weighted digraph with exactly edge_count edges."""
     max_edges = n * (n - 1)
@@ -291,7 +290,7 @@ def weighted_dense_graph(
     return g
 
 
-def graph_stats(graph: Digraph) -> Dict[str, int]:
+def graph_stats(graph: Digraph) -> dict[str, int]:
     """Return basic statistics for a graph."""
     return {
         "n": graph.num_vertices(),

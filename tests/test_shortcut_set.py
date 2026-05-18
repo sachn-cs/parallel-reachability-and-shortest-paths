@@ -1,14 +1,13 @@
 """Tests for shortcut set construction (JLS and JLS with TC-Pruning)."""
 
-import math
 import pytest
 
 from prspnsd.graph import Digraph
 from prspnsd.reachability import bfs_reachability, parallel_bfs
 from prspnsd.shortcut_set import (
+    build_shortcut_set_for_reachability,
     jls_shortcut_set,
     jls_with_tc_pruning,
-    build_shortcut_set_for_reachability,
 )
 
 

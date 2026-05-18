@@ -6,8 +6,6 @@ Optimized with __slots__ for memory efficiency.
 
 from __future__ import annotations
 
-from typing import Dict, List, Set, Tuple, Optional, Iterator, Union
-
 
 class Digraph:
     """A directed graph G = (V, E) with unweighted edges.
@@ -20,9 +18,9 @@ class Digraph:
 
     def __init__(self) -> None:
         """Initialize an empty digraph."""
-        self._vertices: Set[object] = set()
-        self._out_edges: Dict[object, Set[object]] = {}
-        self._in_edges: Dict[object, Set[object]] = {}
+        self._vertices: set[object] = set()
+        self._out_edges: dict[object, set[object]] = {}
+        self._in_edges: dict[object, set[object]] = {}
         self._edge_count: int = 0
 
     def add_vertex(self, v: object) -> None:
@@ -45,11 +43,11 @@ class Digraph:
         """Check if edge (u, v) exists in O(1) time."""
         return v in self._out_edges.get(u, set())
 
-    def vertices(self) -> Set[object]:
+    def vertices(self) -> set[object]:
         """Return the set of vertices V."""
         return set(self._vertices)
 
-    def edges(self) -> List[Tuple[object, object]]:
+    def edges(self) -> list[tuple[object, object]]:
         """Return the list of edges E as ordered pairs (u, v)."""
         return [
             (u, v)
@@ -57,11 +55,11 @@ class Digraph:
             for v in self._out_edges[u]
         ]
 
-    def out_neighbors(self, v: object) -> Set[object]:
+    def out_neighbors(self, v: object) -> set[object]:
         """Return the out-neighbors of v as a set."""
         return set(self._out_edges.get(v, set()))
 
-    def in_neighbors(self, v: object) -> Set[object]:
+    def in_neighbors(self, v: object) -> set[object]:
         """Return the in-neighbors of v as a set."""
         return set(self._in_edges.get(v, set()))
 
@@ -81,7 +79,7 @@ class Digraph:
         """Return in-degree of v."""
         return len(self._in_edges.get(v, set()))
 
-    def induced_subgraph(self, vertex_subset: Set[object]) -> Digraph:
+    def induced_subgraph(self, vertex_subset: set[object]) -> Digraph:
         """Return the induced subgraph G[vertex_subset].
 
         As defined in Section 2.
@@ -135,9 +133,9 @@ class WeightedDigraph:
 
     def __init__(self) -> None:
         """Initialize an empty weighted digraph."""
-        self._vertices: Set[object] = set()
-        self._out_edges: Dict[object, Dict[object, int]] = {}
-        self._in_edges: Dict[object, Dict[object, int]] = {}
+        self._vertices: set[object] = set()
+        self._out_edges: dict[object, dict[object, int]] = {}
+        self._in_edges: dict[object, dict[object, int]] = {}
         self._edge_count: int = 0
 
     def add_vertex(self, v: object) -> None:
@@ -169,15 +167,15 @@ class WeightedDigraph:
         """Check if edge (u, v) exists."""
         return v in self._out_edges.get(u, {})
 
-    def get_weight(self, u: object, v: object) -> Optional[int]:
+    def get_weight(self, u: object, v: object) -> int | None:
         """Return weight of edge (u, v) or None if not present."""
         return self._out_edges.get(u, {}).get(v)
 
-    def vertices(self) -> Set[object]:
+    def vertices(self) -> set[object]:
         """Return the set of vertices V."""
         return set(self._vertices)
 
-    def edges(self) -> List[Tuple[object, object, int]]:
+    def edges(self) -> list[tuple[object, object, int]]:
         """Return the list of edges as triples (u, v, weight)."""
         return [
             (u, v, w)
@@ -185,11 +183,11 @@ class WeightedDigraph:
             for v, w in self._out_edges[u].items()
         ]
 
-    def out_neighbors(self, v: object) -> Dict[object, int]:
+    def out_neighbors(self, v: object) -> dict[object, int]:
         """Return the out-neighbors of v with weights as a dict."""
         return dict(self._out_edges.get(v, {}))
 
-    def in_neighbors(self, v: object) -> Dict[object, int]:
+    def in_neighbors(self, v: object) -> dict[object, int]:
         """Return the in-neighbors of v with weights as a dict."""
         return dict(self._in_edges.get(v, {}))
 
@@ -209,7 +207,7 @@ class WeightedDigraph:
         """Return in-degree of v."""
         return len(self._in_edges.get(v, {}))
 
-    def induced_subgraph(self, vertex_subset: Set[object]) -> WeightedDigraph:
+    def induced_subgraph(self, vertex_subset: set[object]) -> WeightedDigraph:
         """Return the induced subgraph G[vertex_subset]."""
         subgraph = WeightedDigraph()
         valid = vertex_subset & self._vertices

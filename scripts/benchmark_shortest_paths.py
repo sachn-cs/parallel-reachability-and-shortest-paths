@@ -8,11 +8,9 @@ from __future__ import annotations
 
 import argparse
 import csv
-import math
 import time
-from typing import Dict, List, Optional, Tuple
 
-from prspnsd.generators import weighted_dense_graph, weighted_random_dag
+from prspnsd.generators import weighted_dense_graph
 from prspnsd.graph import WeightedDigraph
 from prspnsd.hopset import build_hopset_for_sssp
 from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
@@ -21,7 +19,7 @@ from prspnsd.work_depth import WorkDepthAccountant
 
 def _measure_hopset_construction(
     graph: WeightedDigraph, epsilon: float, seed: int
-) -> Tuple[Dict[Tuple[object, object], int], float, float, float, float, float]:
+) -> tuple[dict[tuple[object, object], int], float, float, float, float, float]:
     """Build hopset and return metrics.
 
     Returns: (hopset, beta, elapsed_seconds, max_ratio, mismatches, work_estimate)
@@ -55,13 +53,13 @@ def _measure_hopset_construction(
 
 
 def benchmark_suite(
-    sizes: List[int],
-    epsilons: List[float],
+    sizes: list[int],
+    epsilons: list[float],
     seed: int,
-    output_csv: Optional[str],
+    output_csv: str | None,
 ) -> None:
     """Run benchmarks across sizes and epsilon values."""
-    rows: List[Dict[str, object]] = []
+    rows: list[dict[str, object]] = []
     for n in sizes:
         for epsilon in epsilons:
             # Use a moderately dense weighted graph
