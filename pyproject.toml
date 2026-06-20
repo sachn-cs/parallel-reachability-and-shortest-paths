@@ -4,13 +4,13 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "prspnsd"
-version = "0.1.0"
-description = "Deterministic parallel reachability and shortest paths on non-sparse digraphs"
+version = "0.4.0"
+description = "Faithful Python reproduction of parallel reachability and shortest paths algorithms on non-sparse digraphs"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
 authors = [
-    {name = "Reproduction Team", email = "repro@example.com"}
+    {name = "Sachin"}
 ]
 keywords = [
     "graph-algorithms",
@@ -21,6 +21,8 @@ keywords = [
     "parallel-algorithms",
     "digraphs",
     "transitive-closure",
+    "numpy",
+    "computational-geometry",
 ]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -35,6 +37,7 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Topic :: Scientific/Engineering :: Mathematics",
     "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
 ]
 dependencies = [
     "numpy>=1.21.0",
@@ -51,9 +54,10 @@ dev = [
 
 [project.urls]
 Homepage = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths"
-Documentation = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/tree/master/docs"
+Documentation = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/tree/main/docs"
 Repository = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths.git"
 Issues = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/issues"
+Changelog = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["."]

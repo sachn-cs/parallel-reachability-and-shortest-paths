@@ -1,0 +1,2 @@
+# This file marks the package as PEP 561 compliant.
+# It tells type checkers (mypy, pyright) that this package supports typing.

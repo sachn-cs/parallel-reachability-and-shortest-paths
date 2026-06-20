@@ -1,161 +1,46 @@
 # Parallel Reachability and Shortest Paths on Non-sparse Digraphs
 
-Reproduction of **"Parallel Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and Sub-square-root Depth"** by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak (arXiv:2605.03892v1).
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![CI](https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/actions/workflows/ci.yml/badge.svg)](https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/actions/workflows/ci.yml)
+[![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
+[![Version](https://img.shields.io/badge/version-0.4.0-green.svg)](https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/releases)
 
-## What is Implemented
+A faithful Python reproduction of **"Parallel Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and Sub-square-root Depth"** by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak ([arXiv:2605.03892](https://arxiv.org/abs/2605.03892)).
 
-This repository contains a faithful Python reproduction of the paper's core algorithmic contributions:
+## Features
 
-1. **Sequential Shortcut Set Construction (Theorem 2)**  
-   - The JLS shortcut set algorithm ([JLS19]) with **TC-Pruning** (Section 4).
-   - Near-linear time construction of a beta-shortcut set with size O~(m).
+- **Shortcut Set Construction** (Theorem 2): JLS algorithm with TC-Pruning for near-linear time beta-shortcut sets
+- **Hopset Construction** (Theorem 4): CFR algorithm with TruncSSSP-Pruning for (beta, epsilon)-hopsets
+- **Graph Primitives**: BFS, reverse BFS, SCC decomposition, Dijkstra, A*, transitive closure
+- **Deterministic Generators**: Path, cycle, DAG, dense, grid, SCC-structured, and weighted graph variants
+- **Work/Depth Simulation**: Explicit PRAM work/depth tracking with theoretical bounds
+- **Invariant Checkers**: Reachability preservation, distance approximation, SCC clique properties
+- **JSON Serialization**: Save and load graphs for reproducible experiments
+- **CLI Tooling**: Command-line interface for graph generation, queries, and benchmarks
 
-2. **Sequential Hopset Construction (Theorem 4)**  
-   - The CFR hopset algorithm ([CFR20]) with **TruncSSSP-Pruning** (Section 6).
-   - Near-linear time construction of a (beta, epsilon)-hopset with size O~(m / epsilon^2).
+## Installation
 
-3. **Reachability and Shortest-Path Primitives**  
-   - BFS, reverse BFS, SCC decomposition (Kosaraju).
-   - Dijkstra, truncated Dijkstra, hop-bounded shortest paths.
-   - Transitive closure via matrix multiplication (numpy BLAS).
+```bash
+# Clone the repository
+git clone https://github.com/sachn-cs/parallel-reachability-and-shortest-paths.git
+cd parallel-reachability-and-shortest-paths
 
-4. **Graph Generators and Utilities**  
-   - Deterministic generators for paths, cycles, DAGs, dense graphs, grids, and SCC-structured graphs.
-   - JSON serialization/deserialization for all graph types.
+# Create a virtual environment (recommended)
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-5. **Work/Depth Simulation Model**  
-   - Explicit work and depth/span tracking aligned with the paper's PRAM bounds.
-   - Separate observed runtime from simulated theoretical costs.
-
-6. **Theorem-Oriented Validation**  
-   - Invariant checkers for reachability preservation, distance approximation, SCC cliques, hop bounds, and partition correctness.
-
-7. **Benchmark and CLI Tooling**  
-   - Benchmark scripts for varying sizes, densities, and parameters.
-   - CLI for graph generation, shortcut/hopset construction, reachability queries, and shortest-path queries.
-
-## What is NOT Implemented
-
-- **True PRAM parallelism**: Python does not provide the PRAM model. All algorithms run sequentially. The parallel span bounds are NOT DETERMINED.
-- **HJS26 parallelization framework**: The paper black-boxes parallelization using [HJS26]; this framework is not reproduced.
-- **Exact fast matrix multiplication with omega < 2.371339**: We use numpy's `matmul` which relies on standard BLAS (effectively omega = 3 for most sizes).
-- **The o(1) terms in asymptotic bounds**: These are theoretical and absorbed into constants for finite inputs.
-- **Some CFR hopset details**: Sections 6.1--6.3 were partially truncated in the extracted paper text. The hopset reconstruction is noted with `ASSUMPTION` comments.
-
-## Setup
+# Install in editable mode with development dependencies
+pip install -e ".[dev]"
+```
 
 ### Requirements
 
 - Python >= 3.9
 - numpy >= 1.21.0
 
-### Installation
+## Quick Start
 
-```bash
-pip install -e ".[dev]"
-```
-
-This installs the package in editable mode with development dependencies (pytest).
-
-### Using requirements.txt
-
-```bash
-pip install -r requirements.txt
-```
-
-## Running Tests
-
-```bash
-pytest
-```
-
-All tests run in under a minute on a modern laptop.
-
-## Running the Demo
-
-```bash
-python scripts/demo.py
-```
-
-The demo shows:
-1. Shortcut set construction on a 100-vertex test graph.
-2. Hopset construction on an 80-vertex weighted test graph.
-3. SCC handling on a cyclic graph.
-4. A* search on a grid.
-
-## CLI Usage
-
-A full command-line interface is provided via `scripts/cli.py`.
-
-### Reachability
-
-```bash
-python -m scripts.cli reachability --n 100 --m 500 --omega 3.0 --seed 42
-```
-
-### Shortest Paths
-
-```bash
-python -m scripts.cli shortest-paths --n 80 --m 400 --epsilon 0.1 --seed 42
-```
-
-### Generate a Graph
-
-```bash
-python -m scripts.cli generate-graph path --n 50 --output graph.json
-python -m scripts.cli generate-graph random_dag --n 100 --p 0.2 --seed 1 --output dag.json
-python -m scripts.cli generate-graph dense --n 50 --m 500 --weighted --output dense.json
-```
-
-### Benchmarks
-
-```bash
-python -m scripts.cli benchmark-reachability --sizes 20 50 100 --densities 0.2 0.5 --output results.csv
-python -m scripts.cli benchmark-shortest-paths --sizes 20 50 --epsilons 0.05 0.1 --output hopset_results.csv
-```
-
-## Project Structure
-
-```
-prspnsd/
-├── prspnsd/
-│   ├── __init__.py
-│   ├── graph.py                 # Digraph and WeightedDigraph
-│   ├── reachability.py          # BFS, SCCs, topological sort
-│   ├── shortest_paths.py        # Dijkstra, A*, truncated SSSP, hop-bounded paths
-│   ├── transitive_closure.py    # Matrix-multiplication TC
-│   ├── shortcut_set.py          # JLS + TC-Pruning (Section 4)
-│   ├── hopset.py                # CFR + TruncSSSP-Pruning (Section 6)
-│   ├── generators.py            # Deterministic graph generators
-│   ├── serialization.py         # JSON serialization/deserialization
-│   ├── work_depth.py            # Simulated work/depth accounting
-│   └── invariants.py            # Theorem-oriented validation helpers
-├── tests/
-│   ├── test_graph.py
-│   ├── test_reachability.py
-│   ├── test_shortest_paths.py
-│   ├── test_transitive_closure.py
-│   ├── test_shortcut_set.py
-│   ├── test_hopset.py
-│   ├── test_generators.py
-│   ├── test_serialization.py
-│   ├── test_work_depth.py
-│   ├── test_invariants.py
-│   └── test_benchmark_sanity.py
-├── scripts/
-│   ├── demo.py
-│   ├── cli.py
-│   ├── benchmark_reachability.py
-│   └── benchmark_shortest_paths.py
-├── .github/workflows/ci.yml
-├── pyproject.toml
-├── requirements.txt
-└── README.md
-```
-
-## Usage
-
-### Shortcut Set for Reachability
+### Reachability with Shortcut Sets
 
 ```python
 from prspnsd.graph import Digraph
@@ -169,7 +54,7 @@ for i in range(100):
 for i in range(99):
     g.add_edge(i, i + 1)
 
-# Construct shortcut set (omega=3 for combinatorial, omega=2.37 for fast MM)
+# Construct shortcut set
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
 
 # Query reachability using shortcuts
@@ -178,7 +63,7 @@ reachable = parallel_bfs(g, source, shortcuts)
 assert reachable == bfs_reachability(g, source)  # Reachability is preserved
 ```
 
-### Hopset for Shortest Paths
+### Shortest Paths with Hopsets
 
 ```python
 from prspnsd.graph import WeightedDigraph
@@ -225,72 +110,110 @@ text = digraph_to_json(g)
 h = digraph_from_json(text)
 ```
 
-### Work/Depth Instrumentation
+## CLI Usage
 
-```python
-from prspnsd.work_depth import WorkDepthAccountant, record_bfs
-from prspnsd.generators import path_graph
-from prspnsd.reachability import bfs_reachability
+A full command-line interface is provided via `scripts/cli.py`.
 
-graph = path_graph(100)
-wd = WorkDepthAccountant()
-wd.start_timer()
-bfs_reachability(graph, 0)
-wd.stop_timer()
+```bash
+# Reachability demo
+python -m scripts.cli reachability --n 100 --m 500 --omega 3.0 --seed 42
 
-# Explicitly record theoretical cost
-record_bfs(wd, n=100, m=99)
-print(wd.summary())
+# Shortest paths demo
+python -m scripts.cli shortest-paths --n 80 --m 400 --epsilon 0.1 --seed 42
+
+# Generate a graph
+python -m scripts.cli generate-graph path --n 50 --output graph.json
+python -m scripts.cli generate-graph random_dag --n 100 --p 0.2 --seed 1 --output dag.json
+
+# Run benchmarks
+python -m scripts.cli benchmark-reachability --sizes 20 50 100 --densities 0.2 0.5 --output results.csv
+python -m scripts.cli benchmark-shortest-paths --sizes 20 50 --epsilons 0.05 0.1 --output hopset_results.csv
 ```
 
-### Invariant Checking
+## Project Structure
 
-```python
-from prspnsd.invariants import assert_reachability_preserved, assert_distance_approximation
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-
-shortcuts, beta = build_shortcut_set_for_reachability(g, random_seed=42)
-assert_reachability_preserved(g, shortcuts)
+```
+parallel-reachability-and-shortest-paths/
+├── prspnsd/                    # Main package
+│   ├── __init__.py             # Public API exports
+│   ├── graph.py                # Digraph and WeightedDigraph
+│   ├── reachability.py         # BFS, SCCs, topological sort
+│   ├── shortest_paths.py       # Dijkstra, A*, truncated SSSP
+│   ├── transitive_closure.py   # Matrix-multiplication TC
+│   ├── shortcut_set.py         # JLS + TC-Pruning (Theorem 2)
+│   ├── hopset.py               # CFR + TruncSSSP-Pruning (Theorem 4)
+│   ├── generators.py           # Deterministic graph generators
+│   ├── serialization.py        # JSON serialization/deserialization
+│   ├── work_depth.py           # Simulated work/depth accounting
+│   └── invariants.py           # Theorem-oriented validation helpers
+├── tests/                      # Test suite
+├── scripts/                    # CLI and benchmark scripts
+├── docs/                       # Documentation
+├── .github/                    # GitHub configuration
+├── pyproject.toml              # Build configuration
+├── CONTRIBUTING.md             # Contribution guidelines
+├── CODE_OF_CONDUCT.md          # Community standards
+├── SECURITY.md                 # Security policy
+├── CHANGELOG.md                # Version history
+└── LICENSE                     # MIT License
 ```
 
-## Architecture Overview
+## Documentation
 
-The codebase is organized into layers:
+- [Getting Started](docs/getting-started.md) - Quick setup guide
+- [Architecture](docs/architecture.md) - Codebase structure overview
+- [Algorithms](docs/algorithms.md) - Algorithm descriptions and paper references
+- [Work/Depth Model](docs/work-depth.md) - PRAM simulation details
+- [Invariants](docs/invariants.md) - Theorem validation helpers
+- [Benchmarks](docs/benchmarks.md) - Performance evaluation
+- [Deployment](docs/deployment.md) - Installation and publishing
+- [FAQ](docs/faq.md) - Common questions and answers
 
-1. **Graph Layer** (`graph.py`): Core data structures for directed and weighted directed graphs. Vertices are arbitrary hashable objects. Edge membership is O(1).
+## Development
 
-2. **Algorithm Layer** (`reachability.py`, `shortest_paths.py`, `transitive_closure.py`): Standard graph primitives (BFS, Dijkstra, SCCs, TC) used by the higher-level constructions.
+### Running Tests
 
-3. **Shortcut/Hopset Layer** (`shortcut_set.py`, `hopset.py`): The paper's main constructions. `shortcut_set.py` implements JLS and JLS+TC-Pruning. `hopset.py` implements CFR and CFR+TruncSSSP-Pruning. Both handle SCC contraction automatically.
+```bash
+pytest                          # Run all tests
+pytest -m "not slow"            # Skip slow tests
+pytest --cov=prspnsd            # Run with coverage
+```
 
-4. **Generator/Serialization Layer** (`generators.py`, `serialization.py`): Deterministic graph construction and JSON I/O for reproducible experiments.
+### Code Quality
 
-5. **Parallel Simulation Layer** (`work_depth.py`): Since Python lacks PRAM, this module provides explicit work/depth accounting. Each major primitive can add its theoretical cost to a `WorkDepthAccountant`. This is mathematically traceable to the paper's bounds but does not claim actual parallelism.
+```bash
+ruff check prspnsd tests scripts   # Linting
+mypy prspnsd                        # Type checking
+```
 
-6. **Validation Layer** (`invariants.py`): Structural checks that encode theorem conditions (reachability preservation, distance approximation, SCC cliques, partition correctness).
+### Running the Demo
 
-## Explanation of Work/Depth Instrumentation
+```bash
+python scripts/demo.py
+```
 
-The paper analyzes algorithms in the PRAM work/depth model:
-- **Work** = total number of operations.
-- **Depth** = length of the longest critical path (span).
+## Tech Stack
 
-Our implementation tracks these explicitly via `WorkDepthAccountant`:
-- **Observed runtime** is measured with `time.perf_counter()`.
-- **Simulated work** is accumulated as coarse-grained asymptotic estimates. For example, a BFS call adds O(m) work; a matrix multiplication adds O(n^omega) work.
-- **Simulated depth** tracks the critical path length. For sequential phases, depth accumulates additively. For parallel phases, depth takes the maximum across branches.
+| Component | Technology |
+|-----------|------------|
+| Language | Python 3.9+ |
+| Dependencies | numpy |
+| Testing | pytest, pytest-cov |
+| Linting | ruff |
+| Type Checking | mypy |
+| CI/CD | GitHub Actions |
+| Build System | setuptools (PEP 621) |
 
-This separation ensures we never conflate wall-clock time with theoretical parallel bounds.
+## Roadmap
 
-## Evaluation
-
-The implementation is evaluated via:
-
-1. **Correctness tests**: Reachability and shortest-path distances are preserved exactly (reachability) or within (1 + epsilon) (hopsets).
-2. **Invariants**: SCC shortcuts form cliques; partitioning preserves equivalence classes.
-3. **Property tests**: TC-Pruning and TruncSSSP-Pruning add edges without violating reachability/distance bounds.
-4. **Hop count estimation**: On test graphs, observed hop counts are consistent with theoretical beta bounds (up to constant factors).
-5. **Benchmark sanity**: Benchmark and CLI scripts execute without errors on small inputs.
+- [ ] True PRAM parallelism integration (multiprocessing/ray)
+- [ ] Fast matrix multiplication support (ω < 3)
+- [ ] MkDocs documentation site
+- [ ] PyPI publishing workflow
+- [ ] Pre-commit hooks configuration
+- [ ] Performance benchmarks on larger graphs
+- [ ] Additional graph generators
+- [ ] Export `complete_dag` and `graph_stats` in public API
 
 ## Important Notes
 
@@ -298,6 +221,18 @@ The implementation is evaluated via:
 - **No true PRAM parallelism**: All algorithms run sequentially. The parallel span bounds are NOT DETERMINED.
 - **Missing paper details**: Some constants in the hopset construction are reconstructed from analogy to the shortcut set. These are explicitly marked with `ASSUMPTION` comments in `hopset.py`.
 - **Asymptotic bounds**: We do not claim empirical validation proves asymptotic bounds. Benchmarks are for sanity checking only.
+
+## Contributing
+
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+
+## Code of Conduct
+
+This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
+
+## Security
+
+For reporting security vulnerabilities, please see [SECURITY.md](SECURITY.md).
 
 ## Citation
 
@@ -314,4 +249,4 @@ The implementation is evaluated via:
 
 ## License
 
-MIT
+[MIT](LICENSE)

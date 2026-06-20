@@ -6,7 +6,7 @@ Near-linear Work and Sub-square-root Depth"
 by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak (2026).
 """
 
-__version__ = "0.1.0"
+__version__ = "0.4.0"
 
 from prspnsd import invariants
 from prspnsd.generators import (
