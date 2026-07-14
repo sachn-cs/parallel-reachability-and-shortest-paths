@@ -183,6 +183,6 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on:
 
 ## Getting Help
 
-- Open an issue on [GitHub](https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/issues)
+- Open an issue on [GitHub](https://github.com/sachncs/parallel-reachability-and-shortest-paths/issues)
 - Check the [API Reference](index.md) for function documentation
 - Review the [Algorithms](algorithms.md) documentation for theoretical background

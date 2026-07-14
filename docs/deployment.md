@@ -11,7 +11,7 @@ This document covers how to deploy and distribute PRSPNSD.
 pip install prspnsd
 
 # Install from source
-git clone https://github.com/sachn-cs/parallel-reachability-and-shortest-paths.git
+git clone https://github.com/sachncs/parallel-reachability-and-shortest-paths.git
 cd parallel-reachability-and-shortest-paths
 pip install .
 ```

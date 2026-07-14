@@ -10,7 +10,7 @@ readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.9"
 authors = [
-    {name = "Sachin"}
+    {name = "Sachin <sachncs@gmail.com>"}
 ]
 keywords = [
     "graph-algorithms",
@@ -53,11 +53,11 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths"
-Documentation = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/tree/main/docs"
-Repository = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths.git"
-Issues = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/issues"
-Changelog = "https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/blob/main/CHANGELOG.md"
+Homepage = "https://github.com/sachncs/parallel-reachability-and-shortest-paths"
+Documentation = "https://github.com/sachncs/parallel-reachability-and-shortest-paths/tree/main/docs"
+Repository = "https://github.com/sachncs/parallel-reachability-and-shortest-paths.git"
+Issues = "https://github.com/sachncs/parallel-reachability-and-shortest-paths/issues"
+Changelog = "https://github.com/sachncs/parallel-reachability-and-shortest-paths/blob/main/CHANGELOG.md"
 
 [tool.setuptools.packages.find]
 where = ["."]
