@@ -1,9 +1,9 @@
 # Parallel Reachability and Shortest Paths on Non-sparse Digraphs
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![CI](https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/actions/workflows/ci.yml/badge.svg)](https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/actions/workflows/ci.yml)
+[![CI](https://github.com/sachncs/parallel-reachability-and-shortest-paths/actions/workflows/ci.yml/badge.svg)](https://github.com/sachncs/parallel-reachability-and-shortest-paths/actions/workflows/ci.yml)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
-[![Version](https://img.shields.io/badge/version-0.4.0-green.svg)](https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/releases)
+[![Version](https://img.shields.io/badge/version-0.4.0-green.svg)](https://github.com/sachncs/parallel-reachability-and-shortest-paths/releases)
 
 A faithful Python reproduction of **"Parallel Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and Sub-square-root Depth"** by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak ([arXiv:2605.03892](https://arxiv.org/abs/2605.03892)).
 
@@ -22,7 +22,7 @@ A faithful Python reproduction of **"Parallel Reachability and Shortest Paths on
 
 ```bash
 # Clone the repository
-git clone https://github.com/sachn-cs/parallel-reachability-and-shortest-paths.git
+git clone https://github.com/sachncs/parallel-reachability-and-shortest-paths.git
 cd parallel-reachability-and-shortest-paths
 
 # Create a virtual environment (recommended)

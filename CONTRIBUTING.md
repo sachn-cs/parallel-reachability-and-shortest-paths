@@ -30,7 +30,7 @@ By participating, you are expected to uphold this code.
    ```
 3. **Add the upstream remote**:
    ```bash
-   git remote add upstream https://github.com/sachn-cs/parallel-reachability-and-shortest-paths.git
+   git remote add upstream https://github.com/sachncs/parallel-reachability-and-shortest-paths.git
    ```
 
 ## Development Setup

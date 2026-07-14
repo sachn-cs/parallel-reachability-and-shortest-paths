@@ -13,7 +13,7 @@ This guide walks you through setting up and using PRSPNSD for the first time.
 
 ```bash
 # Clone the repository
-git clone https://github.com/sachn-cs/parallel-reachability-and-shortest-paths.git
+git clone https://github.com/sachncs/parallel-reachability-and-shortest-paths.git
 cd parallel-reachability-and-shortest-paths
 
 # Create a virtual environment (recommended)
@@ -103,4 +103,4 @@ pip install -e ".[dev]"
 pytest
 ```
 
-For more help, see the [FAQ](faq.md) or open an [issue](https://github.com/sachn-cs/parallel-reachability-and-shortest-paths/issues).
+For more help, see the [FAQ](faq.md) or open an [issue](https://github.com/sachncs/parallel-reachability-and-shortest-paths/issues).
