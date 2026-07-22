@@ -108,17 +108,21 @@ def parallel_bfs(
     queue.append(source)
     visited.add(source)
     out = graph._out_edges
+    # Index shortcuts by source for O(1) lookup per vertex instead of O(|H|).
+    shortcut_index: dict[object, list[object]] = {}
+    if shortcut_edges:
+        for a, b in shortcut_edges:
+            shortcut_index.setdefault(a, []).append(b)
     while queue:
         u = queue.popleft()
         for v in out.get(u, set()):
             if v not in visited:
                 visited.add(v)
                 queue.append(v)
-        if shortcut_edges:
-            for a, b in shortcut_edges:
-                if a == u and b not in visited:
-                    visited.add(b)
-                    queue.append(b)
+        for b in shortcut_index.get(u, ()):
+            if b not in visited:
+                visited.add(b)
+                queue.append(b)
     return visited
 
 
