@@ -284,3 +284,28 @@ class WeightedDigraph:
 
     def __repr__(self) -> str:
         return f"WeightedDigraph(n={self.num_vertices()}, m={self.num_edges()})"
+
+
+def contract_sccs(graph: Digraph) -> tuple[list[set[object]], dict[object, int]]:
+    """Compute the SCC decomposition and vertex-to-component mapping.
+
+    Contracts a directed graph into its strongly connected components.
+    Used by shortcut set and hopset construction to reduce cyclic graphs
+    to an acyclic condensation DAG.
+
+    Args:
+        graph: A directed graph.  Pass ``graph.to_unweighted()`` when the
+            input is a :class:`WeightedDigraph`.
+
+    Returns:
+        A tuple ``(sccs, scc_map)`` where *sccs* is a list of vertex sets
+        (one per SCC) and *scc_map* maps each vertex to its SCC index.
+    """
+    from prspnsd.reachability import strongly_connected_components
+
+    sccs = strongly_connected_components(graph)
+    scc_map: dict[object, int] = {}
+    for idx, scc in enumerate(sccs):
+        for v in scc:
+            scc_map[v] = idx
+    return sccs, scc_map

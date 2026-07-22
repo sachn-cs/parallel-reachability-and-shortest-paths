@@ -2,7 +2,7 @@
 
 import pytest
 
-from prspnsd.graph import Digraph, WeightedDigraph
+from prspnsd.graph import Digraph, WeightedDigraph, contract_sccs, partition_by_labels
 
 
 class TestDigraph:
@@ -191,3 +191,103 @@ class TestWeightedDigraph:
         g = WeightedDigraph()
         g.add_edge(0, 1, 5)
         assert repr(g) == "WeightedDigraph(n=2, m=1)"
+
+
+class TestPartitionByLabels:
+    """Tests for the partition_by_labels utility."""
+
+    def test_single_group(self):
+        labels = {0: {"A"}, 1: {"A"}, 2: {"A"}}
+        parts = partition_by_labels({0, 1, 2}, labels)
+        assert len(parts) == 1
+        assert parts[0] == {0, 1, 2}
+
+    def test_multiple_groups(self):
+        labels = {0: {"A"}, 1: {"A"}, 2: {"B"}}
+        parts = partition_by_labels({0, 1, 2}, labels)
+        assert len(parts) == 2
+        by_size = sorted(parts, key=len, reverse=True)
+        assert by_size[0] == {0, 1}
+        assert by_size[1] == {2}
+
+    def test_empty_vertices(self):
+        parts = partition_by_labels(set(), {})
+        assert parts == []
+
+    def test_all_unique_labels(self):
+        labels = {0: {"A"}, 1: {"B"}, 2: {"C"}}
+        parts = partition_by_labels({0, 1, 2}, labels)
+        assert len(parts) == 3
+
+    def test_empty_label_sets(self):
+        labels = {0: set(), 1: set()}
+        parts = partition_by_labels({0, 1}, labels)
+        assert len(parts) == 1
+        assert parts[0] == {0, 1}
+
+    def test_missing_vertex_defaults_to_empty_labels(self):
+        labels = {0: {"A"}}
+        parts = partition_by_labels({0, 1}, labels)
+        assert len(parts) == 2
+
+
+class TestContractSccs:
+    """Tests for the contract_sccs utility."""
+
+    def test_dag_no_sccs(self):
+        g = Digraph()
+        g.add_edge(0, 1)
+        g.add_edge(1, 2)
+        sccs, scc_map = contract_sccs(g)
+        assert len(sccs) == 3
+        assert scc_map[0] != scc_map[1] != scc_map[2]
+
+    def test_single_scc(self):
+        g = Digraph()
+        g.add_edge(0, 1)
+        g.add_edge(1, 2)
+        g.add_edge(2, 0)
+        sccs, scc_map = contract_sccs(g)
+        assert len(sccs) == 1
+        assert sccs[0] == {0, 1, 2}
+        assert scc_map[0] == scc_map[1] == scc_map[2]
+
+    def test_mixed_sccs_and_dag(self):
+        g = Digraph()
+        g.add_edge(0, 1)
+        g.add_edge(1, 2)
+        g.add_edge(2, 0)  # SCC {0,1,2}
+        g.add_edge(2, 3)
+        g.add_edge(3, 4)
+        sccs, scc_map = contract_sccs(g)
+        assert len(sccs) == 3
+        # Vertices 0,1,2 share an SCC
+        assert scc_map[0] == scc_map[1] == scc_map[2]
+        # Vertices 3 and 4 are singletons
+        assert scc_map[3] != scc_map[4]
+        assert scc_map[3] != scc_map[0]
+
+    def test_empty_graph(self):
+        g = Digraph()
+        sccs, scc_map = contract_sccs(g)
+        assert sccs == []
+        assert scc_map == {}
+
+    def test_single_vertex(self):
+        g = Digraph()
+        g.add_vertex(0)
+        sccs, scc_map = contract_sccs(g)
+        assert len(sccs) == 1
+        assert scc_map[0] == 0
+
+    def test_disconnected_sccs(self):
+        g = Digraph()
+        g.add_edge(0, 1)
+        g.add_edge(1, 0)
+        g.add_edge(2, 3)
+        g.add_edge(3, 2)
+        sccs, scc_map = contract_sccs(g)
+        assert len(sccs) == 2
+        assert scc_map[0] == scc_map[1]
+        assert scc_map[2] == scc_map[3]
+        assert scc_map[0] != scc_map[2]

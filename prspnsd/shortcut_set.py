@@ -12,7 +12,7 @@ import math
 import random
 from typing import Optional, cast
 
-from prspnsd.graph import Digraph, partition_by_labels
+from prspnsd.graph import Digraph, contract_sccs, partition_by_labels
 from prspnsd.reachability import compute_r_minus, compute_r_plus
 from prspnsd.transitive_closure import transitive_closure_on_subset
 
@@ -213,16 +213,11 @@ def build_shortcut_set_for_reachability(
     if n == 0:
         return set(), 0.0
 
-    from prspnsd.reachability import strongly_connected_components
-
-    sccs = strongly_connected_components(graph)
+    sccs, scc_map = contract_sccs(graph)
 
     dag = Digraph()
-    scc_map: dict[object, int] = {}
-    for idx, scc in enumerate(sccs):
+    for idx in range(len(sccs)):
         dag.add_vertex(idx)
-        for v in scc:
-            scc_map[v] = idx
 
     for u, v in graph.edges():
         if scc_map[u] != scc_map[v]:
