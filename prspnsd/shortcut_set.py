@@ -17,7 +17,7 @@ from prspnsd.reachability import compute_r_minus, compute_r_plus
 from prspnsd.transitive_closure import transitive_closure_on_subset
 
 
-def _sample_pivots(
+def sample_pivots(
     vertices: set[object],
     prob: float,
     rng: random.Random,
@@ -65,7 +65,7 @@ def jls_shortcut_set(
     log_n = math.log2(n_global) if n_global > 1 else 0.0
     prob = min(1.0, 100.0 * (k ** (level + 1)) * log_n / n_global)
 
-    pivots = _sample_pivots(graph.vertices(), prob, rng)
+    pivots = sample_pivots(graph.vertices(), prob, rng)
     shortcuts: set[tuple[object, object]] = set()
     labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
 
@@ -145,7 +145,7 @@ def jls_with_tc_pruning(
     log_n = math.log2(n_global) if n_global > 1 else 0.0
     prob = min(1.0, 100.0 * (k ** (level + 1)) * log_n / n_global)
 
-    pivots = _sample_pivots(graph.vertices(), prob, rng)
+    pivots = sample_pivots(graph.vertices(), prob, rng)
     shortcuts: set[tuple[object, object]] = set()
     labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
 

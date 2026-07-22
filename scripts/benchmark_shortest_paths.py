@@ -17,7 +17,7 @@ from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
 from prspnsd.work_depth import WorkDepthAccountant
 
 
-def _measure_hopset_construction(
+def measure_hopset_construction(
     graph: WeightedDigraph, epsilon: float, seed: int
 ) -> tuple[dict[tuple[object, object], int], float, float, float, float, float]:
     """Build hopset and return metrics.
@@ -68,7 +68,7 @@ def benchmark_suite(
                 n, edge_count, weight_range=(1, 5), random_seed=seed
             )
             hopset, beta, elapsed, max_ratio, mismatches, work = (
-                _measure_hopset_construction(graph, epsilon, seed)
+                measure_hopset_construction(graph, epsilon, seed)
             )
             row = {
                 "n": n,

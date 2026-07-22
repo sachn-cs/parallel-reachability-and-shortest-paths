@@ -42,18 +42,18 @@ class WorkDepthAccountant:
     work: float = 0.0
     depth: float = 0.0
     elapsed_seconds: float = 0.0
-    _operations: list[OperationRecord] = field(default_factory=list)
-    _start_time: float | None = field(default=None, repr=False)
+    records: list[OperationRecord] = field(default_factory=list)
+    start_time: float | None = field(default=None, repr=False)
 
     def start_timer(self) -> None:
         """Begin measuring wall-clock time."""
-        self._start_time = time.perf_counter()
+        self.start_time = time.perf_counter()
 
     def stop_timer(self) -> None:
         """End wall-clock measurement."""
-        if self._start_time is not None:
-            self.elapsed_seconds += time.perf_counter() - self._start_time
-            self._start_time = None
+        if self.start_time is not None:
+            self.elapsed_seconds += time.perf_counter() - self.start_time
+            self.start_time = None
 
     def record(
         self,
@@ -72,7 +72,7 @@ class WorkDepthAccountant:
         """
         self.work += work
         self.depth = max(self.depth, depth)  # parallel composition of sequential phases
-        self._operations.append(OperationRecord(name, work, depth, details))
+        self.records.append(OperationRecord(name, work, depth, details))
 
     def sequential_composition(self, other: WorkDepthAccountant) -> None:
         """Combine another accountant sequentially.
@@ -81,7 +81,7 @@ class WorkDepthAccountant:
         """
         self.work += other.work
         self.depth += other.depth
-        self._operations.extend(other._operations)
+        self.records.extend(other.records)
 
     def parallel_composition(self, others: list[WorkDepthAccountant]) -> None:
         """Combine several accountants in parallel.
@@ -93,7 +93,7 @@ class WorkDepthAccountant:
         max_depth = max((o.depth for o in others), default=0.0)
         self.depth += max_depth
         for o in others:
-            self._operations.extend(o._operations)
+            self.records.extend(o.records)
 
     def summary(self) -> dict[str, float]:
         """Return a dict with total work, depth, and elapsed time."""
@@ -105,7 +105,7 @@ class WorkDepthAccountant:
 
     def operations(self) -> list[OperationRecord]:
         """Return the list of recorded operations."""
-        return list(self._operations)
+        return list(self.records)
 
     def __repr__(self) -> str:
         return (

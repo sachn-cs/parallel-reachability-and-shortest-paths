@@ -47,19 +47,19 @@ from prspnsd.work_depth import (
 )
 
 
-def _load_digraph(path: str) -> Digraph:
+def load_digraph(path: str) -> Digraph:
     with open(path) as f:
         return digraph_from_json(f.read())
 
 
-def _load_weighted_digraph(path: str) -> WeightedDigraph:
+def load_weighted_digraph(path: str) -> WeightedDigraph:
     with open(path) as f:
         return weighted_digraph_from_json(f.read())
 
 
 def cmd_reachability(args: argparse.Namespace) -> None:
     if args.graph:
-        graph = _load_digraph(args.graph)
+        graph = load_digraph(args.graph)
     else:
         graph = dense_graph(args.n, args.m, random_seed=args.seed)
 
@@ -97,7 +97,7 @@ def cmd_reachability(args: argparse.Namespace) -> None:
 
 def cmd_shortest_paths(args: argparse.Namespace) -> None:
     if args.graph:
-        graph = _load_weighted_digraph(args.graph)
+        graph = load_weighted_digraph(args.graph)
     else:
         graph = weighted_dense_graph(
             args.n, args.m, weight_range=(1, 5), random_seed=args.seed

@@ -32,7 +32,7 @@ from prspnsd.shortest_paths import (
 )
 
 
-def _compute_truncated_sssp_structure(
+def compute_truncated_sssp_structure(
     graph: WeightedDigraph,
     vertex_subset: set[object],
     max_distance: int,
@@ -233,7 +233,7 @@ def cfr_with_truncsssp_pruning(
             labels[v].add(f"{p}Des_d")
 
         if len(d_ball) <= truncsssp_threshold:
-            trunc_edges = _compute_truncated_sssp_structure(graph, d_ball, d)
+            trunc_edges = compute_truncated_sssp_structure(graph, d_ball, d)
             for edge, weight in trunc_edges.items():
                 hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
 

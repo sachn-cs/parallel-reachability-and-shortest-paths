@@ -19,7 +19,7 @@ def dijkstra(graph: WeightedDigraph, source: object) -> dict[object, int]:
     distances[source] = 0
     heap: list[tuple[int, object]] = [(0, source)]
     visited: set[object] = set()
-    out = graph._out_edges
+    out = graph.out_edges
 
     while heap:
         d, u = heapq.heappop(heap)
@@ -58,7 +58,7 @@ def astar(
 
     heap: list[tuple[int, int, object]] = [(f_score[source], 0, source)]
     visited: set[object] = set()
-    out = graph._out_edges
+    out = graph.out_edges
 
     while heap:
         _, d, u = heapq.heappop(heap)
@@ -86,7 +86,7 @@ def truncated_dijkstra(
     distances: dict[object, int] = {source: 0}
     heap: list[tuple[int, object]] = [(0, source)]
     visited: set[object] = set()
-    out = graph._out_edges
+    out = graph.out_edges
 
     while heap:
         d, u = heapq.heappop(heap)
@@ -138,7 +138,7 @@ def shortest_path_hopbound(
     distances: dict[object, int] = {v: float('inf') for v in graph.vertices()}  # type: ignore[misc]
     distances[source] = 0
     heap: list[tuple[int, int, object]] = [(0, 0, source)]
-    out = graph._out_edges
+    out = graph.out_edges
     # Index hopset by source vertex for O(1) lookup per hop instead of O(|H|).
     hopset_index: dict[object, dict[object, int]] = {}
     for (a, b), weight in hopset_edges.items():
@@ -177,7 +177,7 @@ def shortest_path_tree(
     distances[source] = 0
     heap: list[tuple[int, object]] = [(0, source)]
     visited: set[object] = set()
-    out = graph._out_edges
+    out = graph.out_edges
 
     while heap:
         d, u = heapq.heappop(heap)
