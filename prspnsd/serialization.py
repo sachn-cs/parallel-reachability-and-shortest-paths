@@ -12,19 +12,19 @@ from typing import Any
 from prspnsd.graph import Digraph, WeightedDigraph
 
 
-def _vertex_to_json(v: object) -> Any:
+def vertex_to_json(v: object) -> Any:
     """Convert a vertex to a JSON-serializable type."""
     if isinstance(v, (str, int, float, bool)):
         return v
     if isinstance(v, (list, tuple)):
-        return [_vertex_to_json(x) for x in v]
+        return [vertex_to_json(x) for x in v]
     raise TypeError(f"Vertex of type {type(v).__name__} is not JSON serializable")
 
 
-def _vertex_from_json(data: Any) -> object:
+def vertex_from_json(data: Any) -> object:
     """Convert JSON data back to a vertex."""
     if isinstance(data, list):
-        return tuple(_vertex_from_json(x) for x in data)
+        return tuple(vertex_from_json(x) for x in data)
     return data
 
 
@@ -32,9 +32,9 @@ def digraph_to_dict(graph: Digraph) -> dict[str, Any]:
     """Convert an unweighted Digraph to a dict representation."""
     return {
         "type": "Digraph",
-        "vertices": [_vertex_to_json(v) for v in graph.vertices()],
+        "vertices": [vertex_to_json(v) for v in graph.vertices()],
         "edges": [
-            [_vertex_to_json(u), _vertex_to_json(v)]
+            [vertex_to_json(u), vertex_to_json(v)]
             for u, v in graph.edges()
         ],
     }
@@ -44,9 +44,9 @@ def weighted_digraph_to_dict(graph: WeightedDigraph) -> dict[str, Any]:
     """Convert a WeightedDigraph to a dict representation."""
     return {
         "type": "WeightedDigraph",
-        "vertices": [_vertex_to_json(v) for v in graph.vertices()],
+        "vertices": [vertex_to_json(v) for v in graph.vertices()],
         "edges": [
-            [_vertex_to_json(u), _vertex_to_json(v), w]
+            [vertex_to_json(u), vertex_to_json(v), w]
             for u, v, w in graph.edges()
         ],
     }
@@ -58,10 +58,10 @@ def digraph_from_dict(data: dict[str, Any]) -> Digraph:
         raise ValueError("Expected type 'Digraph' in serialized data")
     g = Digraph()
     for v in data["vertices"]:
-        g.add_vertex(_vertex_from_json(v))
+        g.add_vertex(vertex_from_json(v))
     for edge in data["edges"]:
         u, v = edge
-        g.add_edge(_vertex_from_json(u), _vertex_from_json(v))
+        g.add_edge(vertex_from_json(u), vertex_from_json(v))
     return g
 
 
@@ -71,10 +71,10 @@ def weighted_digraph_from_dict(data: dict[str, Any]) -> WeightedDigraph:
         raise ValueError("Expected type 'WeightedDigraph' in serialized data")
     g = WeightedDigraph()
     for v in data["vertices"]:
-        g.add_vertex(_vertex_from_json(v))
+        g.add_vertex(vertex_from_json(v))
     for edge in data["edges"]:
         u, v, w = edge
-        g.add_edge(_vertex_from_json(u), _vertex_from_json(v), w)
+        g.add_edge(vertex_from_json(u), vertex_from_json(v), w)
     return g
 
 

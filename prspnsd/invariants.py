@@ -53,7 +53,7 @@ def assert_hopbound(
     dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[misc]
     dist[source] = 0
     q: deque = deque([source])
-    out = graph._out_edges
+    out = graph.out_edges
     shortcut_list = list(shortcuts)
 
     while q:

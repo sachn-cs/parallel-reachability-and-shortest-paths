@@ -19,7 +19,7 @@ def bfs_reachability(graph: Digraph, source: object) -> set[object]:
     queue: deque[object] = deque()
     queue.append(source)
     visited.add(source)
-    out = graph._out_edges
+    out = graph.out_edges
     while queue:
         u = queue.popleft()
         for v in out.get(u, set()):
@@ -38,7 +38,7 @@ def reverse_bfs_reachability(graph: Digraph, target: object) -> set[object]:
     queue: deque[object] = deque()
     queue.append(target)
     visited.add(target)
-    inn = graph._in_edges
+    inn = graph.in_edges
     while queue:
         u = queue.popleft()
         for v in inn.get(u, set()):
@@ -63,7 +63,7 @@ def compute_r_ball(graph: Digraph, vertex: object) -> set[object]:
     return compute_r_plus(graph, vertex) | compute_r_minus(graph, vertex)
 
 
-def _compute_r_sets_for_vertices(
+def compute_r_sets_for_vertices(
     graph: Digraph, vertices: list[object]
 ) -> tuple[set[object], set[object]]:
     """Compute union of R^+ and R^- for a set of vertices efficiently."""
@@ -77,19 +77,19 @@ def _compute_r_sets_for_vertices(
 
 def compute_ancestors(graph: Digraph, path_vertices: list[object]) -> set[object]:
     r"""Compute R^-(G, P) \\ R^+(G, P): ancestors of path P."""
-    r_minus, r_plus = _compute_r_sets_for_vertices(graph, path_vertices)
+    r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_minus - r_plus
 
 
 def compute_descendants(graph: Digraph, path_vertices: list[object]) -> set[object]:
     r"""Compute R^+(G, P) \\ R^-(G, P): descendants of path P."""
-    r_minus, r_plus = _compute_r_sets_for_vertices(graph, path_vertices)
+    r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_plus - r_minus
 
 
 def compute_bridges(graph: Digraph, path_vertices: list[object]) -> set[object]:
     """Compute R^-(G, P) ∩ R^+(G, P): bridges of path P."""
-    r_minus, r_plus = _compute_r_sets_for_vertices(graph, path_vertices)
+    r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_minus & r_plus
 
 
@@ -107,7 +107,7 @@ def parallel_bfs(
     queue: deque[object] = deque()
     queue.append(source)
     visited.add(source)
-    out = graph._out_edges
+    out = graph.out_edges
     # Index shortcuts by source for O(1) lookup per vertex instead of O(|H|).
     shortcut_index: dict[object, list[object]] = {}
     if shortcut_edges:
@@ -133,7 +133,7 @@ def strongly_connected_components(graph: Digraph) -> list[set[object]]:
     """
     visited: set[object] = set()
     finish_order: list[object] = []
-    out = graph._out_edges
+    out = graph.out_edges
 
     def dfs1(v: object) -> None:
         visited.add(v)
@@ -147,7 +147,7 @@ def strongly_connected_components(graph: Digraph) -> list[set[object]]:
             dfs1(v)
 
     rev = graph.reversed()
-    rev_out = rev._out_edges
+    rev_out = rev.out_edges
     visited.clear()
     sccs: list[set[object]] = []
 
@@ -175,7 +175,7 @@ def topological_sort(graph: Digraph) -> list[object]:
     in_degree: dict[object, int] = {v: graph.degree_in(v) for v in graph.vertices()}
     queue: deque[object] = deque([v for v, d in in_degree.items() if d == 0])
     result: list[object] = []
-    out = graph._out_edges
+    out = graph.out_edges
 
     while queue:
         u = queue.popleft()

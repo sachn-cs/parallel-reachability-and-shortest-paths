@@ -18,7 +18,7 @@ from prspnsd.shortcut_set import build_shortcut_set_for_reachability
 from prspnsd.work_depth import WorkDepthAccountant
 
 
-def _measure_shortcut_construction(
+def measure_shortcut_construction(
     graph: Digraph, omega: float, seed: int
 ) -> tuple[set[tuple[object, object]], float, float, float, float]:
     """Build shortcut set and return metrics.
@@ -38,7 +38,7 @@ def _measure_shortcut_construction(
     # For simplicity, use vertex 0 if present
     source = 0 if graph.has_edge(0, 1) or graph.num_vertices() > 0 else None
     if source is not None:
-        hop_dists = _hop_count_bfs(graph, source, shortcuts)
+        hop_dists = hop_count_bfs(graph, source, shortcuts)
         reachable = {v for v, d in hop_dists.items() if d < float("inf")}
         max_hops = max((hop_dists[v] for v in reachable), default=0)
     else:
@@ -47,7 +47,7 @@ def _measure_shortcut_construction(
     return shortcuts, beta, elapsed, max_hops, accountant.work
 
 
-def _hop_count_bfs(
+def hop_count_bfs(
     graph: Digraph, source: object, shortcuts: set
 ) -> dict[object, int]:
     """BFS returning hop counts."""
@@ -56,7 +56,7 @@ def _hop_count_bfs(
     dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[dict-item]
     dist[source] = 0
     q: deque = deque([source])
-    out = graph._out_edges
+    out = graph.out_edges
     s_list = list(shortcuts)
     while q:
         u = q.popleft()
@@ -90,7 +90,7 @@ def benchmark_suite(
                 edge_count = min(max_edges, n)
 
             graph = dense_graph(n, edge_count, random_seed=seed)
-            shortcuts, beta, elapsed, max_hops, work = _measure_shortcut_construction(
+            shortcuts, beta, elapsed, max_hops, work = measure_shortcut_construction(
                 graph, omega, seed
             )
             row = {

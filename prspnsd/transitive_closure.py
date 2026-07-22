@@ -35,7 +35,7 @@ def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]
     return result
 
 
-def _vertex_to_index(graph: Digraph) -> tuple[dict[object, int], list[object]]:
+def vertex_to_index(graph: Digraph) -> tuple[dict[object, int], list[object]]:
     """Create a bijection between vertices and indices [0, n-1]."""
     vertices = list(graph.vertices())
     index_map = {v: i for i, v in enumerate(vertices)}
@@ -60,7 +60,7 @@ def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
     if n == 0:
         return set()
 
-    index_map, vertices = _vertex_to_index(graph)
+    index_map, vertices = vertex_to_index(graph)
 
     # Build adjacency matrix over the Boolean semiring {0, 1} with OR/AND.
     adj: Any = np.zeros((n, n), dtype=np.int32)
@@ -74,7 +74,7 @@ def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
     tc = adj.copy()
     max_iterations = max(1, (n - 1).bit_length())
 
-    for _ in range(max_iterations):
+    for iteration in range(max_iterations):  # noqa: B007
         old = tc.copy()
         tc = np.matmul(tc, tc, out=tc)
         tc = (tc > 0).astype(np.int32)

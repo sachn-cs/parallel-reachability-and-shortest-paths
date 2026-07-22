@@ -31,7 +31,7 @@ def demo_reachability():
     for i in range(n - 1):
         g.add_edge(i, i + 1)
     random.seed(42)
-    for _ in range(200):
+    for j in range(200):  # noqa: B007
         u = random.randint(0, n - 2)
         v = random.randint(u + 1, n - 1)
         g.add_edge(u, v)
@@ -60,7 +60,7 @@ def demo_reachability():
         q = deque([source])
         while q:
             u = q.popleft()
-            for v in graph._out_edges.get(u, set()):
+            for v in graph.out_edges.get(u, set()):
                 if dist[v] == float('inf'):
                     dist[v] = dist[u] + 1
                     q.append(v)
@@ -90,7 +90,7 @@ def demo_shortest_paths():
     random.seed(42)
     for i in range(n - 1):
         g.add_edge(i, i + 1, 1)
-    for _ in range(150):
+    for j in range(150):  # noqa: B007
         u = random.randint(0, n - 2)
         v = random.randint(u + 1, n - 1)
         g.add_edge(u, v, random.randint(1, 5))
