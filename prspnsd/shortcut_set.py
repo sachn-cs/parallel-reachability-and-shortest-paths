@@ -12,23 +12,9 @@ import math
 import random
 from typing import Optional, cast
 
-from prspnsd.graph import Digraph
+from prspnsd.graph import Digraph, partition_by_labels
 from prspnsd.reachability import compute_r_minus, compute_r_plus
 from prspnsd.transitive_closure import transitive_closure_on_subset
-
-
-def _partition_by_labels(
-    vertices: set[object], labels: dict[object, set[str]]
-) -> list[set[object]]:
-    """Partition vertices into equivalence classes by exact label equality.
-
-    Corresponds to Step 3 of JLS (Section 4.1).
-    """
-    groups: dict[frozenset, set[object]] = {}
-    for v in vertices:
-        key = frozenset(labels.get(v, set()))
-        groups.setdefault(key, set()).add(v)
-    return list(groups.values())
 
 
 def _sample_pivots(
@@ -100,7 +86,7 @@ def jls_shortcut_set(
         for v in r_plus:
             labels[v].add(f"{p}Des")
 
-    parts = _partition_by_labels(graph.vertices(), labels)
+    parts = partition_by_labels(graph.vertices(), labels)
     for part in parts:
         if len(part) > 1:
             sub = graph.induced_subgraph(part)
@@ -184,7 +170,7 @@ def jls_with_tc_pruning(
         if len(r_ball) <= tc_pruning_threshold:
             shortcuts |= transitive_closure_on_subset(graph, r_ball)
 
-    parts = _partition_by_labels(graph.vertices(), labels)
+    parts = partition_by_labels(graph.vertices(), labels)
     for part in parts:
         if len(part) > 1:
             sub = graph.induced_subgraph(part)

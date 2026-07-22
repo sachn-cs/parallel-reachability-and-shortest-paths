@@ -123,6 +123,29 @@ class Digraph:
         return f"Digraph(n={self.num_vertices()}, m={self.num_edges()})"
 
 
+def partition_by_labels(
+    vertices: set[object], labels: dict[object, set[str]]
+) -> list[set[object]]:
+    """Partition vertices into equivalence classes by exact label equality.
+
+    Corresponds to Step 3 of the JLS shortcut set construction (Section 4.1).
+    Two vertices are in the same class if and only if their label sets are
+    identical.
+
+    Args:
+        vertices: The vertex set to partition.
+        labels: A mapping from each vertex to its label set.
+
+    Returns:
+        A list of disjoint sets whose union equals *vertices*.
+    """
+    groups: dict[frozenset, set[object]] = {}
+    for v in vertices:
+        key = frozenset(labels.get(v, set()))
+        groups.setdefault(key, set()).add(v)
+    return list(groups.values())
+
+
 class WeightedDigraph:
     """A weighted directed graph G = (V, E, w) with non-negative integer weights.
 
