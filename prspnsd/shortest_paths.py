@@ -139,6 +139,10 @@ def shortest_path_hopbound(
     distances[source] = 0
     heap: list[tuple[int, int, object]] = [(0, 0, source)]
     out = graph._out_edges
+    # Index hopset by source vertex for O(1) lookup per hop instead of O(|H|).
+    hopset_index: dict[object, dict[object, int]] = {}
+    for (a, b), weight in hopset_edges.items():
+        hopset_index.setdefault(a, {})[b] = weight
 
     while heap:
         d, h, u = heapq.heappop(heap)
@@ -150,13 +154,12 @@ def shortest_path_hopbound(
             if nh <= max_hops and nd < distances[v]:
                 distances[v] = nd
                 heapq.heappush(heap, (nd, nh, v))
-        for (a, b), weight in hopset_edges.items():
-            if a == u:
-                nd = d + weight
-                nh = h + 1
-                if nh <= max_hops and nd < distances.get(b, float('inf')):  # type: ignore[arg-type]
-                    distances[b] = nd
-                    heapq.heappush(heap, (nd, nh, b))
+        for b, weight in hopset_index.get(u, {}).items():
+            nd = d + weight
+            nh = h + 1
+            if nh <= max_hops and nd < distances.get(b, float('inf')):  # type: ignore[arg-type]
+                distances[b] = nd
+                heapq.heappush(heap, (nd, nh, b))
 
     return {v: d for v, d in distances.items() if d < float('inf')}
 
