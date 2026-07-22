@@ -23,7 +23,7 @@ import math
 import random
 from typing import Optional, cast
 
-from prspnsd.graph import WeightedDigraph, partition_by_labels
+from prspnsd.graph import WeightedDigraph, contract_sccs, partition_by_labels
 from prspnsd.shortest_paths import (
     compute_d_ancestors,
     compute_d_ball,
@@ -283,16 +283,11 @@ def build_hopset_for_sssp(
     if n == 0:
         return {}, 0.0
 
-    from prspnsd.reachability import strongly_connected_components
-
-    sccs = strongly_connected_components(graph.to_unweighted())
+    sccs, scc_map = contract_sccs(graph.to_unweighted())
 
     dag = WeightedDigraph()
-    scc_map: dict[object, int] = {}
-    for idx, scc in enumerate(sccs):
+    for idx in range(len(sccs)):
         dag.add_vertex(idx)
-        for v in scc:
-            scc_map[v] = idx
 
     for u, v, w in graph.edges():
         if scc_map[u] != scc_map[v]:
