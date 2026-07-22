@@ -39,8 +39,7 @@ def demo_reachability():
     print(f"Input graph: n={g.num_vertices()}, m={g.num_edges()}")
 
     start = time.time()
-    shortcuts, beta = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=42)
+    shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     elapsed = time.time() - start
 
     print(f"Shortcut set size: {len(shortcuts)} edges")
@@ -54,19 +53,20 @@ def demo_reachability():
     print(f"Reachability preserved: {len(original_reachable)} vertices reachable")
 
     from collections import deque
+
     def hop_count_bfs(graph, source, shortcuts):
-        dist = {v: float('inf') for v in graph.vertices()}
+        dist = {v: float("inf") for v in graph.vertices()}
         dist[source] = 0
         q = deque([source])
         while q:
             u = q.popleft()
             for v in graph.out_edges.get(u, set()):
-                if dist[v] == float('inf'):
+                if dist[v] == float("inf"):
                     dist[v] = dist[u] + 1
                     q.append(v)
             if shortcuts:
                 for a, b in shortcuts:
-                    if a == u and dist[b] == float('inf'):
+                    if a == u and dist[b] == float("inf"):
                         dist[b] = dist[u] + 1
                         q.append(b)
         return dist
@@ -114,11 +114,11 @@ def demo_shortest_paths():
     max_ratio = 0.0
     mismatches = 0
     for v in g.vertices():
-        orig = original_distances.get(v, float('inf'))
-        hop = hopset_distances.get(v, float('inf'))
-        if orig == float('inf'):
+        orig = original_distances.get(v, float("inf"))
+        hop = hopset_distances.get(v, float("inf"))
+        if orig == float("inf"):
             continue
-        if hop == float('inf'):
+        if hop == float("inf"):
             mismatches += 1
             continue
         if hop > (1 + epsilon) * orig + 1e-9:
@@ -153,8 +153,7 @@ def demo_scc_handling():
     for i, scc in enumerate(sccs):
         print(f"  SCC {i}: {scc}")
 
-    shortcuts, beta = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=42)
+    shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     print(f"Shortcut set size: {len(shortcuts)} edges")
     print(f"Target hopbound beta: {beta:.2f}")
 

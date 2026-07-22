@@ -31,8 +31,7 @@ def assert_reachability_preserved(
             missing = original - augmented
             extra = augmented - original
             raise AssertionError(
-                f"Reachability mismatch from {v}: "
-                f"missing={missing}, extra={extra}. {msg or ''}"
+                f"Reachability mismatch from {v}: missing={missing}, extra={extra}. {msg or ''}"
             )
 
 
@@ -70,10 +69,7 @@ def assert_hopbound(
     reachable = {v for v, d in dist.items() if d < float("inf")}
     max_hops = max((dist[v] for v in reachable), default=0)
     if max_hops > beta:
-        raise AssertionError(
-            f"Hopbound violated: max_hops={max_hops} > beta={beta}. "
-            f"{msg or ''}"
-        )
+        raise AssertionError(f"Hopbound violated: max_hops={max_hops} > beta={beta}. {msg or ''}")
     return max_hops
 
 
@@ -99,9 +95,7 @@ def assert_scc_shortcuts_form_cliques(
                     u = scc_list[i]
                     v = scc_list[j]
                     if not graph.has_edge(u, v) and (u, v) not in shortcuts:
-                        raise AssertionError(
-                            f"Missing SCC shortcut ({u}, {v}). {msg or ''}"
-                        )
+                        raise AssertionError(f"Missing SCC shortcut ({u}, {v}). {msg or ''}")
 
 
 def assert_partition_correctness(
@@ -120,21 +114,15 @@ def assert_partition_correctness(
     for part in parts:
         if not part.issubset(vertices):
             extra = part - vertices
-            raise AssertionError(
-                f"Partition contains extraneous vertices: {extra}. {msg or ''}"
-            )
+            raise AssertionError(f"Partition contains extraneous vertices: {extra}. {msg or ''}")
         intersection = union & part
         if intersection:
-            raise AssertionError(
-                f"Partition parts overlap on {intersection}. {msg or ''}"
-            )
+            raise AssertionError(f"Partition parts overlap on {intersection}. {msg or ''}")
         union |= part
 
     if union != vertices:
         missing = vertices - union
-        raise AssertionError(
-            f"Partition missing vertices: {missing}. {msg or ''}"
-        )
+        raise AssertionError(f"Partition missing vertices: {missing}. {msg or ''}")
 
 
 def assert_distance_approximation(
@@ -162,8 +150,7 @@ def assert_distance_approximation(
         hop_d = approx.get(v, float("inf"))
         if hop_d == float("inf"):
             raise AssertionError(
-                f"Vertex {v} reachable in G but not in G ∪ H within "
-                f"{max_hops} hops. {msg or ''}"
+                f"Vertex {v} reachable in G but not in G ∪ H within {max_hops} hops. {msg or ''}"
             )
         if hop_d > (1 + epsilon) * orig_d + 1e-9:
             raise AssertionError(
@@ -188,7 +175,7 @@ def assert_shortcut_set_size_bound(
     """
     n = graph.num_vertices()
     log_n = max(1.0, math.log2(n + 2))
-    bound = log_n * n * (rho ** 2)
+    bound = log_n * n * (rho**2)
     if len(shortcuts) > bound:
         raise AssertionError(
             f"Shortcut set size {len(shortcuts)} exceeds coarse bound "
@@ -209,7 +196,7 @@ def assert_hopset_size_bound(
     """
     n = graph.num_vertices()
     log_n = max(1.0, math.log2(n + 2))
-    bound = log_n * (n / (epsilon ** 2) + n * (rho ** 2))
+    bound = log_n * (n / (epsilon**2) + n * (rho**2))
     if len(hopset) > bound:
         raise AssertionError(
             f"Hopset size {len(hopset)} exceeds coarse bound "
@@ -233,8 +220,7 @@ def check_equivalence_classes(
             if key in label_to_part:
                 if label_to_part[key] != part:
                     raise AssertionError(
-                        f"Vertex {v} with labels {key} appears in two "
-                        f"different parts. {msg or ''}"
+                        f"Vertex {v} with labels {key} appears in two different parts. {msg or ''}"
                     )
             else:
                 label_to_part[key] = part

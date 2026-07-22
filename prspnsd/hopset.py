@@ -142,9 +142,7 @@ def cfr_hopset(
                 max_level,
                 n_global,
                 level + 1,
-                random_seed=rng.randint(0, 2**31 - 1)
-                if random_seed is not None
-                else None,
+                random_seed=rng.randint(0, 2**31 - 1) if random_seed is not None else None,
             )
             for edge, weight in sub_hopset.items():
                 hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
@@ -203,7 +201,7 @@ def cfr_with_truncsssp_pruning(
     hopset: dict[tuple[object, object], int] = {}
     labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
 
-    truncsssp_threshold = (k ** 2) * (log_n ** 2) * (rho ** 2)
+    truncsssp_threshold = (k**2) * (log_n**2) * (rho**2)
 
     for p in pivots:
         d = distance_scale * int(max(1, log_n))
@@ -250,9 +248,7 @@ def cfr_with_truncsssp_pruning(
                 max_level,
                 n_global,
                 level + 1,
-                random_seed=rng.randint(0, 2**31 - 1)
-                if random_seed is not None
-                else None,
+                random_seed=rng.randint(0, 2**31 - 1) if random_seed is not None else None,
             )
             for edge, weight in sub_hopset.items():
                 hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
@@ -293,7 +289,7 @@ def build_hopset_for_sssp(
         if scc_map[u] != scc_map[v]:
             dag.add_edge(scc_map[u], scc_map[v], w)
 
-    beta = (n ** 3 / m) ** 0.25 if m > 0 else float("inf")
+    beta = (n**3 / m) ** 0.25 if m > 0 else float("inf")
 
     k = max(2.0, math.log2(n))
     rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
@@ -301,7 +297,13 @@ def build_hopset_for_sssp(
     max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
 
     dag_hopset = cfr_with_truncsssp_pruning(
-        dag, k, epsilon, rho, max_level, dag.num_vertices(), level=0,
+        dag,
+        k,
+        epsilon,
+        rho,
+        max_level,
+        dag.num_vertices(),
+        level=0,
         random_seed=random_seed,
     )
 

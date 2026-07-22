@@ -96,9 +96,7 @@ def jls_shortcut_set(
                 max_level,
                 n_global,
                 level + 1,
-                random_seed=rng.randint(0, 2**31 - 1)
-                if random_seed is not None
-                else None,
+                random_seed=rng.randint(0, 2**31 - 1) if random_seed is not None else None,
             )
             shortcuts |= sub_shortcuts
 
@@ -149,7 +147,7 @@ def jls_with_tc_pruning(
     shortcuts: set[tuple[object, object]] = set()
     labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
 
-    tc_pruning_threshold = (k ** 2) * (log_n ** 2) * (rho ** 2)
+    tc_pruning_threshold = (k**2) * (log_n**2) * (rho**2)
 
     for p in pivots:
         r_minus = compute_r_minus(graph, p)
@@ -181,9 +179,7 @@ def jls_with_tc_pruning(
                 max_level,
                 n_global,
                 level + 1,
-                random_seed=rng.randint(0, 2**31 - 1)
-                if random_seed is not None
-                else None,
+                random_seed=rng.randint(0, 2**31 - 1) if random_seed is not None else None,
             )
             shortcuts |= sub_shortcuts
 
@@ -223,7 +219,7 @@ def build_shortcut_set_for_reachability(
         if scc_map[u] != scc_map[v]:
             dag.add_edge(scc_map[u], scc_map[v])
 
-    beta = (n ** omega / m) ** (1.0 / (2.0 * omega - 2.0)) if m > 0 else float("inf")
+    beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0)) if m > 0 else float("inf")
 
     k = max(2.0, math.log2(n))
     rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0

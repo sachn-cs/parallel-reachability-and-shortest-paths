@@ -21,35 +21,32 @@ class TestCfrHopset:
         g.add_edge(2, 3, 3)
         g.add_edge(0, 3, 10)
         hopset = cfr_hopset(
-            g, k=2.0, epsilon=0.1, max_level=3,
-            n_global=g.num_vertices(), random_seed=42)
+            g, k=2.0, epsilon=0.1, max_level=3, n_global=g.num_vertices(), random_seed=42
+        )
 
         for v in g.vertices():
             original = dijkstra(g, v)
             with_hopset = shortest_path_hopbound(g, hopset, v, max_hops=100)
             for w in g.vertices():
-                orig_d = original.get(w, float('inf'))
-                hop_d = with_hopset.get(w, float('inf'))
+                orig_d = original.get(w, float("inf"))
+                hop_d = with_hopset.get(w, float("inf"))
                 assert orig_d == hop_d, f"Distance mismatch from {v} to {w}"
 
     def test_empty_graph(self):
         g = WeightedDigraph()
-        hopset = cfr_hopset(
-            g, k=2.0, epsilon=0.1, max_level=1, n_global=0, random_seed=42)
+        hopset = cfr_hopset(g, k=2.0, epsilon=0.1, max_level=1, n_global=0, random_seed=42)
         assert hopset == {}
 
     def test_single_vertex(self):
         g = WeightedDigraph()
         g.add_vertex(0)
-        hopset = cfr_hopset(
-            g, k=2.0, epsilon=0.1, max_level=1, n_global=1, random_seed=42)
+        hopset = cfr_hopset(g, k=2.0, epsilon=0.1, max_level=1, n_global=1, random_seed=42)
         assert hopset == {}
 
     def test_two_vertices(self):
         g = WeightedDigraph()
         g.add_edge(0, 1, 5)
-        hopset = cfr_hopset(
-            g, k=2.0, epsilon=0.1, max_level=2, n_global=2, random_seed=42)
+        hopset = cfr_hopset(g, k=2.0, epsilon=0.1, max_level=2, n_global=2, random_seed=42)
         assert hopset == {}
 
     def test_invalid_k_raises(self):
@@ -76,15 +73,13 @@ class TestCfrHopset:
         n = 40
         for i in range(n - 1):
             g.add_edge(i, i + 1, 1)
-        hopset = cfr_hopset(
-            g, k=2.0, epsilon=0.5, max_level=4,
-            n_global=n, random_seed=42)
+        hopset = cfr_hopset(g, k=2.0, epsilon=0.5, max_level=4, n_global=n, random_seed=42)
         for v in g.vertices():
             original = dijkstra(g, v)
             with_hopset = shortest_path_hopbound(g, hopset, v, max_hops=n)
             for w in g.vertices():
-                orig_d = original.get(w, float('inf'))
-                hop_d = with_hopset.get(w, float('inf'))
+                orig_d = original.get(w, float("inf"))
+                hop_d = with_hopset.get(w, float("inf"))
                 assert orig_d == hop_d
 
     def test_reproducibility(self):
@@ -106,15 +101,15 @@ class TestCfrWithTruncssspPruning:
         g.add_edge(2, 3, 3)
         g.add_edge(0, 3, 10)
         hopset = cfr_with_truncsssp_pruning(
-            g, k=2.0, epsilon=0.1, rho=1.0, max_level=3,
-            n_global=g.num_vertices(), random_seed=42)
+            g, k=2.0, epsilon=0.1, rho=1.0, max_level=3, n_global=g.num_vertices(), random_seed=42
+        )
 
         for v in g.vertices():
             original = dijkstra(g, v)
             with_hopset = shortest_path_hopbound(g, hopset, v, max_hops=100)
             for w in g.vertices():
-                orig_d = original.get(w, float('inf'))
-                hop_d = with_hopset.get(w, float('inf'))
+                orig_d = original.get(w, float("inf"))
+                hop_d = with_hopset.get(w, float("inf"))
                 assert orig_d == hop_d
 
     def test_truncsssp_adds_edges(self):
@@ -123,37 +118,32 @@ class TestCfrWithTruncssspPruning:
         for i in range(n - 1):
             g.add_edge(i, i + 1, 1)
 
-        hopset_base = cfr_hopset(
-            g, k=2.0, epsilon=0.1, max_level=4, n_global=n, random_seed=42)
+        hopset_base = cfr_hopset(g, k=2.0, epsilon=0.1, max_level=4, n_global=n, random_seed=42)
         hopset_trunc = cfr_with_truncsssp_pruning(
-            g, k=2.0, epsilon=0.1, rho=2.0, max_level=4,
-            n_global=n, random_seed=42)
+            g, k=2.0, epsilon=0.1, rho=2.0, max_level=4, n_global=n, random_seed=42
+        )
 
         assert len(hopset_trunc) >= len(hopset_base)
 
     def test_invalid_k_raises(self):
         g = WeightedDigraph()
         with pytest.raises(ValueError):
-            cfr_with_truncsssp_pruning(
-                g, k=1.0, epsilon=0.1, rho=1.0, max_level=1, n_global=1)
+            cfr_with_truncsssp_pruning(g, k=1.0, epsilon=0.1, rho=1.0, max_level=1, n_global=1)
 
     def test_invalid_epsilon_raises(self):
         g = WeightedDigraph()
         with pytest.raises(ValueError):
-            cfr_with_truncsssp_pruning(
-                g, k=2.0, epsilon=0.0, rho=1.0, max_level=1, n_global=1)
+            cfr_with_truncsssp_pruning(g, k=2.0, epsilon=0.0, rho=1.0, max_level=1, n_global=1)
 
     def test_invalid_rho_raises(self):
         g = WeightedDigraph()
         with pytest.raises(ValueError):
-            cfr_with_truncsssp_pruning(
-                g, k=2.0, epsilon=0.1, rho=0.0, max_level=1, n_global=1)
+            cfr_with_truncsssp_pruning(g, k=2.0, epsilon=0.1, rho=0.0, max_level=1, n_global=1)
 
     def test_invalid_max_level_raises(self):
         g = WeightedDigraph()
         with pytest.raises(ValueError):
-            cfr_with_truncsssp_pruning(
-                g, k=2.0, epsilon=0.1, rho=1.0, max_level=-1, n_global=1)
+            cfr_with_truncsssp_pruning(g, k=2.0, epsilon=0.1, rho=1.0, max_level=-1, n_global=1)
 
     def test_recursive_subparts_with_truncsssp(self):
         """Larger graph to trigger recursive sub-parts and truncsssp pruning."""
@@ -162,14 +152,14 @@ class TestCfrWithTruncssspPruning:
         for i in range(n - 1):
             g.add_edge(i, i + 1, 1)
         hopset = cfr_with_truncsssp_pruning(
-            g, k=2.0, epsilon=0.5, rho=2.0, max_level=4,
-            n_global=n, random_seed=42)
+            g, k=2.0, epsilon=0.5, rho=2.0, max_level=4, n_global=n, random_seed=42
+        )
         for v in g.vertices():
             original = dijkstra(g, v)
             with_hopset = shortest_path_hopbound(g, hopset, v, max_hops=n)
             for w in g.vertices():
-                orig_d = original.get(w, float('inf'))
-                hop_d = with_hopset.get(w, float('inf'))
+                orig_d = original.get(w, float("inf"))
+                hop_d = with_hopset.get(w, float("inf"))
                 assert orig_d == hop_d
 
     def test_reproducibility(self):
@@ -177,9 +167,11 @@ class TestCfrWithTruncssspPruning:
         for i in range(20):
             g.add_edge(i, i + 1, 1)
         h1 = cfr_with_truncsssp_pruning(
-            g, k=2.0, epsilon=0.1, rho=1.0, max_level=3, n_global=21, random_seed=123)
+            g, k=2.0, epsilon=0.1, rho=1.0, max_level=3, n_global=21, random_seed=123
+        )
         h2 = cfr_with_truncsssp_pruning(
-            g, k=2.0, epsilon=0.1, rho=1.0, max_level=3, n_global=21, random_seed=123)
+            g, k=2.0, epsilon=0.1, rho=1.0, max_level=3, n_global=21, random_seed=123
+        )
         assert h1 == h2
 
 
@@ -199,8 +191,8 @@ class TestBuildHopsetForSssp:
             original = dijkstra(g, v)
             with_hopset = shortest_path_hopbound(g, hopset, v, max_hops=100)
             for w in g.vertices():
-                orig_d = original.get(w, float('inf'))
-                hop_d = with_hopset.get(w, float('inf'))
+                orig_d = original.get(w, float("inf"))
+                hop_d = with_hopset.get(w, float("inf"))
                 assert orig_d == hop_d
 
     def test_end_to_end_on_graph_with_scc(self):
@@ -216,8 +208,8 @@ class TestBuildHopsetForSssp:
             original = dijkstra(g, v)
             with_hopset = shortest_path_hopbound(g, hopset, v, max_hops=100)
             for w in g.vertices():
-                orig_d = original.get(w, float('inf'))
-                hop_d = with_hopset.get(w, float('inf'))
+                orig_d = original.get(w, float("inf"))
+                hop_d = with_hopset.get(w, float("inf"))
                 assert orig_d == hop_d
 
     def test_long_path(self):

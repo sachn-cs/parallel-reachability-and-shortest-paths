@@ -28,9 +28,7 @@ def measure_shortcut_construction(
     accountant = WorkDepthAccountant()
     accountant.start_timer()
     start = time.perf_counter()
-    shortcuts, beta = build_shortcut_set_for_reachability(
-        graph, omega=omega, random_seed=seed
-    )
+    shortcuts, beta = build_shortcut_set_for_reachability(graph, omega=omega, random_seed=seed)
     elapsed = time.perf_counter() - start
     accountant.stop_timer()
 
@@ -47,9 +45,7 @@ def measure_shortcut_construction(
     return shortcuts, beta, elapsed, max_hops, accountant.work
 
 
-def hop_count_bfs(
-    graph: Digraph, source: object, shortcuts: set
-) -> dict[object, int]:
+def hop_count_bfs(graph: Digraph, source: object, shortcuts: set) -> dict[object, int]:
     """BFS returning hop counts."""
     from collections import deque
 
@@ -137,13 +133,9 @@ def main() -> None:
         default=[0.1, 0.3, 0.5, 0.8],
         help="Edge density fractions relative to complete digraph",
     )
-    parser.add_argument(
-        "--omega", type=float, default=3.0, help="Matrix multiplication exponent"
-    )
+    parser.add_argument("--omega", type=float, default=3.0, help="Matrix multiplication exponent")
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument(
-        "--output", type=str, default=None, help="Optional CSV output path"
-    )
+    parser.add_argument("--output", type=str, default=None, help="Optional CSV output path")
     args = parser.parse_args()
     benchmark_suite(args.sizes, args.densities, args.omega, args.seed, args.output)
 

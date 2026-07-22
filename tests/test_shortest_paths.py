@@ -1,7 +1,5 @@
 """Tests for shortest path algorithms."""
 
-
-
 from prspnsd.graph import WeightedDigraph
 from prspnsd.shortest_paths import (
     astar,

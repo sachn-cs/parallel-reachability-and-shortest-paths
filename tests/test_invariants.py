@@ -1,6 +1,5 @@
 """Tests for theorem-oriented validation helpers."""
 
-
 import pytest
 
 from prspnsd.generators import cycle_graph, path_graph, weighted_path_graph
@@ -22,9 +21,7 @@ class TestReachabilityPreserved:
 
     def test_path_with_shortcuts(self):
         g = path_graph(10)
-        shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=3, n_global=10, random_seed=1
-        )
+        shortcuts = jls_shortcut_set(g, k=2.0, max_level=3, n_global=10, random_seed=1)
         assert_reachability_preserved(g, shortcuts)
 
     def test_cycle_with_shortcuts(self):
@@ -109,9 +106,7 @@ class TestDistanceApproximation:
     def test_exact_hopset(self):
         g = weighted_path_graph(5, weight_range=(1, 1), random_seed=1)
         hopset = {}
-        ratios = assert_distance_approximation(
-            g, hopset, source=0, epsilon=0.0, max_hops=100
-        )
+        ratios = assert_distance_approximation(g, hopset, source=0, epsilon=0.0, max_hops=100)
         # Source vertex has ratio 0.0; all others should be exactly 1.0.
         assert all(r == 1.0 for v, r in ratios.items() if v != 0)
 
@@ -119,18 +114,14 @@ class TestDistanceApproximation:
         g = weighted_path_graph(3, weight_range=(1, 1), random_seed=1)
         hopset = {(0, 2): 10}
         with pytest.raises(AssertionError):
-            assert_distance_approximation(
-                g, hopset, source=0, epsilon=0.0, max_hops=1
-            )
+            assert_distance_approximation(g, hopset, source=0, epsilon=0.0, max_hops=1)
 
     def test_unreachable_vertex_in_hopset(self):
         g = weighted_path_graph(3, weight_range=(1, 1), random_seed=1)
         # Hopset only covers source, vertex 2 unreachable within hops
         hopset = {(0, 1): 1}
         with pytest.raises(AssertionError):
-            assert_distance_approximation(
-                g, hopset, source=0, epsilon=0.0, max_hops=1
-            )
+            assert_distance_approximation(g, hopset, source=0, epsilon=0.0, max_hops=1)
 
 
 class TestShortcutSetSizeBound:

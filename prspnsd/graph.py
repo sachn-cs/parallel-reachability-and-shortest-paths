@@ -2,33 +2,185 @@
 
 Follows the notation and definitions from Section 2 (Preliminaries).
 Optimized with __slots__ for memory efficiency.
+
+Hierarchy:
+    Graph (base) -- vertex storage, shared operations
+      Digraph (inherits Graph) -- unweighted directed graph
+        WeightedDigraph (inherits Digraph) -- weighted directed graph
 """
 
 from __future__ import annotations
 
+from collections.abc import Iterator
+from typing import Any
 
-class Digraph:
-    """A directed graph G = (V, E) with unweighted edges.
 
-    Vertices are arbitrary hashable objects. Edges are stored as adjacency sets
-    for O(1) membership testing. The graph may contain parallel edges.
+class Graph:
+    """Base class for directed graphs.
+
+    Provides vertex management, shared operations (induced_subgraph,
+    reversed, copy), and template hooks that subclasses implement
+    for type-specific edge storage.
+
+    Attributes:
+        vertex_set: The set of vertices V.
+        edge_count: Total number of edges |E|.
     """
 
     __slots__ = ("vertex_set", "out_edges", "in_edges", "edge_count")
 
     def __init__(self) -> None:
-        """Initialize an empty digraph."""
+        """Initialize an empty graph."""
         self.vertex_set: set[object] = set()
-        self.out_edges: dict[object, set[object]] = {}
-        self.in_edges: dict[object, set[object]] = {}
+        self.out_edges: dict[object, Any] = {}
+        self.in_edges: dict[object, Any] = {}
         self.edge_count: int = 0
 
     def add_vertex(self, v: object) -> None:
         """Add a vertex to the graph if not already present."""
         if v not in self.vertex_set:
             self.vertex_set.add(v)
-            self.out_edges[v] = set()
-            self.in_edges[v] = set()
+            self.initialize_vertex(v)
+
+    def has_vertex(self, v: object) -> bool:
+        """Check if vertex v exists in O(1)."""
+        return v in self.vertex_set
+
+    def vertices(self) -> set[object]:
+        """Return a copy of the vertex set."""
+        return set(self.vertex_set)
+
+    def num_vertices(self) -> int:
+        """Return n = |V|."""
+        return len(self.vertex_set)
+
+    def num_edges(self) -> int:
+        """Return m = |E|."""
+        return self.edge_count
+
+    def __repr__(self) -> str:
+        return f"{type(self).__name__}(n={self.num_vertices()}, m={self.num_edges()})"
+
+    # --- Template hooks (subclasses override) ---
+
+    def initialize_vertex(self, v: object) -> None:
+        """Set up adjacency storage for a newly added vertex."""
+        raise NotImplementedError
+
+    def iterate_edges_from(self, u: object) -> Iterator[tuple[object, Any]]:
+        """Yield (v, data) for each outgoing edge from u."""
+        raise NotImplementedError
+
+    def iterate_all_edges(self) -> Iterator[tuple[object, object, Any]]:
+        """Yield (u, v, data) for every edge in the graph."""
+        for u in self.vertex_set:
+            for v, data in self.iterate_edges_from(u):
+                yield u, v, data
+
+    def store_edge(self, u: object, v: object, data: Any) -> None:
+        """Store an edge in the adjacency structure.
+
+        Does NOT increment edge_count -- callers manage that.
+        """
+        raise NotImplementedError
+
+    def create_empty(self) -> Graph:
+        """Create an empty graph of the same concrete type."""
+        raise NotImplementedError
+
+    # --- Shared operations (use template hooks) ---
+
+    def induced_subgraph(self, vertex_subset: set[object]) -> Graph:
+        """Return G[vertex_subset].
+
+        As defined in Section 2.
+        """
+        subgraph = self.create_empty()
+        valid = vertex_subset & self.vertex_set
+        for v in valid:
+            subgraph.add_vertex(v)
+        for u in valid:
+            for v, data in self.iterate_edges_from(u):
+                if v in valid:
+                    subgraph.store_edge(u, v, data)
+                    subgraph.edge_count += 1
+        return subgraph
+
+    def reversed(self) -> Graph:
+        """Return G^R where all edges are flipped."""
+        g = self.create_empty()
+        g.vertex_set = set(self.vertex_set)
+        for v in self.vertex_set:
+            g.initialize_vertex(v)
+        for u, v, data in self.iterate_all_edges():
+            g.store_edge(v, u, data)
+            g.edge_count += 1
+        return g
+
+    def copy(self) -> Graph:
+        """Return a deep copy."""
+        g = self.create_empty()
+        g.vertex_set = set(self.vertex_set)
+        for v in self.vertex_set:
+            g.initialize_vertex(v)
+        for u in self.vertex_set:
+            for v2, data in self.iterate_edges_from(u):
+                g.store_edge(u, v2, data)
+        g.edge_count = self.edge_count
+        return g
+
+
+class Digraph(Graph):
+    """A directed graph G = (V, E) with unweighted edges.
+
+    Vertices are arbitrary hashable objects. Edges are stored as adjacency sets
+    for O(1) membership testing. The graph may contain parallel edges.
+    """
+
+    __slots__ = ()
+
+    def __init__(self) -> None:
+        """Initialize an empty digraph."""
+        super().__init__()
+        self.out_edges: dict[object, set[object]] = {}
+        self.in_edges: dict[object, set[object]] = {}
+
+    # --- Template hook implementations ---
+
+    def initialize_vertex(self, v: object) -> None:
+        """Initialize adjacency sets for vertex v."""
+        self.out_edges[v] = set()
+        self.in_edges[v] = set()
+
+    def iterate_edges_from(self, u: object) -> Iterator[tuple[object, None]]:
+        """Yield (v, None) for each outgoing edge from u."""
+        for v in self.out_edges.get(u, set()):
+            yield v, None
+
+    def store_edge(self, u: object, v: object, data: None) -> None:  # type: ignore[override]
+        """Add edge u -> v to the adjacency sets."""
+        self.out_edges[u].add(v)
+        self.in_edges[v].add(u)
+
+    def create_empty(self) -> Digraph:
+        """Create an empty unweighted digraph."""
+        return Digraph()
+
+    # --- Covariant return overrides ---
+
+    def induced_subgraph(self, vertex_subset: set[object]) -> Digraph:  # type: ignore[override]
+        """Return the induced subgraph as a Digraph."""
+        return super().induced_subgraph(vertex_subset)  # type: ignore[return-value]
+
+    def reversed(self) -> Digraph:  # type: ignore[override]
+        """Return the reversed graph as a Digraph."""
+        return super().reversed()  # type: ignore[return-value]
+
+    def copy(self) -> Digraph:  # type: ignore[override]
+        """Return a deep copy as a Digraph."""
+        return super().copy()  # type: ignore[return-value]
+
+    # --- Concrete API ---
 
     def add_edge(self, u: object, v: object) -> None:
         """Add a directed edge from u to v."""
@@ -43,17 +195,9 @@ class Digraph:
         """Check if edge (u, v) exists in O(1) time."""
         return v in self.out_edges.get(u, set())
 
-    def vertices(self) -> set[object]:
-        """Return the set of vertices V."""
-        return set(self.vertex_set)
-
     def edges(self) -> list[tuple[object, object]]:
-        """Return the list of edges E as ordered pairs (u, v)."""
-        return [
-            (u, v)
-            for u in self.vertex_set
-            for v in self.out_edges[u]
-        ]
+        """Return the list of edges as ordered pairs (u, v)."""
+        return [(u, v) for u in self.vertex_set for v in self.out_edges[u]]
 
     def out_neighbors(self, v: object) -> set[object]:
         """Return the out-neighbors of v as a set."""
@@ -63,14 +207,6 @@ class Digraph:
         """Return the in-neighbors of v as a set."""
         return set(self.in_edges.get(v, set()))
 
-    def num_vertices(self) -> int:
-        """Return n = |V|."""
-        return len(self.vertex_set)
-
-    def num_edges(self) -> int:
-        """Return m = |E|."""
-        return self.edge_count
-
     def degree_out(self, v: object) -> int:
         """Return out-degree of v."""
         return len(self.out_edges.get(v, set()))
@@ -79,53 +215,8 @@ class Digraph:
         """Return in-degree of v."""
         return len(self.in_edges.get(v, set()))
 
-    def induced_subgraph(self, vertex_subset: set[object]) -> Digraph:
-        """Return the induced subgraph G[vertex_subset].
 
-        As defined in Section 2.
-        """
-        subgraph = Digraph()
-        valid = vertex_subset & self.vertex_set
-        for v in valid:
-            subgraph.vertex_set.add(v)
-            subgraph.out_edges[v] = set()
-            subgraph.in_edges[v] = set()
-        for u in valid:
-            for v in self.out_edges[u] & valid:
-                subgraph.out_edges[u].add(v)
-                subgraph.in_edges[v].add(u)
-                subgraph.edge_count += 1
-        return subgraph
-
-    def reversed(self) -> Digraph:
-        """Return the reversed graph G^R where all edges are flipped."""
-        g = Digraph()
-        g.vertex_set = set(self.vertex_set)
-        g.out_edges = {v: set() for v in self.vertex_set}
-        g.in_edges = {v: set() for v in self.vertex_set}
-        for u, v in self.edges():
-            g.out_edges[v].add(u)
-            g.in_edges[u].add(v)
-            g.edge_count += 1
-        return g
-
-    def copy(self) -> Digraph:
-        """Return a deep copy of this digraph."""
-        g = Digraph()
-        g.vertex_set = set(self.vertex_set)
-        for v in self.vertex_set:
-            g.out_edges[v] = set(self.out_edges[v])
-            g.in_edges[v] = set(self.in_edges[v])
-        g.edge_count = self.edge_count
-        return g
-
-    def __repr__(self) -> str:
-        return f"Digraph(n={self.num_vertices()}, m={self.num_edges()})"
-
-
-def partition_by_labels(
-    vertices: set[object], labels: dict[object, set[str]]
-) -> list[set[object]]:
+def partition_by_labels(vertices: set[object], labels: dict[object, set[str]]) -> list[set[object]]:
     """Partition vertices into equivalence classes by exact label equality.
 
     Corresponds to Step 3 of the JLS shortcut set construction (Section 4.1).
@@ -146,29 +237,57 @@ def partition_by_labels(
     return list(groups.values())
 
 
-class WeightedDigraph:
+class WeightedDigraph(Digraph):
     """A weighted directed graph G = (V, E, w) with non-negative integer weights.
 
     The paper assumes polynomially bounded non-negative integer weights.
     """
 
-    __slots__ = ("vertex_set", "out_edges", "in_edges", "edge_count")
+    __slots__ = ()
 
     def __init__(self) -> None:
         """Initialize an empty weighted digraph."""
-        self.vertex_set: set[object] = set()
-        self.out_edges: dict[object, dict[object, int]] = {}
-        self.in_edges: dict[object, dict[object, int]] = {}
-        self.edge_count: int = 0
+        Graph.__init__(self)
+        self.out_edges: dict[object, dict[object, int]] = {}  # type: ignore[assignment]
+        self.in_edges: dict[object, dict[object, int]] = {}  # type: ignore[assignment]
 
-    def add_vertex(self, v: object) -> None:
-        """Add a vertex to the graph if not already present."""
-        if v not in self.vertex_set:
-            self.vertex_set.add(v)
-            self.out_edges[v] = {}
-            self.in_edges[v] = {}
+    # --- Override template hooks for weighted storage ---
 
-    def add_edge(self, u: object, v: object, weight: int) -> None:
+    def initialize_vertex(self, v: object) -> None:
+        """Initialize weighted adjacency dicts for vertex v."""
+        self.out_edges[v] = {}
+        self.in_edges[v] = {}
+
+    def iterate_edges_from(self, u: object) -> Iterator[tuple[object, int]]:  # type: ignore[override]
+        """Yield (v, weight) for each outgoing edge from u."""
+        yield from self.out_edges.get(u, {}).items()
+
+    def store_edge(self, u: object, v: object, data: int) -> None:  # type: ignore[override]
+        """Store a weighted edge u -> v with weight data."""
+        self.out_edges[u][v] = data
+        self.in_edges[v][u] = data
+
+    def create_empty(self) -> WeightedDigraph:
+        """Create an empty weighted digraph."""
+        return WeightedDigraph()
+
+    # --- Covariant return overrides ---
+
+    def induced_subgraph(self, vertex_subset: set[object]) -> WeightedDigraph:  # type: ignore[override]
+        """Return the induced subgraph as a WeightedDigraph."""
+        return super().induced_subgraph(vertex_subset)  # type: ignore[return-value]
+
+    def reversed(self) -> WeightedDigraph:  # type: ignore[override]
+        """Return the reversed graph as a WeightedDigraph."""
+        return super().reversed()  # type: ignore[return-value]
+
+    def copy(self) -> WeightedDigraph:  # type: ignore[override]
+        """Return a deep copy as a WeightedDigraph."""
+        return super().copy()  # type: ignore[return-value]
+
+    # --- Overridden API ---
+
+    def add_edge(self, u: object, v: object, weight: int) -> None:  # type: ignore[override]
         """Add a directed edge from u to v with given weight.
 
         If the edge already exists, keeps the minimum weight.
@@ -194,33 +313,17 @@ class WeightedDigraph:
         """Return weight of edge (u, v) or None if not present."""
         return self.out_edges.get(u, {}).get(v)
 
-    def vertices(self) -> set[object]:
-        """Return the set of vertices V."""
-        return set(self.vertex_set)
-
-    def edges(self) -> list[tuple[object, object, int]]:
+    def edges(self) -> list[tuple[object, object, int]]:  # type: ignore[override]
         """Return the list of edges as triples (u, v, weight)."""
-        return [
-            (u, v, w)
-            for u in self.vertex_set
-            for v, w in self.out_edges[u].items()
-        ]
+        return [(u, v, w) for u in self.vertex_set for v, w in self.out_edges[u].items()]
 
-    def out_neighbors(self, v: object) -> dict[object, int]:
+    def out_neighbors(self, v: object) -> dict[object, int]:  # type: ignore[override]
         """Return the out-neighbors of v with weights as a dict."""
         return dict(self.out_edges.get(v, {}))
 
-    def in_neighbors(self, v: object) -> dict[object, int]:
+    def in_neighbors(self, v: object) -> dict[object, int]:  # type: ignore[override]
         """Return the in-neighbors of v with weights as a dict."""
         return dict(self.in_edges.get(v, {}))
-
-    def num_vertices(self) -> int:
-        """Return n = |V|."""
-        return len(self.vertex_set)
-
-    def num_edges(self) -> int:
-        """Return m = |E|."""
-        return self.edge_count
 
     def degree_out(self, v: object) -> int:
         """Return out-degree of v."""
@@ -230,45 +333,6 @@ class WeightedDigraph:
         """Return in-degree of v."""
         return len(self.in_edges.get(v, {}))
 
-    def induced_subgraph(self, vertex_subset: set[object]) -> WeightedDigraph:
-        """Return the induced subgraph G[vertex_subset]."""
-        subgraph = WeightedDigraph()
-        valid = vertex_subset & self.vertex_set
-        for v in valid:
-            subgraph.vertex_set.add(v)
-            subgraph.out_edges[v] = {}
-            subgraph.in_edges[v] = {}
-        for u in valid:
-            for v, w in self.out_edges[u].items():
-                if v in valid:
-                    subgraph.out_edges[u][v] = w
-                    subgraph.in_edges[v][u] = w
-                    subgraph.edge_count += 1
-        return subgraph
-
-    def reversed(self) -> WeightedDigraph:
-        """Return the reversed graph where all edges are flipped."""
-        g = WeightedDigraph()
-        g.vertex_set = set(self.vertex_set)
-        for v in self.vertex_set:
-            g.out_edges[v] = {}
-            g.in_edges[v] = {}
-        for u, v, w in self.edges():
-            g.out_edges[v][u] = w
-            g.in_edges[u][v] = w
-            g.edge_count += 1
-        return g
-
-    def copy(self) -> WeightedDigraph:
-        """Return a deep copy of this weighted digraph."""
-        g = WeightedDigraph()
-        g.vertex_set = set(self.vertex_set)
-        for v in self.vertex_set:
-            g.out_edges[v] = dict(self.out_edges[v])
-            g.in_edges[v] = dict(self.in_edges[v])
-        g.edge_count = self.edge_count
-        return g
-
     def to_unweighted(self) -> Digraph:
         """Return the underlying unweighted digraph."""
         g = Digraph()
@@ -277,14 +341,11 @@ class WeightedDigraph:
             g.out_edges[v] = set()
             g.in_edges[v] = set()
         for u in self.vertex_set:
-            for v in self.out_edges.get(u, set()):
+            for v in self.out_edges.get(u, {}):
                 g.out_edges[u].add(v)
                 g.in_edges[v].add(u)
                 g.edge_count += 1
         return g
-
-    def __repr__(self) -> str:
-        return f"WeightedDigraph(n={self.num_vertices()}, m={self.num_edges()})"
 
 
 def contract_sccs(graph: Digraph) -> tuple[list[set[object]], dict[object, int]]:
