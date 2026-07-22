@@ -27,18 +27,36 @@ PRSPNSD is organized into six layers, each with clear responsibilities:
 
 ### Graph Layer (`graph.py`)
 
-The foundation of the entire system. Provides two core data structures:
+The foundation of the entire system. Three-class hierarchy using the template
+method pattern:
 
-- **`Digraph`**: Unweighted directed graph with O(1) edge membership queries.
-  Vertices are arbitrary hashable objects. Uses adjacency sets internally.
-- **`WeightedDigraph`**: Weighted variant with O(1) edge weight lookups.
+- **`Graph`** (base): Vertex management, edge count, and shared operations
+  (`induced_subgraph`, `reversed`, `copy`) implemented via template hooks.
+  Uses `__slots__` for memory efficiency.
+- **`Digraph(Graph)`**: Unweighted directed graph with O(1) edge membership.
+  Adjacency stored as `dict[object, set[object]]`.
+- **`WeightedDigraph(Digraph)`**: Weighted variant with O(1) edge weight
+  lookups. Adjacency stored as `dict[object, dict[object, int]]`.
 
-Both classes support:
-- Vertex/edge addition and removal
-- Edge membership queries
-- Induced subgraph construction
-- Graph reversal
-- Efficient iteration over vertices and edges
+**Template hooks** (overridden by subclasses):
+
+| Hook | Purpose |
+|------|---------|
+| `initialize_vertex(v)` | Set up adjacency storage for a new vertex |
+| `iterate_edges_from(u)` | Yield `(v, data)` for each outgoing edge from `u` |
+| `store_edge(u, v, data)` | Store an edge in the adjacency structure |
+| `create_empty()` | Create an empty graph of the same concrete type |
+
+**Shared operations** (implemented once on `Graph`, work for all subclasses):
+
+- `induced_subgraph(vertex_subset)` — G[S] as defined in Section 2
+- `reversed()` — G^R with all edges flipped
+- `copy()` — deep copy
+
+**Module-level helpers** (co-located with graph structures):
+
+- `partition_by_labels(vertices, labels)` — equivalence classes by label equality
+- `contract_sccs(graph)` — SCC decomposition and vertex-to-component mapping
 
 ### Algorithm Layer
 
@@ -127,21 +145,28 @@ Input Graph
    and use seeded `random.Random` instances.
 
 2. **Separation of Concerns**: Graph structures, algorithms, and validation
-   are cleanly separated.
+   are cleanly separated. Graph helpers (`partition_by_labels`,
+   `contract_sccs`) are co-located in `graph.py` since they operate
+   directly on graph internals.
 
-3. **Theoretical Fidelity**: Asymptotic complexity is documented and tracked
+3. **OO Hierarchy**: Inheritance only for genuine is-a relationships.
+   `Graph` → `Digraph` → `WeightedDigraph`. Template hooks enable shared
+   operations without code duplication.
+
+4. **Theoretical Fidelity**: Asymptotic complexity is documented and tracked
    via the work/depth model.
 
-4. **Testability**: Every public function has corresponding tests with both
-   positive and negative cases.
+5. **Testability**: Every public function has corresponding tests with both
+   positive and negative cases. Test coverage is 97%.
 
-5. **Extensibility**: New generators, algorithms, or validators can be added
-   without modifying existing code.
+6. **Extensibility**: New graph types can be added by subclassing `Graph`
+   and implementing the four template hooks.
 
 ## Module Dependencies
 
 ```
-graph.py          (no internal dependencies)
+graph.py          (no internal dependencies; lazy import from reachability.py
+    │              in contract_sccs)
     │
     ├── reachability.py
     │       │

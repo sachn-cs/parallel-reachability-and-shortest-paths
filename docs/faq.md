@@ -11,6 +11,7 @@ Saranurak (2026).
 
 ### What does PRSPNSD implement?
 
+- Graph hierarchy: `Graph` → `Digraph` → `WeightedDigraph` with template hooks
 - Shortcut set construction (Theorem 2) with TC-Pruning
 - Hopset construction (Theorem 4) with TruncSSSP-Pruning
 - Graph primitives (BFS, Dijkstra, SCC, transitive closure)
