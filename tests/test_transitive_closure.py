@@ -1,6 +1,5 @@
 """Tests for transitive closure computation."""
 
-
 from prspnsd.graph import Digraph
 from prspnsd.transitive_closure import (
     transitive_closure_brute_force,

@@ -144,9 +144,7 @@ def dense_graph(
     """
     max_edges = n * (n - 1)
     if edge_count > max_edges:
-        raise ValueError(
-            f"edge_count {edge_count} exceeds max {max_edges} for n={n}"
-        )
+        raise ValueError(f"edge_count {edge_count} exceeds max {max_edges} for n={n}")
     rng = random.Random(random_seed)
     g = Digraph()
     for i in range(n):
@@ -273,9 +271,7 @@ def weighted_dense_graph(
     """Create a dense weighted digraph with exactly edge_count edges."""
     max_edges = n * (n - 1)
     if edge_count > max_edges:
-        raise ValueError(
-            f"edge_count {edge_count} exceeds max {max_edges} for n={n}"
-        )
+        raise ValueError(f"edge_count {edge_count} exceeds max {max_edges} for n={n}")
     rng = random.Random(random_seed)
     lo, hi = weight_range
     g = WeightedDigraph()
@@ -295,10 +291,6 @@ def graph_stats(graph: Digraph) -> dict[str, int]:
     return {
         "n": graph.num_vertices(),
         "m": graph.num_edges(),
-        "max_out_degree": max(
-            (graph.degree_out(v) for v in graph.vertices()), default=0
-        ),
-        "max_in_degree": max(
-            (graph.degree_in(v) for v in graph.vertices()), default=0
-        ),
+        "max_out_degree": max((graph.degree_out(v) for v in graph.vertices()), default=0),
+        "max_in_degree": max((graph.degree_in(v) for v in graph.vertices()), default=0),
     }

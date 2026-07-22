@@ -8,9 +8,9 @@ We provide both a matrix-multiplication-based implementation (using numpy)
 and a brute-force BFS-based implementation for small graphs or verification.
 """
 
-
 try:
     import numpy as np
+
     HAS_NUMPY = True
 except ImportError:
     HAS_NUMPY = False
@@ -27,6 +27,7 @@ def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]
     Time complexity: O(n * m) which is O(n^3) in the worst case.
     """
     from prspnsd.reachability import compute_r_plus
+
     result: set[tuple[object, object]] = set()
     for u in graph.vertices():
         reachable = compute_r_plus(graph, u)

@@ -21,7 +21,8 @@ class TestJlsShortcutSet:
         g.add_edge(2, 3)
         g.add_edge(0, 3)
         shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=3, n_global=g.num_vertices(), random_seed=42)
+            g, k=2.0, max_level=3, n_global=g.num_vertices(), random_seed=42
+        )
 
         for v in g.vertices():
             original = bfs_reachability(g, v)
@@ -34,29 +35,25 @@ class TestJlsShortcutSet:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
 
-        shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=4, n_global=n, random_seed=42)
+        shortcuts = jls_shortcut_set(g, k=2.0, max_level=4, n_global=n, random_seed=42)
         reached = parallel_bfs(g, 0, shortcuts)
         assert 9 in reached
 
     def test_empty_graph(self):
         g = Digraph()
-        shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=1, n_global=0, random_seed=42)
+        shortcuts = jls_shortcut_set(g, k=2.0, max_level=1, n_global=0, random_seed=42)
         assert shortcuts == set()
 
     def test_single_vertex(self):
         g = Digraph()
         g.add_vertex(0)
-        shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=1, n_global=1, random_seed=42)
+        shortcuts = jls_shortcut_set(g, k=2.0, max_level=1, n_global=1, random_seed=42)
         assert shortcuts == set()
 
     def test_two_vertices(self):
         g = Digraph()
         g.add_edge(0, 1)
-        shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=2, n_global=2, random_seed=42)
+        shortcuts = jls_shortcut_set(g, k=2.0, max_level=2, n_global=2, random_seed=42)
         for v in g.vertices():
             original = bfs_reachability(g, v)
             with_shortcuts = parallel_bfs(g, v, shortcuts)
@@ -66,8 +63,7 @@ class TestJlsShortcutSet:
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(2, 3)
-        shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=3, n_global=4, random_seed=42)
+        shortcuts = jls_shortcut_set(g, k=2.0, max_level=3, n_global=4, random_seed=42)
         for v in g.vertices():
             original = bfs_reachability(g, v)
             with_shortcuts = parallel_bfs(g, v, shortcuts)
@@ -78,8 +74,7 @@ class TestJlsShortcutSet:
         n = 20
         for i in range(1, n):
             g.add_edge(0, i)
-        shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=3, n_global=n, random_seed=42)
+        shortcuts = jls_shortcut_set(g, k=2.0, max_level=3, n_global=n, random_seed=42)
         for v in g.vertices():
             original = bfs_reachability(g, v)
             with_shortcuts = parallel_bfs(g, v, shortcuts)
@@ -91,8 +86,7 @@ class TestJlsShortcutSet:
         for i in range(1, n):
             parent = (i - 1) // 2
             g.add_edge(parent, i)
-        shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=4, n_global=n, random_seed=42)
+        shortcuts = jls_shortcut_set(g, k=2.0, max_level=4, n_global=n, random_seed=42)
         for v in g.vertices():
             original = bfs_reachability(g, v)
             with_shortcuts = parallel_bfs(g, v, shortcuts)
@@ -117,8 +111,8 @@ class TestJlsWithTcPruning:
         g.add_edge(2, 3)
         g.add_edge(0, 3)
         shortcuts = jls_with_tc_pruning(
-            g, k=2.0, rho=1.0, max_level=3,
-            n_global=g.num_vertices(), random_seed=42)
+            g, k=2.0, rho=1.0, max_level=3, n_global=g.num_vertices(), random_seed=42
+        )
 
         for v in g.vertices():
             original = bfs_reachability(g, v)
@@ -131,17 +125,16 @@ class TestJlsWithTcPruning:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
 
-        shortcuts_base = jls_shortcut_set(
-            g, k=2.0, max_level=4, n_global=n, random_seed=42)
+        shortcuts_base = jls_shortcut_set(g, k=2.0, max_level=4, n_global=n, random_seed=42)
         shortcuts_tc = jls_with_tc_pruning(
-            g, k=2.0, rho=2.0, max_level=4, n_global=n, random_seed=42)
+            g, k=2.0, rho=2.0, max_level=4, n_global=n, random_seed=42
+        )
 
         assert len(shortcuts_tc) >= len(shortcuts_base)
 
     def test_empty_graph(self):
         g = Digraph()
-        shortcuts = jls_with_tc_pruning(
-            g, k=2.0, rho=1.0, max_level=1, n_global=0, random_seed=42)
+        shortcuts = jls_with_tc_pruning(g, k=2.0, rho=1.0, max_level=1, n_global=0, random_seed=42)
         assert shortcuts == set()
 
     def test_invalid_k_raises(self):
@@ -173,8 +166,7 @@ class TestJlsWithTcPruning:
         for i in range(n):
             for j in range(i + 1, n):
                 g.add_edge(i, j)
-        shortcuts = jls_with_tc_pruning(
-            g, k=2.0, rho=1.0, max_level=3, n_global=n, random_seed=42)
+        shortcuts = jls_with_tc_pruning(g, k=2.0, rho=1.0, max_level=3, n_global=n, random_seed=42)
         for v in g.vertices():
             original = bfs_reachability(g, v)
             with_shortcuts = parallel_bfs(g, v, shortcuts)

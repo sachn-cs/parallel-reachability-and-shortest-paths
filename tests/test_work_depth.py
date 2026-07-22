@@ -142,7 +142,7 @@ class TestRecordingFunctions:
     def test_record_matrix_multiply(self):
         wd = WorkDepthAccountant()
         record_matrix_multiply(wd, n=100, omega=3.0)
-        assert wd.work == 100 ** 3
+        assert wd.work == 100**3
         assert wd.depth == pytest.approx(math.log2(102))
 
     def test_record_matrix_multiply_none(self):
@@ -151,7 +151,7 @@ class TestRecordingFunctions:
     def test_record_transitive_closure(self):
         wd = WorkDepthAccountant()
         record_transitive_closure(wd, n=50, omega=3.0)
-        assert wd.work == 50 ** 3
+        assert wd.work == 50**3
         assert wd.depth == pytest.approx(math.log2(52))
 
     def test_record_transitive_closure_none(self):
@@ -160,7 +160,7 @@ class TestRecordingFunctions:
     def test_record_tc_pruning(self):
         wd = WorkDepthAccountant()
         record_tc_pruning(wd, ball_size=16, omega=3.0)
-        assert wd.work == 16 ** 3
+        assert wd.work == 16**3
         assert wd.depth == pytest.approx(math.log2(18))
 
     def test_record_tc_pruning_trivial(self):
@@ -174,7 +174,7 @@ class TestRecordingFunctions:
     def test_record_truncsssp_pruning(self):
         wd = WorkDepthAccountant()
         record_truncsssp_pruning(wd, ball_size=10)
-        assert wd.work == 10 ** 3
+        assert wd.work == 10**3
 
     def test_record_truncsssp_pruning_none(self):
         record_truncsssp_pruning(None, ball_size=10)

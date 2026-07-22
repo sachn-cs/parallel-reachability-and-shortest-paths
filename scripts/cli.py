@@ -99,16 +99,12 @@ def cmd_shortest_paths(args: argparse.Namespace) -> None:
     if args.graph:
         graph = load_weighted_digraph(args.graph)
     else:
-        graph = weighted_dense_graph(
-            args.n, args.m, weight_range=(1, 5), random_seed=args.seed
-        )
+        graph = weighted_dense_graph(args.n, args.m, weight_range=(1, 5), random_seed=args.seed)
 
     accountant = WorkDepthAccountant()
     accountant.start_timer()
     start = time.perf_counter()
-    hopset, beta = build_hopset_for_sssp(
-        graph, epsilon=args.epsilon, random_seed=args.seed
-    )
+    hopset, beta = build_hopset_for_sssp(graph, epsilon=args.epsilon, random_seed=args.seed)
     elapsed = time.perf_counter() - start
     accountant.stop_timer()
 
@@ -178,14 +174,10 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
         if args.generator == "path":
             graph = weighted_path_graph(args.n, random_seed=args.seed)
         elif args.generator == "random_dag":
-            graph = weighted_random_dag(
-                args.n, edge_probability=args.p, random_seed=args.seed
-            )
+            graph = weighted_random_dag(args.n, edge_probability=args.p, random_seed=args.seed)
         elif args.generator == "dense":
             edge_count = min(args.n * (args.n - 1), args.m)
-            graph = weighted_dense_graph(
-                args.n, edge_count, random_seed=args.seed
-            )
+            graph = weighted_dense_graph(args.n, edge_count, random_seed=args.seed)
         else:
             print(f"Unknown weighted generator: {args.generator}")
             sys.exit(1)
@@ -200,9 +192,7 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
         elif args.generator == "random_dag":
             graph = random_dag(args.n, edge_probability=args.p, random_seed=args.seed)
         elif args.generator == "erdos_renyi":
-            graph = erdos_renyi_digraph(
-                args.n, edge_probability=args.p, random_seed=args.seed
-            )
+            graph = erdos_renyi_digraph(args.n, edge_probability=args.p, random_seed=args.seed)
         elif args.generator == "dense":
             edge_count = min(args.n * (args.n - 1), args.m)
             graph = dense_graph(args.n, edge_count, random_seed=args.seed)
@@ -247,9 +237,7 @@ def main() -> None:
     p_reach.set_defaults(func=cmd_reachability)
 
     # shortest-paths
-    p_sp = subparsers.add_parser(
-        "shortest-paths", help="Build hopset and query shortest paths"
-    )
+    p_sp = subparsers.add_parser("shortest-paths", help="Build hopset and query shortest paths")
     p_sp.add_argument("--graph", type=str, default=None, help="Input weighted graph JSON")
     p_sp.add_argument("--n", type=int, default=80, help="Vertices (if --graph omitted)")
     p_sp.add_argument("--m", type=int, default=800, help="Edges (if --graph omitted)")
@@ -260,28 +248,18 @@ def main() -> None:
     p_sp.set_defaults(func=cmd_shortest_paths)
 
     # benchmark-reachability
-    p_br = subparsers.add_parser(
-        "benchmark-reachability", help="Run reachability benchmarks"
-    )
-    p_br.add_argument(
-        "--sizes", type=int, nargs="+", default=[20, 50, 100, 200]
-    )
-    p_br.add_argument(
-        "--densities", type=float, nargs="+", default=[0.1, 0.3, 0.5, 0.8]
-    )
+    p_br = subparsers.add_parser("benchmark-reachability", help="Run reachability benchmarks")
+    p_br.add_argument("--sizes", type=int, nargs="+", default=[20, 50, 100, 200])
+    p_br.add_argument("--densities", type=float, nargs="+", default=[0.1, 0.3, 0.5, 0.8])
     p_br.add_argument("--omega", type=float, default=3.0)
     p_br.add_argument("--seed", type=int, default=42)
     p_br.add_argument("--output", type=str, default=None)
     p_br.set_defaults(func=cmd_benchmark_reachability)
 
     # benchmark-shortest-paths
-    p_bs = subparsers.add_parser(
-        "benchmark-shortest-paths", help="Run shortest-path benchmarks"
-    )
+    p_bs = subparsers.add_parser("benchmark-shortest-paths", help="Run shortest-path benchmarks")
     p_bs.add_argument("--sizes", type=int, nargs="+", default=[20, 50, 100])
-    p_bs.add_argument(
-        "--epsilons", type=float, nargs="+", default=[0.05, 0.1, 0.2, 0.5]
-    )
+    p_bs.add_argument("--epsilons", type=float, nargs="+", default=[0.05, 0.1, 0.2, 0.5])
     p_bs.add_argument("--seed", type=int, default=42)
     p_bs.add_argument("--output", type=str, default=None)
     p_bs.set_defaults(func=cmd_benchmark_shortest_paths)

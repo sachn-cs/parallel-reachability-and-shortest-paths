@@ -195,7 +195,7 @@ def record_matrix_multiply(
     """
     if accountant is None:
         return
-    work = n ** omega
+    work = n**omega
     depth = max(1.0, math.log2(n + 2))
     accountant.record("matrix_multiply", work=work, depth=depth, details=details)
 
@@ -213,7 +213,7 @@ def record_transitive_closure(
     """
     if accountant is None:
         return
-    work = n ** omega
+    work = n**omega
     depth = max(1.0, math.log2(n + 2))
     accountant.record("transitive_closure", work=work, depth=depth, details=details)
 
@@ -234,11 +234,9 @@ def record_tc_pruning(
     b = ball_size
     if b <= 1:
         return
-    work = b ** omega
+    work = b**omega
     depth = max(1.0, math.log2(b + 2))
-    accountant.record(
-        "tc_pruning", work=work, depth=depth, details=details
-    )
+    accountant.record("tc_pruning", work=work, depth=depth, details=details)
 
 
 def record_truncsssp_pruning(
@@ -260,10 +258,8 @@ def record_truncsssp_pruning(
         return
     # Conservative bound: |R| Dijkstra runs on subgraph with <= |R| vertices.
     # Densest possible subgraph has O(|R|^2) edges.
-    work = b * (b ** 2)
-    accountant.record(
-        "truncsssp_pruning", work=work, depth=work, details=details
-    )
+    work = b * (b**2)
+    accountant.record("truncsssp_pruning", work=work, depth=work, details=details)
 
 
 def record_scc_decomposition(
@@ -343,7 +339,7 @@ def record_hopset_construction(
     if accountant is None:
         return
     log_n = max(1.0, math.log2(n + 2))
-    work = (m / (epsilon ** 2)) + n * (rho ** 4)
+    work = (m / (epsilon**2)) + n * (rho**4)
     depth = n * log_n
     accountant.record(
         "hopset_construction",
@@ -378,7 +374,7 @@ def theoretical_hopset_work(n: int, m: int, rho: float, epsilon: float) -> float
     Bound from Theorem 4: O~(m / epsilon^2 + n * rho^4).
     """
     log_n = max(1.0, math.log2(n + 2))
-    return log_n * ((m / (epsilon ** 2)) + n * (rho ** 4))
+    return log_n * ((m / (epsilon**2)) + n * (rho**4))
 
 
 def theoretical_hopset_depth(n: int, m: int, rho: float) -> float:
@@ -388,5 +384,5 @@ def theoretical_hopset_depth(n: int, m: int, rho: float) -> float:
     We approximate the o(1) term with a single log factor.
     """
     log_n = max(1.0, math.log2(n + 2))
-    depth = math.pow((n ** 3) / max(1, m), 0.25) / rho
+    depth = math.pow((n**3) / max(1, m), 0.25) / rho
     return log_n * depth
