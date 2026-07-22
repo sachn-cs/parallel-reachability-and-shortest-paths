@@ -23,25 +23,13 @@ import math
 import random
 from typing import Optional, cast
 
-from prspnsd.graph import WeightedDigraph
+from prspnsd.graph import WeightedDigraph, partition_by_labels
 from prspnsd.shortest_paths import (
     compute_d_ancestors,
     compute_d_ball,
     compute_d_descendants,
     dijkstra,
 )
-
-
-def _partition_by_weighted_labels(
-    vertices: set[object],
-    labels: dict[object, set[str]],
-) -> list[set[object]]:
-    """Partition vertices into equivalence classes by exact label equality."""
-    groups: dict[frozenset, set[object]] = {}
-    for v in vertices:
-        key = frozenset(labels.get(v, set()))
-        groups.setdefault(key, set()).add(v)
-    return list(groups.values())
 
 
 def _compute_truncated_sssp_structure(
@@ -142,7 +130,7 @@ def cfr_hopset(
             labels[v].add(f"I d-reach {p}")
             labels[v].add(f"{p}Des_d")
 
-    parts = _partition_by_weighted_labels(graph.vertices(), labels)
+    parts = partition_by_labels(graph.vertices(), labels)
 
     for part in parts:
         if len(part) > 1:
@@ -249,7 +237,7 @@ def cfr_with_truncsssp_pruning(
             for edge, weight in trunc_edges.items():
                 hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
 
-    parts = _partition_by_weighted_labels(graph.vertices(), labels)
+    parts = partition_by_labels(graph.vertices(), labels)
 
     for part in parts:
         if len(part) > 1:
