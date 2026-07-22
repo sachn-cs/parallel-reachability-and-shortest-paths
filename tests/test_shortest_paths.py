@@ -101,6 +101,15 @@ class TestAStar:
         g.add_vertex(0)
         assert astar(g, 0, 0, lambda v: 0) == 0
 
+    def test_visited_skip(self):
+        """Trigger the 'u in visited' branch via multiple heap entries."""
+        g = WeightedDigraph()
+        g.add_edge(0, 1, 1)
+        g.add_edge(0, 2, 3)
+        g.add_edge(1, 2, 1)
+        # Vertex 2 is pushed twice (direct 0->2 and via 0->1->2).
+        assert astar(g, 0, 2, lambda v: 0) == 2
+
     def test_unreachable(self):
         g = WeightedDigraph()
         g.add_vertex(0)
@@ -170,6 +179,15 @@ class TestTruncatedDijkstra:
         g.add_vertex(0)
         dists = truncated_dijkstra(g, 0, 10)
         assert dists == {0: 0}
+
+    def test_visited_skip(self):
+        """Trigger the 'u in visited' branch via multiple heap entries."""
+        g = WeightedDigraph()
+        g.add_edge(0, 1, 1)
+        g.add_edge(0, 2, 3)
+        g.add_edge(1, 2, 1)
+        dists = truncated_dijkstra(g, 0, 10)
+        assert dists[2] == 2
 
 
 class TestDBall:
