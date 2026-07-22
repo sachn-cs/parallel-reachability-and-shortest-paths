@@ -143,8 +143,11 @@ python -m scripts.cli benchmark-reachability --sizes 20 50 100 --densities 0.2 0
 
 ### Graph Types
 
-- `Digraph` — unweighted directed graph with O(1) edge membership.
-- `WeightedDigraph` — weighted directed graph with O(1) edge membership.
+- `Graph` — base class with vertex management, template hooks, and shared operations (induced_subgraph, reversed, copy).
+- `Digraph(Graph)` — unweighted directed graph with O(1) edge membership via adjacency sets.
+- `WeightedDigraph(Digraph)` — weighted directed graph with O(1) edge weight lookups via adjacency dicts.
+- `partition_by_labels(vertices, labels)` — partition vertices into equivalence classes by label equality.
+- `contract_sccs(graph)` — SCC decomposition and vertex-to-component mapping.
 
 ### Reachability
 

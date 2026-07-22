@@ -24,7 +24,8 @@ digraph into its SCCs. Time: O(n + m).
 
 `parallel_bfs(graph, source, shortcuts)` performs BFS on G ∪ H where H is a
 shortcut set. In the paper this is a parallel primitive; our implementation is
-sequential. The span bounds are NOT DETERMINED.
+sequential. Shortcut edges are indexed by source vertex for O(1) lookup during
+BFS traversal. The span bounds are NOT DETERMINED.
 
 ## Shortest-Path Primitives
 
@@ -41,8 +42,9 @@ weighted digraph with non-negative integer weights. Time: O(m log n).
 ### Hop-Bounded Shortest Paths
 
 `shortest_path_hopbound(graph, hopset, source, max_hops)` computes shortest
-paths using at most `max_hops` hops in G ∪ H. This simulates the hop-bounded
-SSSP primitive from the paper.
+paths using at most `max_hops` hops in G ∪ H. Hopset edges are indexed by
+source vertex for O(1) lookup. This simulates the hop-bounded SSSP primitive
+from the paper.
 
 ## Transitive Closure
 
