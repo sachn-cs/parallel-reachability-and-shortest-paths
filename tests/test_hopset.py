@@ -50,8 +50,42 @@ class TestCfrHopset:
         g.add_edge(0, 1, 5)
         hopset = cfr_hopset(
             g, k=2.0, epsilon=0.1, max_level=2, n_global=2, random_seed=42)
-        # With d = 1, edge weight 5 exceeds the ball radius, so no shortcuts added.
         assert hopset == {}
+
+    def test_invalid_k_raises(self):
+        g = WeightedDigraph()
+        g.add_vertex(0)
+        with pytest.raises(ValueError):
+            cfr_hopset(g, k=1.0, epsilon=0.1, max_level=1, n_global=1)
+
+    def test_invalid_epsilon_raises(self):
+        g = WeightedDigraph()
+        g.add_vertex(0)
+        with pytest.raises(ValueError):
+            cfr_hopset(g, k=2.0, epsilon=0.0, max_level=1, n_global=1)
+
+    def test_invalid_max_level_raises(self):
+        g = WeightedDigraph()
+        g.add_vertex(0)
+        with pytest.raises(ValueError):
+            cfr_hopset(g, k=2.0, epsilon=0.1, max_level=-1, n_global=1)
+
+    def test_recursive_subparts(self):
+        """Larger graph to trigger recursive partition into sub-parts."""
+        g = WeightedDigraph()
+        n = 40
+        for i in range(n - 1):
+            g.add_edge(i, i + 1, 1)
+        hopset = cfr_hopset(
+            g, k=2.0, epsilon=0.5, max_level=4,
+            n_global=n, random_seed=42)
+        for v in g.vertices():
+            original = dijkstra(g, v)
+            with_hopset = shortest_path_hopbound(g, hopset, v, max_hops=n)
+            for w in g.vertices():
+                orig_d = original.get(w, float('inf'))
+                hop_d = with_hopset.get(w, float('inf'))
+                assert orig_d == hop_d
 
     def test_reproducibility(self):
         g = WeightedDigraph()
@@ -114,6 +148,29 @@ class TestCfrWithTruncssspPruning:
         with pytest.raises(ValueError):
             cfr_with_truncsssp_pruning(
                 g, k=2.0, epsilon=0.1, rho=0.0, max_level=1, n_global=1)
+
+    def test_invalid_max_level_raises(self):
+        g = WeightedDigraph()
+        with pytest.raises(ValueError):
+            cfr_with_truncsssp_pruning(
+                g, k=2.0, epsilon=0.1, rho=1.0, max_level=-1, n_global=1)
+
+    def test_recursive_subparts_with_truncsssp(self):
+        """Larger graph to trigger recursive sub-parts and truncsssp pruning."""
+        g = WeightedDigraph()
+        n = 40
+        for i in range(n - 1):
+            g.add_edge(i, i + 1, 1)
+        hopset = cfr_with_truncsssp_pruning(
+            g, k=2.0, epsilon=0.5, rho=2.0, max_level=4,
+            n_global=n, random_seed=42)
+        for v in g.vertices():
+            original = dijkstra(g, v)
+            with_hopset = shortest_path_hopbound(g, hopset, v, max_hops=n)
+            for w in g.vertices():
+                orig_d = original.get(w, float('inf'))
+                hop_d = with_hopset.get(w, float('inf'))
+                assert orig_d == hop_d
 
     def test_reproducibility(self):
         g = WeightedDigraph()

@@ -68,6 +68,13 @@ class TestSccShortcuts:
         with pytest.raises(AssertionError):
             assert_scc_shortcuts_form_cliques(g, shortcuts)
 
+    def test_existing_edge_not_in_shortcuts(self):
+        g = cycle_graph(3)
+        # Complete the SCC clique: cycle has 0→1, 1→2, 2→0.
+        # Missing reverse edges 1→0, 2→1, 0→2 for the clique.
+        shortcuts = {(1, 0), (2, 1), (0, 2)}
+        assert_scc_shortcuts_form_cliques(g, shortcuts)
+
 
 class TestPartitionCorrectness:
     """Tests for assert_partition_correctness."""
@@ -89,6 +96,12 @@ class TestPartitionCorrectness:
         with pytest.raises(AssertionError):
             assert_partition_correctness(g, parts)
 
+    def test_extra_vertices_in_part(self):
+        g = path_graph(3)
+        parts = [{0, 1, 99}]
+        with pytest.raises(AssertionError):
+            assert_partition_correctness(g, parts)
+
 
 class TestDistanceApproximation:
     """Tests for assert_distance_approximation."""
@@ -103,11 +116,17 @@ class TestDistanceApproximation:
         assert all(r == 1.0 for v, r in ratios.items() if v != 0)
 
     def test_violation(self):
-        # Force use of hopset by limiting max_hops to 1.
         g = weighted_path_graph(3, weight_range=(1, 1), random_seed=1)
-        # Original path 0 -> 1 -> 2 requires 2 hops. With max_hops=1, only
-        # the hopset edge (0, 2): 10 can reach vertex 2.
         hopset = {(0, 2): 10}
+        with pytest.raises(AssertionError):
+            assert_distance_approximation(
+                g, hopset, source=0, epsilon=0.0, max_hops=1
+            )
+
+    def test_unreachable_vertex_in_hopset(self):
+        g = weighted_path_graph(3, weight_range=(1, 1), random_seed=1)
+        # Hopset only covers source, vertex 2 unreachable within hops
+        hopset = {(0, 1): 1}
         with pytest.raises(AssertionError):
             assert_distance_approximation(
                 g, hopset, source=0, epsilon=0.0, max_hops=1
@@ -156,5 +175,12 @@ class TestEquivalenceClasses:
     def test_mixed_labels_in_part(self):
         labels = {0: {"A"}, 1: {"B"}}
         parts = [{0, 1}]
+        with pytest.raises(AssertionError):
+            check_equivalence_classes(labels, parts)
+
+    def test_vertex_in_wrong_part(self):
+        labels = {0: {"A"}, 1: {"A"}, 2: {"B"}}
+        # Vertex 1 has label A but is in the B part
+        parts = [{0}, {1, 2}]
         with pytest.raises(AssertionError):
             check_equivalence_classes(labels, parts)
