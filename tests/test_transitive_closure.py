@@ -139,3 +139,30 @@ class TestTransitiveClosureOnSubset:
         g.add_edge(0, 1)
         tc = transitive_closure_on_subset(g, {0})
         assert tc == {(0, 0)}
+
+
+class TestLargeGraphOverflow:
+    """Regression test: int8 adjacency matrix overflows for n > 127."""
+
+    def test_large_path_no_overflow(self):
+        n = 200
+        g = Digraph()
+        for i in range(n - 1):
+            g.add_edge(i, i + 1)
+        tc = transitive_closure_matrix(g)
+        # Transitive closure of a path: (i, j) for all i <= j.
+        assert len(tc) == n * (n + 1) // 2
+        for i in range(n):
+            for j in range(i, n):
+                assert (i, j) in tc
+
+    def test_dense_graph_large_n(self):
+        n = 150
+        g = Digraph()
+        for i in range(n):
+            g.add_vertex(i)
+        for i in range(n):
+            for j in range(i + 1, n):
+                g.add_edge(i, j)
+        tc = transitive_closure_matrix(g)
+        assert len(tc) == n * (n + 1) // 2

@@ -63,7 +63,7 @@ def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
     index_map, vertices = _vertex_to_index(graph)
 
     # Build adjacency matrix over the Boolean semiring {0, 1} with OR/AND.
-    adj: Any = np.zeros((n, n), dtype=np.int8)
+    adj: Any = np.zeros((n, n), dtype=np.int32)
     for u, v in graph.edges():
         adj[index_map[u], index_map[v]] = 1
 
@@ -77,7 +77,7 @@ def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
     for _ in range(max_iterations):
         old = tc.copy()
         tc = np.matmul(tc, tc, out=tc)
-        tc = (tc > 0).astype(np.int8)
+        tc = (tc > 0).astype(np.int32)
         if np.array_equal(tc, old):
             break
 
