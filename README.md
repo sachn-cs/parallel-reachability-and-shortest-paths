@@ -12,13 +12,18 @@
 
 A faithful Python reproduction of **"Parallel Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and Sub-square-root Depth"** by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak ([arXiv:2605.03892](https://arxiv.org/abs/2605.03892)).
 
+On top of the paper's algorithms, this implementation layers **seven algorithmic refinements** (adaptive sampling, label compression, trivial-condensation fast path, hop-bounded pivot BFS, degree-ordered pivots, skip-trivial-partition guard, tightened TC-pruning trigger). Each refinement is **on by default** with an individual toggle for ablation. See [`docs/algorithmic_improvements.md`](docs/algorithmic_improvements.md) for the technical writeup.
+
+**Headline result** (synthetic random DAG, n=500, density=0.1, this machine): the refinements deliver a **~9× speedup on hopset construction** over the paper's algorithm (1.02s vs 9.12s). See [`results/summary.md`](results/summary.md) for full numbers.
+
 ---
 
 ## Features
 
-- **Shortcut Set Construction** (Theorem 2): JLS algorithm with TC-Pruning for near-linear time beta-shortcut sets
-- **Hopset Construction** (Theorem 4): CFR algorithm with TruncSSSP-Pruning for (beta, epsilon)-hopsets
-- **Graph Primitives**: BFS, reverse BFS, SCC decomposition, Dijkstra, A*, transitive closure
+- **Shortcut Set Construction** (Theorem 2): JLS algorithm with TC-Pruning, plus seven algorithmic refinements
+- **Hopset Construction** (Theorem 4): CFR algorithm with TruncSSSP-Pruning, plus the same seven refinements
+- **Algorithmic Refinements**: each toggleable via the `flags` kwarg; ablation runner included
+- **Graph Primitives**: BFS, reverse BFS, SCC decomposition, Dijkstra, A*, transitive closure (sparse matmul)
 - **Deterministic Generators**: Path, cycle, DAG, dense, grid, SCC-structured, and weighted graph variants
 - **Work/Depth Simulation**: Explicit PRAM work/depth tracking with theoretical bounds
 - **Invariant Checkers**: Reachability preservation, distance approximation, SCC clique properties
@@ -45,7 +50,7 @@ source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-**Requirements**: Python >= 3.9, numpy >= 1.21.0.
+**Requirements**: Python >= 3.9, numpy >= 1.21.0, scipy >= 1.10.
 
 ---
 
@@ -281,6 +286,47 @@ publishes the source and wheel distributions. See
 
 ---
 
+## Reproducing results
+
+```bash
+# 1. Fetch SNAP datasets (idempotent — sha256-verified).
+python scripts/download_datasets.py
+
+# 2. Run sampling ladder + SNAP benchmarks.
+python scripts/reproduce_results.py
+# Produces:
+#   results/scaling.csv
+#   results/snap.csv
+#   results/hardware.json
+#   results/summary.md
+
+# 3. Ablation: each flag toggled on/off individually.
+python scripts/run_ablation.py --sizes 500 1000 --densities 0.1
+# Produces:
+#   results/ablation.csv
+```
+
+Every script auto-detects hardware (CPU, RAM, Python, BLAS backend) and
+writes the detection into `results/hardware.json`. The reported
+[`results/summary.md`](results/summary.md) includes the hardware used
+to produce the numbers.
+
+Each algorithmic refinement can be disabled individually for ablation:
+
+```bash
+python scripts/reproduce_results.py --no-adaptive-sampling
+python scripts/reproduce_results.py --no-label-compress
+python scripts/reproduce_results.py --no-skip-condense
+python scripts/reproduce_results.py --no-hop-bounded-bfs
+python scripts/reproduce_results.py --no-degree-ordered-pivots
+python scripts/reproduce_results.py --no-tight-tc-trigger
+python scripts/reproduce_results.py --no-skip-trivial-part
+python scripts/reproduce_results.py --no-tc-pruning     # full baseline
+```
+
+See [`docs/algorithmic_improvements.md`](docs/algorithmic_improvements.md)
+for the technical writeup of each refinement.
+
 ## Roadmap
 
 - [ ] True PRAM parallelism integration (multiprocessing/ray)
@@ -288,9 +334,11 @@ publishes the source and wheel distributions. See
 - [ ] MkDocs documentation site
 - [ ] PyPI publishing workflow
 - [ ] Pre-commit hooks configuration
-- [ ] Performance benchmarks on larger graphs
+- [ ] Performance benchmarks on larger graphs (web-Google, web-Stanford)
 - [ ] Additional graph generators
 - [ ] Export `complete_dag` and `graph_stats` in public API
+- [ ] Auto-tuned sampling constant per graph density
+- [ ] Web-Google (n=875k) support via C++-accelerated inner loop
 
 ---
 
