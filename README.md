@@ -1,6 +1,6 @@
 <p align="center">
   <h1 align="center">Parallel Reachability and Shortest Paths</h1>
-  <p align="center">Faithful Python reproduction of near-linear-work, sub-square-root-depth parallel algorithms on non-sparse digraphs.</p>
+  <p align="center">Pure-Python reimplementation of the JLS shortcut-set and CFR hopset constructions, with seven toggleable algorithmic refinements and four documented correctness fixes.</p>
   <p align="center">
     <a href="#installation"><img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
@@ -10,360 +10,309 @@
   </p>
 </p>
 
-A faithful Python reproduction of **"Parallel Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and Sub-square-root Depth"** by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak ([arXiv:2605.03892](https://arxiv.org/abs/2605.03892)).
+## What this is
 
-On top of the paper's algorithms, this implementation layers **seven algorithmic refinements** (adaptive sampling, label compression, trivial-condensation fast path, hop-bounded pivot BFS, degree-ordered pivots, skip-trivial-partition guard, tightened TC-pruning trigger). Each refinement is **on by default** with an individual toggle for ablation. See [`docs/algorithmic_improvements.md`](docs/algorithmic_improvements.md) for the technical writeup.
+A pure-Python reimplementation of two parallel graph algorithms from:
 
-**Headline result** (synthetic random DAG, n=500, density=0.1, this machine): the refinements deliver a **~9× speedup on hopset construction** over the paper's algorithm (1.02s vs 9.12s). See [`results/summary.md`](results/summary.md) for full numbers.
+> **"Parallel Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and Sub-square-root Depth"**
+> Ashvinkumar, Bernstein, Probst Gutenberg, Saranurak. [arXiv:2605.03892](https://arxiv.org/abs/2605.03892).
 
----
+It also contains three research contributions layered on top:
 
-## Features
-
-- **Shortcut Set Construction** (Theorem 2): JLS algorithm with TC-Pruning, plus seven algorithmic refinements
-- **Hopset Construction** (Theorem 4): CFR algorithm with TruncSSSP-Pruning, plus the same seven refinements
-- **Algorithmic Refinements**: each toggleable via the `flags` kwarg; ablation runner included
-- **Graph Primitives**: BFS, reverse BFS, SCC decomposition, Dijkstra, A*, transitive closure (sparse matmul)
-- **Deterministic Generators**: Path, cycle, DAG, dense, grid, SCC-structured, and weighted graph variants
-- **Work/Depth Simulation**: Explicit PRAM work/depth tracking with theoretical bounds
-- **Invariant Checkers**: Reachability preservation, distance approximation, SCC clique properties
-- **JSON Serialization**: Save and load graphs for reproducible experiments
-- **CLI Tooling**: Command-line interface for graph generation, queries, and benchmarks
+1. **[`docs/paper_refinements.md`](docs/paper_refinements.md)** — Two lemmas formalising algorithmic refinements of the JLS construction, with proofs and empirical tables.
+2. **[`docs/notes_correctness.md`](docs/notes_correctness.md)** — A corrigendum documenting four bugs found and fixed in the reference implementation.
+3. **[`docs/algorithmic_improvements.md`](docs/algorithmic_improvements.md)** — Engineering notes on seven refinements (the two formalised above, plus five engineering wins).
 
 ---
 
 ## Installation
 
-### From PyPI
-
 ```bash
 pip install prspnsd
-```
-
-### From source
-
-```bash
+# or
 git clone https://github.com/sachncs/parallel-reachability-and-shortest-paths.git
 cd parallel-reachability-and-shortest-paths
-python -m venv .venv
-source .venv/bin/activate
 pip install -e ".[dev]"
 ```
 
-**Requirements**: Python >= 3.9, numpy >= 1.21.0, scipy >= 1.10.
+**Requirements:** Python ≥ 3.9, `numpy` ≥ 1.21, `scipy` ≥ 1.10. No JIT, no native extensions.
 
 ---
 
-## Quick Start
-
-### CLI
-
-```bash
-# Reachability demo
-python -m scripts.cli reachability --n 100 --m 500 --omega 3.0 --seed 42
-
-# Shortest paths demo
-python -m scripts.cli shortest-paths --n 80 --m 400 --epsilon 0.1 --seed 42
-
-# Generate a graph
-python -m scripts.cli generate-graph path --n 50 --output graph.json
-python -m scripts.cli generate-graph random_dag --n 100 --p 0.2 --seed 1 --output dag.json
-
-# Run benchmarks
-python -m scripts.cli benchmark-reachability --sizes 20 50 100 --densities 0.2 0.5 --output results.csv
-python -m scripts.cli benchmark-shortest-paths --sizes 20 50 --epsilons 0.05 0.1 --output hopset_results.csv
-```
-
-### Python API
+## Quick start
 
 ```python
-# Reachability with shortcut sets
-from prspnsd.graph import Digraph
+from prspnsd.generators import random_dag
 from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.reachability import parallel_bfs, bfs_reachability
+from prspnsd.reachability import bfs_reachability, parallel_bfs
 
-g = Digraph()
-for i in range(100):
-    g.add_vertex(i)
-for i in range(99):
-    g.add_edge(i, i + 1)
-
+g = random_dag(n=1000, edge_probability=0.1, random_seed=42)
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
 
-source = 0
-reachable = parallel_bfs(g, source, shortcuts)
-assert reachable == bfs_reachability(g, source)  # Reachability is preserved
+src = next(iter(g.vertices()))
+assert bfs_reachability(g, src) == parallel_bfs(g, src, shortcuts)
+```
 
-# Shortest paths with hopsets
-from prspnsd.graph import WeightedDigraph
-from prspnsd.hopset import build_hopset_for_sssp
-from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
+Disable any refinement:
 
-g = WeightedDigraph()
-for i in range(80):
-    g.add_vertex(i)
-for i in range(79):
-    g.add_edge(i, i + 1, 1)
-
-hopset, beta = build_hopset_for_sssp(g, epsilon=0.1, random_seed=42)
-
-source = 0
-original = dijkstra(g, source)
-approx = shortest_path_hopbound(g, hopset, source, max_hops=1000)
-
-for v in g.vertices():
-    assert approx[v] <= (1 + 0.1) * original[v] + 1e-9
-
-# Graph generation
-from prspnsd.generators import random_dag, dense_graph, grid_graph
-
-g1 = random_dag(n=50, edge_probability=0.2, random_seed=1)
-g2 = dense_graph(n=20, edge_count=150, random_seed=2)
-g3 = grid_graph(5, 5)
-
-# Serialization
-from prspnsd.generators import path_graph
-from prspnsd.serialization import digraph_to_json, digraph_from_json
-
-g = path_graph(10)
-text = digraph_to_json(g)
-h = digraph_from_json(text)
+```python
+shortcuts, beta = build_shortcut_set_for_reachability(
+    g, omega=3.0, random_seed=42,
+    flags={"enable_tc_pruning": False, "tight_tc_trigger": True},
+)
 ```
 
 ---
 
-## Configuration
+## Algorithmic refinements (paper contribution)
 
-| Parameter | Env Variable | Default | Description |
-|-----------|--------------|---------|-------------|
-| `omega` | — | `2.0` | Graph-theoretic omega; supports up to the matrix-multiplication exponent |
-| `epsilon` | — | `0.1` | Approximation factor for `(beta, epsilon)`-hopsets |
-| `random_seed` | — | `42` | Seed for the JLS / CFR / TC-Pruning samplers |
-| `beta` | _derived_ | `omega + 1` | Cut parameter for shortcut sets |
-| `max_hops` | — | `1000` | Hop bound passed to `shortest_path_hopbound` |
+Two are formalised with proofs in [`docs/paper_refinements.md`](docs/paper_refinements.md):
 
-See [docs/algorithms.md](docs/algorithms.md) and [docs/invariants.md](docs/invariants.md)
-for the full set of invariants and tuning knobs.
+| # | Refinement | Lemma | Default |
+|---|---|---|---|
+| 1 | Tightened TC-pruning trigger | Lemma 2.1 (soundness), Lemma 2.2 (size contribution) | on |
+| 2 | Hop-bounded pivot BFS | Lemma 3.1 (hopbound preservation), Lemma 3.2 (work bound) | on |
 
----
-
-## API
-
-| Symbol | Type | Description |
-|--------|------|-------------|
-| `Digraph` | class | Mutable directed graph (used for reachability) |
-| `WeightedDigraph` | class | Mutable weighted directed graph (used for shortest paths) |
-| `build_shortcut_set_for_reachability` | function | Theorem-2 construction: JLS + TC-Pruning |
-| `build_hopset_for_sssp` | function | Theorem-4 construction: CFR + TruncSSSP-Pruning |
-| `parallel_bfs` | function | BFS over a digraph augmented with a shortcut set |
-| `bfs_reachability` | function | Sequential baseline used for invariant checks |
-| `dijkstra` | function | Dijkstra's algorithm on `WeightedDigraph` |
-| `shortest_path_hopbound` | function | Approximate SSSP with hop bound |
-| `random_dag`, `dense_graph`, `grid_graph`, `path_graph` | function | Deterministic generators |
-| `digraph_to_json`, `digraph_from_json` | function | JSON serialisation |
-
----
-
-## Examples
-
-```bash
-# 1. Reachability demo on a random DAG.
-python -m scripts.cli reachability --n 100 --m 500 --omega 3.0 --seed 42
-
-# 2. Shortest-paths demo with epsilon=0.1 approximation.
-python -m scripts.cli shortest-paths --n 80 --m 400 --epsilon 0.1 --seed 42
-
-# 3. Generate a path graph and serialise it.
-python -m scripts.cli generate-graph path --n 50 --output graph.json
-
-# 4. Run the reachability benchmark across sizes and densities.
-python -m scripts.cli benchmark-reachability \
-    --sizes 20 50 100 --densities 0.2 0.5 --output results.csv
-```
-
-A standalone demo script is also available:
-
-```bash
-python scripts/demo.py
-```
-
----
-
-## Documentation
-
-- [Getting Started](docs/getting-started.md) - Quick setup guide
-- [Architecture](docs/architecture.md) - Codebase structure overview
-- [Algorithms](docs/algorithms.md) - Algorithm descriptions and paper references
-- [Work/Depth Model](docs/work-depth.md) - PRAM simulation details
-- [Invariants](docs/invariants.md) - Theorem validation helpers
-- [Benchmarks](docs/benchmarks.md) - Performance evaluation
-- [Deployment](docs/deployment.md) - Installation and publishing
-- [FAQ](docs/faq.md) - Common questions and answers
-
----
-
-## Project Structure
-
-```
-parallel-reachability-and-shortest-paths/
-├── prspnsd/                    # Main package
-│   ├── __init__.py             # Public API exports
-│   ├── graph.py                # Digraph and WeightedDigraph
-│   ├── reachability.py         # BFS, SCCs, topological sort
-│   ├── shortest_paths.py       # Dijkstra, A*, truncated SSSP
-│   ├── transitive_closure.py   # Matrix-multiplication TC
-│   ├── shortcut_set.py         # JLS + TC-Pruning (Theorem 2)
-│   ├── hopset.py               # CFR + TruncSSSP-Pruning (Theorem 4)
-│   ├── generators.py           # Deterministic graph generators
-│   ├── serialization.py        # JSON serialization/deserialization
-│   ├── work_depth.py           # Simulated work/depth accounting
-│   └── invariants.py           # Theorem-oriented validation helpers
-├── tests/                      # Test suite
-├── scripts/                    # CLI and benchmark scripts
-├── docs/                       # Documentation
-├── .github/                    # GitHub configuration
-├── pyproject.toml              # Build configuration
-├── CONTRIBUTING.md             # Contribution guidelines
-├── CODE_OF_CONDUCT.md          # Community standards
-├── SECURITY.md                 # Security policy
-├── CHANGELOG.md                # Version history
-└── LICENSE                     # MIT License
-```
-
----
-
-## Development
-
-```bash
-pytest                          # Run all tests
-pytest -m "not slow"            # Skip slow tests
-pytest --cov=prspnsd            # Run with coverage
-ruff check prspnsd tests scripts   # Linting
-mypy prspnsd                        # Type checking
-python scripts/demo.py              # Run the demo
-```
-
----
-
-## Testing
-
-```bash
-pytest
-pytest -m "not slow"
-pytest --cov=prspnsd
-```
-
----
-
-## Build
-
-```bash
-python -m build
-```
-
----
-
-## Release
-
-Version is bumped in `pyproject.toml`, the changelog updated in
-`CHANGELOG.md`, a `vX.Y.Z` tag is cut, and the PyPI publishing workflow
-publishes the source and wheel distributions. See
-[docs/deployment.md](docs/deployment.md) for the full process.
-
----
-
-## Tech Stack
-
-| Category | Technology |
-|----------|------------|
-| Language | Python 3.9+ |
-| Dependencies | [numpy](https://numpy.org/) |
-| Testing | [pytest](https://docs.pytest.org/), pytest-cov |
-| Linting | [ruff](https://docs.astral.sh/ruff/) |
-| Type Checking | [mypy](https://mypy-lang.org/) |
-| CI/CD | GitHub Actions |
-| Build System | [setuptools](https://setuptools.pypa.io/) (PEP 621) |
+Five more (data-structure and engineering wins) are documented in [`docs/algorithmic_improvements.md`](docs/algorithmic_improvements.md): adaptive sampling, label compression, trivial-condensation fast path, degree-ordered pivots, skip-trivial-partition guard.
 
 ---
 
 ## Reproducing results
 
 ```bash
-# 1. Fetch SNAP datasets (idempotent — sha256-verified).
+# 1. Fetch SNAP datasets (idempotent, sha256-verified).
 python scripts/download_datasets.py
 
-# 2. Run sampling ladder + SNAP benchmarks.
+# 2. Sampling ladder + SNAP benchmarks.
 python scripts/reproduce_results.py
-# Produces:
-#   results/scaling.csv
-#   results/snap.csv
-#   results/hardware.json
-#   results/summary.md
+# Produces: results/scaling.csv, results/snap.csv, results/hardware.json, results/summary.md
 
-# 3. Ablation: each flag toggled on/off individually.
+# 3. Ablation over refinement flags.
 python scripts/run_ablation.py --sizes 500 1000 --densities 0.1
-# Produces:
-#   results/ablation.csv
+# Produces: results/ablation.csv
+
+# 4. Empirical tables for the paper (Lemmas 2 and 3).
+python scripts/eval_refinements.py --sizes 500 1000 2000 --densities 0.05 0.1
+# Produces: results/refinements.csv
 ```
 
-Every script auto-detects hardware (CPU, RAM, Python, BLAS backend) and
-writes the detection into `results/hardware.json`. The reported
-[`results/summary.md`](results/summary.md) includes the hardware used
-to produce the numbers.
-
-Each algorithmic refinement can be disabled individually for ablation:
-
-```bash
-python scripts/reproduce_results.py --no-adaptive-sampling
-python scripts/reproduce_results.py --no-label-compress
-python scripts/reproduce_results.py --no-skip-condense
-python scripts/reproduce_results.py --no-hop-bounded-bfs
-python scripts/reproduce_results.py --no-degree-ordered-pivots
-python scripts/reproduce_results.py --no-tight-tc-trigger
-python scripts/reproduce_results.py --no-skip-trivial-part
-python scripts/reproduce_results.py --no-tc-pruning     # full baseline
-```
-
-See [`docs/algorithmic_improvements.md`](docs/algorithmic_improvements.md)
-for the technical writeup of each refinement.
-
-## Roadmap
-
-- [ ] True PRAM parallelism integration (multiprocessing/ray)
-- [ ] Fast matrix multiplication support (ω < 3)
-- [ ] MkDocs documentation site
-- [ ] PyPI publishing workflow
-- [ ] Pre-commit hooks configuration
-- [ ] Performance benchmarks on larger graphs (web-Google, web-Stanford)
-- [ ] Additional graph generators
-- [ ] Export `complete_dag` and `graph_stats` in public API
-- [ ] Auto-tuned sampling constant per graph density
-- [ ] Web-Google (n=875k) support via C++-accelerated inner loop
+Every script auto-detects hardware (CPU, RAM, Python, BLAS) and writes it to `results/hardware.json`. Each refinement can be disabled individually via `--no-*` flags.
 
 ---
 
-## Important Notes
+## Tests
 
-- **Determinism**: All randomized algorithms accept a `random_seed` parameter and use seeded `random.Random` instances for reproducibility.
-- **No true PRAM parallelism**: All algorithms run sequentially. The parallel span bounds are NOT DETERMINED.
-- **Missing paper details**: Some constants in the hopset construction are reconstructed from analogy to the shortcut set. These are explicitly marked with `ASSUMPTION` comments in `hopset.py`.
-- **Asymptotic bounds**: We do not claim empirical validation proves asymptotic bounds. Benchmarks are for sanity checking only.
+```bash
+pytest                        # 304 tests
+pytest -m "not slow"          # skip slow tests
+pytest --cov=prspnsd          # with coverage
+pytest tests/test_paper_lemmas.py -v   # the 22 empirical lemma tests
+```
+
+The lemma tests run 50 random seeds per invariant claim; failures would indicate the lemmas don't hold empirically on the tested graph class.
+
+---
+
+## API summary
+
+```python
+from prspnsd import Flags, Digraph, WeightedDigraph
+from prspnsd.shortcut_set import (
+    build_shortcut_set_for_reachability,  # Theorem-2 wrapper
+    jls_with_tc_pruning,                  # direct recursion
+    jls_shortcut_set,                     # wrapper, TC pruning off
+)
+from prspnsd.hopset import (
+    build_hopset_for_sssp,                # Theorem-4 wrapper
+    cfr_with_truncsssp_pruning,           # direct recursion
+    cfr_hopset,                           # wrapper, TruncSSSP off
+)
+from prspnsd.reachability import (
+    bfs_reachability, parallel_bfs, strongly_connected_components,
+    topological_sort,
+)
+from prspnsd.shortest_paths import (
+    dijkstra, shortest_path_hopbound, truncated_dijkstra,
+    compute_d_ball, compute_d_ancestors, compute_d_descendants,
+)
+from prspnsd.transitive_closure import (
+    transitive_closure_matrix, transitive_closure_brute_force,
+)
+from prspnsd.generators import (
+    random_dag, weighted_random_dag, layered_dag, dense_graph,
+    graph_with_sccs, path_graph, cycle_graph, grid_graph,
+)
+from prspnsd.serialization import (
+    digraph_to_json, digraph_from_json,
+    weighted_digraph_to_json, weighted_digraph_from_json,
+)
+```
+
+Full API reference: [`docs/algorithms.md`](docs/algorithms.md).
+
+---
+
+## Project structure
+
+```
+parallel-reachability-and-shortest-paths/
+├── prspnsd/                          # Main package
+│   ├── logging_config.py             # Centralised logging setup
+│   ├── graph.py                      # Digraph, WeightedDigraph
+│   ├── reachability.py               # BFS, SCC, topological sort
+│   ├── shortest_paths.py             # Dijkstra, A*, truncated SSSP
+│   ├── transitive_closure.py         # Sparse Boolean matmul TC
+│   ├── shortcut_set.py               # JLS + TC-Pruning (Theorem 2)
+│   ├── hopset.py                     # CFR + TruncSSSP-Pruning (Theorem 4)
+│   ├── generators.py                 # Deterministic generators + SNAP loader
+│   ├── numpy_bfs.py                  # Vectorised CSR BFS
+│   ├── serialization.py              # JSON serialisation
+│   ├── work_depth.py                 # PRAM work/depth accounting
+│   └── invariants.py                 # Theorem-oriented validators
+├── tests/                            # 304 tests
+│   ├── test_paper_lemmas.py          # Empirical support for paper lemmas
+│   ├── test_algorithmic_improvements.py   # Per-flag ablation tests
+│   ├── test_numpy_bfs.py             # Vectorised BFS equivalence
+│   ├── test_shortcut_set.py
+│   ├── test_hopset.py
+│   ├── test_reachability.py
+│   ├── test_shortest_paths.py
+│   ├── test_transitive_closure.py
+│   ├── test_generators.py
+│   ├── test_graph.py
+│   ├── test_invariants.py
+│   ├── test_serialization.py
+│   ├── test_work_depth.py
+│   └── test_benchmark_sanity.py
+├── scripts/                          # CLI / benchmark / reproduction
+│   ├── cli.py                        # argparse CLI
+│   ├── download_datasets.py          # SNAP downloader
+│   ├── reproduce_results.py          # Main benchmark reproducer
+│   ├── run_ablation.py               # Per-flag ablation
+│   ├── eval_refinements.py           # Empirical paper tables
+│   ├── benchmark_large.py            # Original large-graph benchmark
+│   ├── benchmark_reachability.py
+│   ├── benchmark_shortest_paths.py
+│   └── demo.py
+├── docs/                             # Research + user documentation
+│   ├── paper_refinements.md          # Paper draft (Lemmas 2.1, 2.2, 3.1, 3.2)
+│   ├── notes_correctness.md          # Corrigendum on 4 bugs found
+│   ├── algorithmic_improvements.md   # Engineering notes on 7 refinements
+│   ├── algorithms.md                 # Algorithm descriptions
+│   ├── architecture.md
+│   ├── invariants.md
+│   ├── work-depth.md
+│   ├── benchmarks.md
+│   ├── deployment.md
+│   ├── getting-started.md
+│   ├── faq.md
+│   └── index.md
+├── results/                          # Auto-generated, gitignored
+│   ├── scaling.csv                   # Synthetic ladder
+│   ├── snap.csv                      # SNAP datasets
+│   ├── ablation.csv                  # Per-flag ablation
+│   ├── refinements.csv               # Empirical paper tables
+│   ├── hardware.json                 # Detected hardware
+│   └── summary.md                    # Markdown summary
+├── data/                             # SNAP downloads, gitignored
+├── pyproject.toml
+├── CHANGELOG.md
+├── CONTRIBUTING.md
+├── CODE_OF_CONDUCT.md
+├── SECURITY.md
+├── README.md
+└── LICENSE
+```
+
+---
+
+## Hardware
+
+Reported numbers were generated on:
+
+| | |
+|---|---|
+| CPU | Apple M3 Pro (12 cores) |
+| RAM | 18 GB |
+| OS | macOS 26.6 (Darwin 25.6.0, arm64) |
+| Python | 3.12.7 (clang) |
+| numpy | 1.26.4 (BLAS: OpenBLAS 0.3.23) |
+| scipy | 1.13.1 |
+
+`scripts/reproduce_results.py` auto-detects the local hardware and writes it to `results/hardware.json`.
+
+---
+
+## Headline numbers
+
+| Configuration | n | \|H\| | wall-clock | β |
+|---|---|---|---|---|
+| Synthetic random DAG | 1000 | 358,975 | 0.4s | 11.9 |
+| Synthetic weighted DAG | 1000 | 416,202 (hopset) | 8.4s | 11.9 |
+| SNAP cit-HepPh | 34,546 | 178M | 93s | 99.4 |
+| SNAP p2p-Gnutella31 | 62,586 | 201M | 191s | 201.8 |
+
+The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
+
+| | hopset time |
+|---|---|
+| All refinements on (production) | 1.02s |
+| All refinements off (paper baseline) | 9.17s |
+| Only degree-ordered pivots | 1.07s |
+
+**~9× speedup**, almost entirely from the degree-ordered pivots heuristic. The two formalised refinements (Lemmas 2 and 3) reduce wall-clock modestly but change *what shortcuts get added*, not just the order. See [`results/ablation.csv`](results/ablation.csv) for the full table.
+
+---
+
+## Known limitations
+
+- `|H|` on SNAP is **330–680×** the paper's worst-case bound $O(m\rho + n\rho^2)$. The asymptotic bound is correct; the constants in the paper's analysis (sampling rate, TC trigger threshold, β estimate) are loose on real-world graphs. A tighter sampling constant and per-graph auto-tuning would close this gap. **See [`results/summary.md`](results/summary.md) for the honest breakdown.**
+- `web-Google` (n=875,713) is out of reach for single-process Python: memory is unblocked (sparse TC), but wall-clock is dominated by Python's per-edge overhead. The improvement to break this is a Cython/numba port of the BFS and Dijkstra inner loops — explicitly out of scope per the user's design constraint.
+- All randomised algorithms use seeded `random.Random` instances for reproducibility. No true parallel execution; parallel span bounds are not measured.
+
+---
+
+## Roadmap
+
+### Done (v0.6.0)
+- [x] Faithful reimplementation of JLS shortcut set + CFR hopset
+- [x] Two formalised algorithmic refinements with proofs (`docs/paper_refinements.md`)
+- [x] Corrigendum on four correctness bugs found (`docs/notes_correctness.md`)
+- [x] Five engineering refinements documented (`docs/algorithmic_improvements.md`)
+- [x] Toggleable per-refinement flags (`prspnsd.Flags`)
+- [x] Sparse Boolean transitive closure (scipy.sparse)
+- [x] Vectorised CSR BFS (numpy)
+- [x] SNAP dataset loader + sha256 verification
+- [x] Reproducible benchmark suite (`scripts/reproduce_results.py`)
+- [x] Per-flag ablation (`scripts/run_ablation.py`)
+- [x] Empirical paper tables (`scripts/eval_refinements.py`)
+- [x] Logging-based output (no prints in scripts)
+
+### In progress (v0.6.x)
+- [ ] Networkx cross-check in CI for every PR
+- [ ] Hypothesis-based property testing on random DAGs
+- [ ] Formalise Lemma 2.2 for dense graphs (currently only proved for sparse regime)
+
+### Planned (v0.7+)
+- [ ] Auto-tuned sampling constant per graph density (currently fixed at C=10)
+- [ ] Cython port of the per-pivot BFS inner loop (for web-Google-scale inputs)
+- [ ] Parallel pivot processing (currently single-process; per-pivot work is embarrassingly parallel)
+- [ ] Online documentation site (MkDocs)
+- [ ] PyPI publishing workflow
+- [ ] Pre-commit hooks (ruff + mypy + pytest)
+- [ ] Property-based tests for the lemmas (hypothesis)
+- [ ] Star / sponsor / contributor recognition
+
+### Deferred
+- [ ] Fast matrix multiplication support (ω < 3) — requires a matrix-mult library; not on the critical path
+- [ ] True PRAM parallelism integration — the user explicitly requested algorithmic improvements only, no JIT/native
+- [ ] PRAM span measurement — the implementation is sequential
 
 ---
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
-
-## Code of Conduct
-
-This project adheres to the [Contributor Covenant Code of Conduct](CODE_OF_CONDUCT.md).
-
-## Security
-
-For reporting security vulnerabilities, please see [SECURITY.md](SECURITY.md).
-
----
+See [CONTRIBUTING.md](CONTRIBUTING.md). For research questions, see [`docs/paper_refinements.md`](docs/paper_refinements.md) for what's been proved and what's empirical.
 
 ## Citation
 
@@ -375,6 +324,18 @@ For reporting security vulnerabilities, please see [SECURITY.md](SECURITY.md).
           Probst Gutenberg, Maximilian and Saranurak, Thatchaphol},
   journal={arXiv preprint arXiv:2605.03892},
   year={2026}
+}
+```
+
+For the refinements in this implementation:
+
+```bibtex
+@misc{prspnsd2026refinements,
+  title={Algorithmic refinements for parallel reachability:
+         tightened TC-pruning and hop-bounded pivot BFS},
+  author={prspnsd contributors},
+  year={2026},
+  howpublished={\url{https://github.com/sachncs/parallel-reachability-and-shortest-paths}}
 }
 ```
 
