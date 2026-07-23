@@ -103,3 +103,34 @@ docstrings, so they should never lie about the API.
 ::: reachq.iterate.iterative_shortcut_set
     options:
       show_root_heading: true
+
+## Private / advanced API surface (reachq.research.*)
+
+::: reachq.research.streaming.StreamingShortcutSet
+    options:
+      show_root_heading: true
+      show_symbol_class_toc: true
+
+::: reachq.research.approximation.greedy_shortcut_set
+    options:
+      show_root_heading: true
+
+::: reachq.research.sparsify_hop.sparsify_hop_bounded
+    options:
+      show_root_heading: true
+
+::: reachq.research.iterate.iterative_shortcut_set
+    options:
+      show_root_heading: true
+
+::: reachq.research.closed_form
+    options:
+      show_root_heading: true
+
+::: reachq.research.adaptive_beta
+    options:
+      show_root_heading: true
+
+::: reachq.research.lower_bound
+    options:
+      show_root_heading: true
