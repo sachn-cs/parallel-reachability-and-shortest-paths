@@ -21,13 +21,42 @@ A pure-Python reimplementation of two parallel graph algorithms from:
 See [`docs/INSPIRED_BY.md`](docs/INSPIRED_BY.md) for the full disclaimer
 about the relationship between `reachq` and the cited papers.
 
-It also contains three research contributions layered on top:
+It also contains contributions layered on top of the cited work:
 
-1. **[`docs/paper_refinements.md`](docs/paper_refinements.md)** — Two lemmas formalising algorithmic refinements of the JLS construction, with proofs and empirical tables.
-2. **[`docs/notes_correctness.md`](docs/notes_correctness.md)** — A corrigendum documenting four bugs found and fixed in the reference implementation.
-3. **[`docs/algorithmic_improvements.md`](docs/algorithmic_improvements.md)** — Engineering notes on seven refinements (the two formalised above, plus five engineering wins).
-4. **[`docs/spectral_fixtures.md`](docs/spectral_fixtures.md)** — Test fixtures from Papers 2/3 (SRG, Hamming, Paley, Petersen) with honest scope notes.
-5. **[`docs/fix_resample.md`](docs/fix_resample.md)** — Experimental Fix/Resample variant from Paper 1, including the empirical trade-off (smaller `|H|`, looser hopbound) vs JLS.
+1. **[`docs/PAPER.md`](docs/PAPER.md)** — The unified paper draft: sparsification
+   with hopbound preservation, adaptive β, and bound-gap analysis.
+2. **[`docs/notes_correctness.md`](docs/notes_correctness.md)** — A
+   corrigendum documenting four bugs found and fixed in the reference
+   implementation.
+3. **[`docs/spectral_fixtures.md`](docs/spectral_fixtures.md)** — Test
+   fixtures from Papers 2/3 (SRG, Hamming, Paley, Petersen).
+4. **[`docs/fix_resample.md`](docs/fix_resample.md)** — Experimental
+   Fix/Resample variant from Paper 1.
+
+## When to use reachq
+
+Use reachq when you want a Python library that:
+- Computes shortcut sets for parallel reachability.
+- Computes hopsets for approximate shortest paths.
+- Has reproducible benchmarks and tests.
+
+## When to use something else
+
+If you want a general-purpose graph library with full algorithms
+(BFS, Dijkstra, SCC, etc.), use `networkx` or `igraph` and call
+reachq only for the specific parallel-reachability shortcuts.
+
+## Comparison
+
+| feature | reachq | networkx | igraph |
+|---|---|---|---|
+| JLS shortcut set | yes | no | no |
+| CFR hopset | yes | no | no |
+| hop-bound-preserving sparsification | yes | no | no |
+| streaming shortcut set | yes | no | no |
+| (1+ε) approximation | yes | no | no |
+| full graph library | no (focused) | yes | yes |
+| reproducible benchmarks | yes | partial | no |
 
 ---
 
