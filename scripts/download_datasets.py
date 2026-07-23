@@ -2,8 +2,8 @@
 
 Idempotent: re-running with files already in data/ skips the download.
 
-Self-contained: defines the dataset table inline so this script works even
-before the prspnsd package is installed.
+Self-contained: defines the dataset table inline so this script works
+even before the prspnsd package is installed.
 """
 
 from __future__ import annotations
@@ -13,6 +13,10 @@ import hashlib
 import sys
 import urllib.request
 from pathlib import Path
+
+from prspnsd.logging_config import get_logger
+
+log = get_logger("prspnsd.download")
 
 SNAP_BASE = "https://snap.stanford.edu/data"
 SNAP_DATASETS: dict[str, dict[str, str | int]] = {
@@ -43,8 +47,7 @@ SNAP_DATASETS: dict[str, dict[str, str | int]] = {
 }
 
 
-def _sha256(path: Path) -> str:
-    """Return the SHA-256 hex digest of *path*."""
+def sha256(path: Path) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:
         for chunk in iter(lambda: f.read(1 << 20), b""):
@@ -53,10 +56,6 @@ def _sha256(path: Path) -> str:
 
 
 def download_one(name: str, dest_dir: Path, *, force: bool = False) -> Path:
-    """Download a single SNAP dataset if not already present.
-
-    Returns the path to the cached file.
-    """
     if name not in SNAP_DATASETS:
         raise KeyError(f"Unknown dataset {name!r}; available: {list(SNAP_DATASETS)}")
     info = SNAP_DATASETS[name]
@@ -65,16 +64,17 @@ def download_one(name: str, dest_dir: Path, *, force: bool = False) -> Path:
     dest = dest_dir / filename
     if dest.exists() and not force:
         size_mb = dest.stat().st_size / (1024 * 1024)
-        print(f"[skip] {name}: already cached at {dest} ({size_mb:.1f} MB)", flush=True)
+        log.info("skip %s: already cached at %s (%.1f MB)", name, dest, size_mb)
         return dest
     dest_dir.mkdir(parents=True, exist_ok=True)
-    print(f"[get ] {name}: downloading from {url}", flush=True)
+    log.info("downloading %s from %s", name, url)
     tmp = dest.with_suffix(dest.suffix + ".part")
     urllib.request.urlretrieve(url, tmp)
     tmp.replace(dest)
     size_mb = dest.stat().st_size / (1024 * 1024)
-    digest = _sha256(dest)
-    print(f"[done] {name}: {dest} ({size_mb:.1f} MB, sha256={digest[:16]}...)", flush=True)
+    digest = sha256(dest)
+    log.info("done %s: %s (%.1f MB, sha256=%s...)",
+             name, dest, size_mb, digest[:16])
     return dest
 
 
@@ -82,18 +82,12 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Download SNAP datasets")
     parser.add_argument(
         "--datasets", nargs="+", default=list(SNAP_DATASETS.keys()),
-        help="Datasets to download (default: all)",
     )
-    parser.add_argument(
-        "--dest", default="data", help="Destination directory (default: data)",
-    )
-    parser.add_argument(
-        "--force", action="store_true", help="Re-download even if cached",
-    )
-    parser.add_argument(
-        "--verify", action="store_true",
-        help="Print sha256 of every cached file and exit",
-    )
+    parser.add_argument("--dest", default="data")
+    parser.add_argument("--force", action="store_true",
+                        help="Re-download even if cached")
+    parser.add_argument("--verify", action="store_true",
+                        help="Print sha256 of every cached file and exit")
     args = parser.parse_args()
 
     dest_dir = Path(args.dest)
@@ -105,17 +99,13 @@ def main() -> int:
             filename = url.rsplit("/", 1)[-1]
             path = dest_dir / filename
             if path.exists():
-                print(f"{name}\t{_sha256(path)}\t{path}", flush=True)
+                log.info("%s\t%s\t%s", name, sha256(path), path)
             else:
-                print(f"{name}\tMISSING\t{path}", flush=True)
+                log.warning("%s\tMISSING\t%s", name, path)
         return 0
 
     for name in args.datasets:
-        try:
-            download_one(name, dest_dir, force=args.force)
-        except Exception as e:
-            print(f"[fail] {name}: {type(e).__name__}: {e}", file=sys.stderr, flush=True)
-            return 1
+        download_one(name, dest_dir, force=args.force)
     return 0
 
 
