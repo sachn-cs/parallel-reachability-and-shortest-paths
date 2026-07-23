@@ -48,6 +48,12 @@ for i in range(99):
     g.add_edge(i, i + 1)
 ```
 
+**Expected output** (this is just the construction; nothing prints yet):
+
+```
+(g is built, 100 vertices, 99 edges)
+```
+
 ### 2. Construct a Shortcut Set
 
 ```python
@@ -56,6 +62,16 @@ from reachq.shortcut_set import build_shortcut_set_for_reachability
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
 print(f"Constructed {len(shortcuts)} shortcut edges (beta={beta:.2f})")
 ```
+
+**Expected output** (100-vertex path, random seed 42):
+
+```
+Constructed 0 shortcut edges (beta=14.14)
+```
+
+(The JLS output has shortcuts that the sparsifier removes; the net
+result on a path is the empty set. To preserve the hopbound, use
+`reachq.sparsify_hop.sparsify_hop_bounded`.)
 
 ### 3. Query Reachability
 
@@ -69,6 +85,15 @@ reachable = parallel_bfs(g, source, shortcuts)
 assert reachable == bfs_reachability(g, source)
 print(f"Vertex {source} can reach {len(reachable)} vertices")
 ```
+
+**Expected output** (with the empty shortcut set from step 2):
+
+```
+Vertex 0 can reach 100 vertices
+```
+
+(The original path already provides reachability; the empty shortcut
+set is sound.)
 
 ## Next Steps
 
