@@ -1,8 +1,8 @@
-# PRSPNSD Documentation
+# reachq Documentation
 
 ## Overview
 
-**PRSPNSD** (Parallel Reachability and Shortest Paths on Non-Sparse Digraphs) is a Python reproduction of the algorithms from:
+**reachq** (Parallel Reachability and Shortest Paths on Non-Sparse Digraphs) is a Python reproduction of the algorithms from:
 
 > Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak.  
 > "Parallel Reachability and Shortest Paths on Non-Sparse Digraphs: Near-linear Work and Sub-square-root Depth."  

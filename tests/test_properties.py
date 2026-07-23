@@ -2,7 +2,7 @@
 
 These tests use random DAG generation with @given strategies to verify
 the invariants in ``docs/paper_refinements.md`` across many seeds.
-The number of examples is bounded by ``PRSPNSD_HYPOTHESIS`` env var
+The number of examples is bounded by ``reachq_HYPOTHESIS`` env var
 (default 20) so the suite stays under a few seconds.
 """
 
@@ -20,7 +20,7 @@ from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.shortcut_set import build_shortcut_set_for_reachability
 
 
-EXAMPLES = int(os.environ.get("PRSPNSD_HYPOTHESIS", "20"))
+EXAMPLES = int(os.environ.get("reachq_HYPOTHESIS", "20"))
 
 
 def hopbound_max(graph, source, shortcuts, beta):

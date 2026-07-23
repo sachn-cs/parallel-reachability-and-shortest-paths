@@ -1,6 +1,6 @@
 # Benchmarks
 
-PRSPNSD includes benchmark scripts for evaluating shortcut set and hopset
+reachq includes benchmark scripts for evaluating shortcut set and hopset
 construction across varying graph sizes, densities, and parameters.
 
 ## Important Caveats

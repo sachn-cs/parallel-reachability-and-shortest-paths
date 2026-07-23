@@ -1,6 +1,6 @@
 # Deployment
 
-This document covers how to deploy and distribute PRSPNSD.
+This document covers how to deploy and distribute reachq.
 
 ## Installation Methods
 
@@ -104,7 +104,7 @@ jobs:
 
 ## Environment Configuration
 
-PRSPNSD does not require environment variables for basic usage. See
+reachq does not require environment variables for basic usage. See
 `.env.example` for optional configuration.
 
 ## Docker (Optional)

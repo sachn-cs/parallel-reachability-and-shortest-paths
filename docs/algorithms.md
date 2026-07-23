@@ -1,6 +1,6 @@
 # Algorithms
 
-This document describes the core algorithms implemented in PRSPNSD and their
+This document describes the core algorithms implemented in reachq and their
 relationship to the paper.
 
 ## Reachability Primitives

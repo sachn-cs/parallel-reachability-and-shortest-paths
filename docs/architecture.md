@@ -1,11 +1,11 @@
 # Architecture
 
-This document describes the high-level architecture of PRSPNSD and how its
+This document describes the high-level architecture of reachq and how its
 components interact.
 
 ## Overview
 
-PRSPNSD is organized into six layers, each with clear responsibilities:
+reachq is organized into six layers, each with clear responsibilities:
 
 ```
 ┌─────────────────────────────────────────────────┐

@@ -1,6 +1,6 @@
 # Getting Started
 
-This guide walks you through setting up and using PRSPNSD for the first time.
+This guide walks you through setting up and using reachq for the first time.
 
 ## Prerequisites
 

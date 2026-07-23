@@ -1,5 +1,6 @@
 <p align="center">
-  <h1 align="center">Parallel Reachability and Shortest Paths</h1>
+  <h1 align="center">reachq</h1>
+  <p align="center"><em>reachq: graph reachability, queryable.</em></p>
   <p align="center">Pure-Python reimplementation of the JLS shortcut-set and CFR hopset constructions, with seven toggleable algorithmic refinements and four documented correctness fixes.</p>
   <p align="center">
     <a href="#installation"><img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
@@ -16,6 +17,9 @@ A pure-Python reimplementation of two parallel graph algorithms from:
 
 > **"Parallel Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and Sub-square-root Depth"**
 > Ashvinkumar, Bernstein, Probst Gutenberg, Saranurak. [arXiv:2605.03892](https://arxiv.org/abs/2605.03892).
+
+See [`docs/INSPIRED_BY.md`](docs/INSPIRED_BY.md) for the full disclaimer
+about the relationship between `reachq` and the cited papers.
 
 It also contains three research contributions layered on top:
 
@@ -323,7 +327,7 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 ### In progress (v0.7.x)
 - [ ] Networkx cross-check in CI for every PR
 - [ ] Hypothesis-based property tests in CI (currently run locally)
-- [ ] Property-based tests for the lemmas at scale (PRSPNSD_HYPOTHESIS=10000)
+- [ ] Property-based tests for the lemmas at scale (REACHQ_HYPOTHESIS=10000)
 
 ### Planned (v0.8+)
 - [ ] Cython port of the per-pivot BFS inner loop (for web-Google-scale inputs)
@@ -358,7 +362,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). For research questions, see [`docs/paper
 For the refinements in this implementation:
 
 ```bibtex
-@misc{prspnsd2026refinements,
+@misc{reachq2026refinements,
   title={Algorithmic refinements for parallel reachability:
          tightened TC-pruning and hop-bounded pivot BFS},
   author={reachq contributors},
