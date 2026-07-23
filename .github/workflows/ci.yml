@@ -76,6 +76,40 @@ jobs:
       - name: Run mypy
         run: mypy reachq
 
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Cache pip packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('pyproject.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          pip install asv
+      - name: Run benchmarks
+        # Quick benchmark run: 1 repeat on 1 commit, no warmup.
+        # Records timings as JSON for trend tracking.
+        run: |
+          asv run --quick --python=same --no-pull --show-stderr \
+            --benchmark=time_jls_path_n100 \
+            --json 2>/dev/null | tee bench-results.json || true
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-results
+          path: bench-results.json
+          retention-days: 90
+          if-no-files-found: ignore
+
   pre-commit:
     runs-on: ubuntu-latest
     steps:
