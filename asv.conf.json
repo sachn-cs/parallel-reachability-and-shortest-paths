@@ -1,0 +1,26 @@
+{
+    "version": 1,
+    "project": "reachq",
+    "project_url": "https://github.com/sachncs/parallel-reachability-and-shortest-paths",
+    "repo": ".",
+    "branches": ["master"],
+    "dv": {
+        "python_version": "3.12",
+        "requirements": {
+            "pip": ["numpy", "scipy"]
+        }
+    },
+    "env_dir": ".asv/env",
+    "results_dir": ".asv/results",
+    "html_dir": ".asv/html",
+    "show_stderr": false,
+    "build_command": ["python -m pip install -e .[dev]"],
+    "install_command": ["python -m pip install -e .[dev]"],
+    "uninstall_command": ["python -m pip uninstall -y reachq"],
+    "matrix": {
+        "req": {
+            "numpy": [],
+            "scipy": []
+        }
+    }
+}
