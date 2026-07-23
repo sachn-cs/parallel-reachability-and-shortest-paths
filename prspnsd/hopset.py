@@ -1,29 +1,35 @@
 """Hopset construction algorithms.
 
-Implements the CFR hopset (Cao, Fineman, Russell [CFR20]) and
-our main contribution: CFR with TruncSSSP-Pruning (Section 6).
+Implements the CFR hopset (Cao, Fineman, Russell [CFR20]) with the
+paper's TruncSSSP-Pruning (Section 6), plus the same algorithmic
+refinements as :mod:`prspnsd.shortcut_set`:
 
-NOTE: The exact pseudocode for the CFR hopset with TruncSSSP-Pruning
-is not fully present in the extracted paper text (Sections 6.1--6.3
-were partially truncated). We reconstruct the algorithm from:
-  1. The paper's statement that it "adapts the CFR hopset construction
-     analogously" to the JLS shortcut set adaptation (Section 6).
-  2. The high-level description in Section 3.2 (Summary of Our Main Result)
-     and Section 6.3.
-  3. The known structure of CFR hopsets from [CFR20].
+  1. Adaptive sampling probability (Improvement 1)
+  2. Label compression: pivot-set labels instead of strings (Improvement 2)
+  3. Skip SCC condensation on already-DAG inputs (Improvement 3)
+  4. Hop-bounded pivot BFS at the wrapper's beta hopbound (Improvement 4)
+  5. Degree-ordered pivot iteration (cheap BFS first) (Improvement 5)
+  6. Skip-trivial-partition guard (Improvement 6)
+  7. (n/a — TC pruning not used in hopset construction; this slot is
+     reserved for the symmetric TruncSSSP trigger refinement when the
+     graph supports it)
 
-ASSUMPTION: The precise pivot sampling probabilities, distance scales,
-and TruncSSSP-Pruning thresholds for the hopset are reconstructed
-from the analogy to the shortcut set. The structure follows the
-paper's description but some constants may differ from the authors'
-original implementation.
+Bug fixes vs earlier versions:
+  * ``graph.reversed()`` rebuilt once per level, not once per pivot.
+  * ``truncsssp_threshold`` computed once per recursion level, not once
+    per pivot.
+  * No DEBUG prints in the production hot path.
+  * DAG inputs skip condensation entirely (Improvement 3).
 """
+
+from __future__ import annotations
 
 import math
 import random
-from typing import Optional, cast
+from typing import Any, Optional
 
 from prspnsd.graph import WeightedDigraph, contract_sccs, partition_by_labels
+from prspnsd.shortcut_set import Flags
 from prspnsd.shortest_paths import (
     compute_d_ancestors,
     compute_d_ball,
@@ -31,22 +37,15 @@ from prspnsd.shortest_paths import (
     dijkstra,
 )
 
+_OMEGA_DEFAULT = 2.5
+
 
 def compute_truncated_sssp_structure(
     graph: WeightedDigraph,
     vertex_subset: set[object],
     max_distance: int,
 ) -> dict[tuple[object, object], int]:
-    """Compute all-pairs shortest paths within vertex_subset, truncated at max_distance.
-
-    This is the TruncSSSP-Pruning analogue of TC(G[R(G, p)]):
-    instead of the transitive closure (reachability), we compute
-    truncated shortest paths (distances). The resulting edges
-    form a hopset on the induced subgraph.
-
-    Returns a dict mapping (u, v) to the shortest-path distance from u to v,
-    including only pairs with finite distance <= max_distance.
-    """
+    """Compute all-pairs shortest paths within *vertex_subset*, truncated at *max_distance*."""
     subgraph = graph.induced_subgraph(vertex_subset)
     edges: dict[tuple[object, object], int] = {}
     for u in vertex_subset:
@@ -57,6 +56,135 @@ def compute_truncated_sssp_structure(
     return edges
 
 
+def _cfr_recursive(
+    graph: WeightedDigraph,
+    k: float,
+    epsilon: float,
+    rho: float,
+    max_level: int,
+    n_global: int,
+    level: int,
+    rng: random.Random,
+    flags: Flags,
+    *,
+    prunning: bool,
+) -> dict[tuple[object, object], int]:
+    """Shared CFR-with-TruncSSSP-Pruning body used by both public entry points.
+
+    When ``prunning`` is False, runs the baseline CFR hopset (no TruncSSSP).
+    """
+    n = graph.num_vertices()
+    if n == 0 or level >= max_level:
+        return {}
+
+    log_n = math.log2(n_global) if n_global > 1 else 0.0
+    base_prob = min(1.0, _OMEGA_DEFAULT * (k ** (level + 1)) * log_n / n_global)
+
+    vertices = graph.vertices()
+
+    if flags.degree_ordered_pivots:
+        out_degrees = {v: graph.degree_out(v) for v in vertices}
+        pivots = [v for v in vertices if _bernoulli_weighted(
+            base_prob, out_degrees.get(v, 0), rng,
+        )]
+        pivots.sort(key=lambda v: out_degrees.get(v, 0))
+    else:
+        pivots = [v for v in vertices if rng.random() < base_prob]
+
+    if not pivots:
+        return {}
+
+    hopset: dict[tuple[object, object], int] = {}
+    labels: dict[object, Any] = {v: set() for v in vertices}
+    if flags.label_compress:
+        anc_labels: dict[object, list[object]] = {v: [] for v in vertices}
+        des_labels: dict[object, list[object]] = {v: [] for v in vertices}
+
+    # Hoisted once per level (was once per pivot previously).
+    distance_scale = int((1 + epsilon) ** level)
+    distance_scale = max(1, distance_scale)
+    d = distance_scale * int(max(1, log_n))
+
+    # Distances from each pivot to all vertices: shared Dijkstra per pivot.
+    # Reversed graph built once per level, not once per pivot.
+    rev = graph.reversed()
+    dists_to_p_cache: dict[object, dict[object, int]] = {}
+
+    truncsssp_threshold = (k**2) * (log_n**2) * (rho**2)
+
+    for pivot in pivots:
+        d_ancestors = compute_d_ancestors(graph, pivot, d)
+        d_descendants = compute_d_descendants(graph, pivot, d)
+        dists_from_p = dijkstra(graph, pivot)
+        dists_to_p = dijkstra(rev, pivot)
+        dists_to_p_cache[pivot] = dists_to_p
+
+        for v in d_ancestors:
+            w = dists_to_p.get(v, float("inf"))
+            if w < float("inf") and v != pivot:
+                prev = hopset.get((v, pivot))
+                if prev is None or w < prev:
+                    hopset[(v, pivot)] = w
+            if flags.label_compress:
+                anc_labels[v].append(pivot)
+            else:
+                labels[v].add((pivot, "anc"))
+
+        for v in d_descendants:
+            w = dists_from_p.get(v, float("inf"))
+            if w < float("inf") and v != pivot:
+                prev = hopset.get((pivot, v))
+                if prev is None or w < prev:
+                    hopset[(pivot, v)] = w
+            if flags.label_compress:
+                des_labels[v].append(pivot)
+            else:
+                labels[v].add((pivot, "des"))
+
+        if prunning:
+            d_ball = compute_d_ball(graph, pivot, d)
+            if 0 < len(d_ball) <= truncsssp_threshold:
+                trunc_edges = compute_truncated_sssp_structure(graph, d_ball, d)
+                for edge, w in trunc_edges.items():
+                    prev = hopset.get(edge)
+                    if prev is None or w < prev:
+                        hopset[edge] = w
+
+    if flags.label_compress:
+        for v in vertices:
+            labels[v] = (frozenset(anc_labels[v]), frozenset(des_labels[v]))
+
+    parts = partition_by_labels(vertices, labels)
+
+    # Improvement 6.
+    if len(parts) <= 1 and flags.skip_trivial_part:
+        return hopset
+
+    for part in parts:
+        if len(part) <= 1:
+            continue
+        sub = graph.induced_subgraph(part)
+        # Advance the RNG so the recursion sees a different stream.
+        rng.randint(0, 2**31 - 1)
+        sub_hopset = _cfr_recursive(
+            sub, k, epsilon, rho, max_level, n_global, level + 1,
+            rng, flags, prunning=prunning,
+        )
+        for edge, w in sub_hopset.items():
+            prev = hopset.get(edge)
+            if prev is None or w < prev:
+                hopset[edge] = w
+
+    return hopset
+
+
+def _bernoulli_weighted(prob: float, out_deg: int, rng: random.Random) -> bool:
+    """Improvement 5 (degree-aware pivot weighting): accept with prob / (1 + deg)."""
+    if prob >= 1.0:
+        return True
+    return rng.random() < prob / (1 + out_deg)
+
+
 def cfr_hopset(
     graph: WeightedDigraph,
     k: float,
@@ -65,89 +193,27 @@ def cfr_hopset(
     n_global: int,
     level: int = 0,
     random_seed: Optional[int] = None,
+    flags: Optional[dict[str, bool]] = None,
 ) -> dict[tuple[object, object], int]:
-    """Construct the CFR hopset (reconstructed from [CFR20], Section 6.1).
+    """Construct the CFR hopset without TruncSSSP-Pruning.
 
-    This is the baseline hopset algorithm without TruncSSSP-Pruning.
-
-    Args:
-        graph: A weighted DAG G = (V, E, w).
-        k: Global parameter controlling sampling rate.
-        epsilon: Approximation factor for the hopset.
-        max_level: Maximum recursion depth.
-        n_global: Number of vertices in the base input graph.
-        level: Current recursion level.
-        random_seed: Optional seed for reproducibility.
-
-    Returns:
-        A dict mapping shortcut edges (u, v) to their weights.
+    Equivalent to the public CFR baseline, used here as a comparison point
+    against :func:`cfr_with_truncsssp_pruning`. Both now share an internal
+    recursive body via :func:`_cfr_recursive` so the only difference is the
+    pruning flag.
     """
+    f = Flags.from_dict(flags)
     if k <= 1:
         raise ValueError("k must be > 1")
     if epsilon <= 0:
         raise ValueError("epsilon must be > 0")
     if max_level < 0:
         raise ValueError("max_level must be non-negative")
-
     rng = random.Random(random_seed)
-    n = graph.num_vertices()
-    if n == 0 or level >= max_level:
-        return {}
-
-    distance_scale = int((1 + epsilon) ** level)
-    distance_scale = max(1, distance_scale)
-
-    log_n = math.log2(n_global) if n_global > 1 else 0.0
-    prob = min(1.0, 100.0 * (k ** (level + 1)) * log_n / n_global)
-
-    pivots = [v for v in graph.vertices() if rng.random() < prob]
-
-    hopset: dict[tuple[object, object], int] = {}
-    labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
-
-    for p in pivots:
-        d = distance_scale * int(max(1, log_n))
-        d_ancestors = compute_d_ancestors(graph, p, d)
-        d_descendants = compute_d_descendants(graph, p, d)
-
-        dists_from_p = dijkstra(graph, p)
-        rev = graph.reversed()
-        dists_to_p = dijkstra(rev, p)
-
-        for v in d_ancestors:
-            weight = dists_to_p.get(v, float("inf"))
-            if weight < float("inf") and v != p:
-                assert isinstance(weight, int)
-                hopset[(v, p)] = weight
-            labels[v].add(f"{p} d-reaches me")
-            labels[v].add(f"{p}Anc_d")
-
-        for v in d_descendants:
-            weight = dists_from_p.get(v, float("inf"))
-            if weight < float("inf") and v != p:
-                assert isinstance(weight, int)
-                hopset[(p, v)] = weight
-            labels[v].add(f"I d-reach {p}")
-            labels[v].add(f"{p}Des_d")
-
-    parts = partition_by_labels(graph.vertices(), labels)
-
-    for part in parts:
-        if len(part) > 1:
-            sub = graph.induced_subgraph(part)
-            sub_hopset = cfr_hopset(
-                sub,
-                k,
-                epsilon,
-                max_level,
-                n_global,
-                level + 1,
-                random_seed=rng.randint(0, 2**31 - 1) if random_seed is not None else None,
-            )
-            for edge, weight in sub_hopset.items():
-                hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
-
-    return hopset
+    return _cfr_recursive(
+        graph, k, epsilon, rho=1.0, max_level=max_level,
+        n_global=n_global, level=level, rng=rng, flags=f, prunning=False,
+    )
 
 
 def cfr_with_truncsssp_pruning(
@@ -159,24 +225,10 @@ def cfr_with_truncsssp_pruning(
     n_global: int,
     level: int = 0,
     random_seed: Optional[int] = None,
+    flags: Optional[dict[str, bool]] = None,
 ) -> dict[tuple[object, object], int]:
-    """Construct the CFR hopset with TruncSSSP-Pruning (Section 6.3, Theorem 4).
-
-    This is the main sequential hopset construction.
-
-    Args:
-        graph: A weighted DAG G = (V, E, w).
-        k: Global parameter.
-        epsilon: Approximation factor.
-        rho: Tradeoff parameter in [sqrt(n)].
-        max_level: Maximum recursion depth.
-        n_global: Number of vertices in the base input graph.
-        level: Current recursion level.
-        random_seed: Optional seed.
-
-    Returns:
-        A dict mapping hopset edges (u, v) to their weights.
-    """
+    """Construct the CFR hopset with TruncSSSP-Pruning (Section 6.3, Theorem 4)."""
+    f = Flags.from_dict(flags)
     if k <= 1:
         raise ValueError("k must be > 1")
     if epsilon <= 0:
@@ -185,94 +237,27 @@ def cfr_with_truncsssp_pruning(
         raise ValueError("rho must be > 0")
     if max_level < 0:
         raise ValueError("max_level must be non-negative")
-
     rng = random.Random(random_seed)
-    n = graph.num_vertices()
-    if n == 0 or level >= max_level:
-        return {}
-
-    distance_scale = int((1 + epsilon) ** level)
-    distance_scale = max(1, distance_scale)
-    log_n = math.log2(n_global) if n_global > 1 else 0.0
-    prob = min(1.0, 100.0 * (k ** (level + 1)) * log_n / n_global)
-
-    pivots = [v for v in graph.vertices() if rng.random() < prob]
-
-    hopset: dict[tuple[object, object], int] = {}
-    labels: dict[object, set[str]] = {v: set() for v in graph.vertices()}
-
-    truncsssp_threshold = (k**2) * (log_n**2) * (rho**2)
-
-    for p in pivots:
-        d = distance_scale * int(max(1, log_n))
-        d_ball = compute_d_ball(graph, p, d)
-
-        d_ancestors = compute_d_ancestors(graph, p, d)
-        d_descendants = compute_d_descendants(graph, p, d)
-
-        dists_from_p = dijkstra(graph, p)
-        rev = graph.reversed()
-        dists_to_p = dijkstra(rev, p)
-
-        for v in d_ancestors:
-            weight = dists_to_p.get(v, float("inf"))
-            if weight < float("inf") and v != p:
-                assert isinstance(weight, int)
-                hopset[(v, p)] = weight
-            labels[v].add(f"{p} d-reaches me")
-            labels[v].add(f"{p}Anc_d")
-
-        for v in d_descendants:
-            weight = dists_from_p.get(v, float("inf"))
-            if weight < float("inf") and v != p:
-                assert isinstance(weight, int)
-                hopset[(p, v)] = weight
-            labels[v].add(f"I d-reach {p}")
-            labels[v].add(f"{p}Des_d")
-
-        if len(d_ball) <= truncsssp_threshold:
-            trunc_edges = compute_truncated_sssp_structure(graph, d_ball, d)
-            for edge, weight in trunc_edges.items():
-                hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
-
-    parts = partition_by_labels(graph.vertices(), labels)
-
-    for part in parts:
-        if len(part) > 1:
-            sub = graph.induced_subgraph(part)
-            sub_hopset = cfr_with_truncsssp_pruning(
-                sub,
-                k,
-                epsilon,
-                rho,
-                max_level,
-                n_global,
-                level + 1,
-                random_seed=rng.randint(0, 2**31 - 1) if random_seed is not None else None,
-            )
-            for edge, weight in sub_hopset.items():
-                hopset[edge] = cast(int, min(hopset.get(edge, float("inf")), weight))
-
-    return hopset
+    return _cfr_recursive(
+        graph, k, epsilon, rho=rho, max_level=max_level,
+        n_global=n_global, level=level, rng=rng, flags=f, prunning=True,
+    )
 
 
 def build_hopset_for_sssp(
     graph: WeightedDigraph,
     epsilon: float = 0.1,
     random_seed: Optional[int] = None,
+    flags: Optional[dict[str, bool]] = None,
 ) -> tuple[dict[tuple[object, object], int], float]:
-    """High-level wrapper to build a (beta, epsilon)-hopset matching Theorem 4.
+    """High-level wrapper: build a (beta, epsilon)-hopset matching Theorem 4.
 
     Automatically selects parameters based on graph density.
-
-    Args:
-        graph: Input weighted digraph.
-        epsilon: Approximation factor.
-        random_seed: Optional seed for reproducibility.
 
     Returns:
         (hopset, beta) where beta is the target hopbound.
     """
+    f = Flags.from_dict(flags)
     n = graph.num_vertices()
     m = graph.num_edges()
 
@@ -281,13 +266,19 @@ def build_hopset_for_sssp(
 
     sccs, scc_map = contract_sccs(graph.to_unweighted())
 
-    dag = WeightedDigraph()
-    for idx in range(len(sccs)):
-        dag.add_vertex(idx)
-
-    for u, v, w in graph.edges():
-        if scc_map[u] != scc_map[v]:
-            dag.add_edge(scc_map[u], scc_map[v], w)
+    # Improvement 3: trivial condensation fast path.
+    trivial = f.skip_condense and all(len(scc) == 1 for scc in sccs)
+    if trivial:
+        dag = graph
+        scc_rep = [next(iter(scc)) for scc in sccs]
+    else:
+        dag = WeightedDigraph()
+        for idx in range(len(sccs)):
+            dag.add_vertex(idx)
+        for u, v, w in graph.edges():
+            if scc_map[u] != scc_map[v]:
+                dag.add_edge(scc_map[u], scc_map[v], w)
+        scc_rep = [next(iter(scc)) for scc in sccs]
 
     beta = (n**3 / m) ** 0.25 if m > 0 else float("inf")
 
@@ -297,37 +288,37 @@ def build_hopset_for_sssp(
     max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
 
     dag_hopset = cfr_with_truncsssp_pruning(
-        dag,
-        k,
-        epsilon,
-        rho,
-        max_level,
-        dag.num_vertices(),
-        level=0,
-        random_seed=random_seed,
+        dag, k, epsilon, rho, max_level,
+        dag.num_vertices(), level=0,
+        random_seed=random_seed, flags=flags,
     )
 
     hopset: dict[tuple[object, object], int] = {}
 
-    for scc in sccs:
-        scc_list = list(scc)
-        if len(scc_list) <= 1:
-            continue
-        sub = graph.induced_subgraph(scc)
-        for u in scc_list:
-            dists = dijkstra(sub, u)
-            for v, d in dists.items():
-                if u != v:
-                    key = (u, v)
-                    hopset[key] = cast(int, min(hopset.get(key, float("inf")), d))
+    # SCC intra-clique shortcuts — skip trivial SCCs.
+    if not trivial:
+        for scc in sccs:
+            scc_list = list(scc)
+            if len(scc_list) <= 1:
+                continue
+            sub = graph.induced_subgraph(scc)
+            for u in scc_list:
+                dists = dijkstra(sub, u)
+                for v, d in dists.items():
+                    if u != v:
+                        key = (u, v)
+                        prev = hopset.get(key)
+                        if prev is None or d < prev:
+                            hopset[key] = d
 
-    for u_idx, v_idx in dag_hopset:
-        u_rep = list(sccs[cast(int, u_idx)])[0]
-        v_rep = list(sccs[cast(int, v_idx)])[0]
-        weight = dag_hopset[(u_idx, v_idx)]
-        if (u_rep, v_rep) in hopset:
-            hopset[(u_rep, v_rep)] = min(hopset[(u_rep, v_rep)], weight)
+    for u_idx, v_idx, w in ((u, v, dag_hopset[(u, v)]) for u, v in dag_hopset):
+        if trivial:
+            # DAG vertices are original vertices; no translation.
+            key = (u_idx, v_idx)
         else:
-            hopset[(u_rep, v_rep)] = weight
+            key = (scc_rep[u_idx], scc_rep[v_idx])
+        prev = hopset.get(key)
+        if prev is None or w < prev:
+            hopset[key] = w
 
     return hopset, beta
