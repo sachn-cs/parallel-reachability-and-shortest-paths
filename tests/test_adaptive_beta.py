@@ -19,6 +19,7 @@ class TestAdaptiveBeta:
 
     def test_returns_zero_on_empty_graph(self):
         from reachq.graph import Digraph
+
         beta = adaptive_beta(Digraph(), n_samples=5)
         assert beta == 0.0
 

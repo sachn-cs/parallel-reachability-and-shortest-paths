@@ -10,7 +10,11 @@ from __future__ import annotations
 import math
 
 from reachq.graph import Digraph, WeightedDigraph
-from reachq.reachability import bfs_reachability, parallel_bfs, strongly_connected_components
+from reachq.reachability import (
+    bfs_reachability,
+    parallel_bfs,
+    strongly_connected_components,
+)
 from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
 
@@ -69,7 +73,9 @@ def assert_hopbound(
     reachable = {v for v, d in dist.items() if d < float("inf")}
     max_hops = max((dist[v] for v in reachable), default=0)
     if max_hops > beta:
-        raise AssertionError(f"Hopbound violated: max_hops={max_hops} > beta={beta}. {msg or ''}")
+        raise AssertionError(
+            f"Hopbound violated: max_hops={max_hops} > beta={beta}. {msg or ''}"
+        )
     return max_hops
 
 
@@ -91,7 +97,8 @@ def assert_scc_shortcuts_form_cliques(
     is pairs where G has no edge in either direction. (If G has u→v
     directly, no shortcut is needed.)
     """
-    from reachq.reachability import bfs_reachability, parallel_bfs
+    from reachq.reachability import parallel_bfs
+
     sccs = strongly_connected_components(graph)
     for scc in sccs:
         if len(scc) <= 1:
@@ -107,8 +114,7 @@ def assert_scc_shortcuts_form_cliques(
                     continue
                 if v not in reach:
                     raise AssertionError(
-                        f"u={u} cannot reach v={v} in same SCC via G+H. "
-                        f"{msg or ''}"
+                        f"u={u} cannot reach v={v} in same SCC via G+H. " f"{msg or ''}"
                     )
 
 
@@ -128,10 +134,14 @@ def assert_partition_correctness(
     for part in parts:
         if not part.issubset(vertices):
             extra = part - vertices
-            raise AssertionError(f"Partition contains extraneous vertices: {extra}. {msg or ''}")
+            raise AssertionError(
+                f"Partition contains extraneous vertices: {extra}. {msg or ''}"
+            )
         intersection = union & part
         if intersection:
-            raise AssertionError(f"Partition parts overlap on {intersection}. {msg or ''}")
+            raise AssertionError(
+                f"Partition parts overlap on {intersection}. {msg or ''}"
+            )
         union |= part
 
     if union != vertices:

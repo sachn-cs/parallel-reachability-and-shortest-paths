@@ -123,7 +123,7 @@ def paper_bound_const(n: int, omega: float = 3.0) -> float:
     """
     omega = 3.0
     m = n  # assume m = n
-    beta = (n ** omega / m) ** (1.0 / (2.0 * omega - 2.0))
+    beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
     return m * beta + n * beta * beta
 
 
@@ -134,10 +134,11 @@ def upper_bound_paper(n: int, m: int) -> float:
     For a path m = n-1, so bound = O(n^1.5) + O(n^2) = O(n^2).
     """
     rho = (n * n * 0 + m) ** 0  # approximation
-    return float(n * n + m * (n ** 0.5))
+    return float(n * n + m * (n**0.5))
 
 
 # Specific verifications:
+
 
 def verify_path_optimality(n: int) -> dict[str, object]:
     """The n-path requires NO shortcuts for soundness."""
@@ -149,6 +150,7 @@ def verify_path_optimality(n: int) -> dict[str, object]:
     H = path_shortcut_set(n)
     # Verify soundness: BFS from each vertex reaches its full downstream.
     from collections import deque
+
     for s in g.vertices():
         visited = {s}
         q = deque([s])
@@ -180,6 +182,7 @@ def verify_cycle_optimality(n: int) -> dict[str, object]:
     H = cycle_shortcut_set(n)
     # Verify soundness: each vertex reaches all others via the cycle.
     from collections import deque
+
     for s in g.vertices():
         visited = {s}
         q = deque([s])
@@ -189,9 +192,7 @@ def verify_cycle_optimality(n: int) -> dict[str, object]:
                 if v not in visited:
                     visited.add(v)
                     q.append(v)
-        assert visited == set(g.vertices()), (
-            f"cycle_shortcut_set not sound at s={s}"
-        )
+        assert visited == set(g.vertices()), f"cycle_shortcut_set not sound at s={s}"
     return {
         "graph": f"cycle_{n}",
         "optimal_|H|": len(H),
@@ -209,6 +210,7 @@ def verify_star_optimality(n: int) -> dict[str, object]:
         g.add_edge(i, 0)  # leaf to center
     H = star_shortcut_set(n)
     from collections import deque
+
     for s in g.vertices():
         visited = {s}
         q = deque([s])
@@ -218,9 +220,7 @@ def verify_star_optimality(n: int) -> dict[str, object]:
                 if v not in visited:
                     visited.add(v)
                     q.append(v)
-        assert visited == set(g.vertices()), (
-            f"star_shortcut_set not sound at s={s}"
-        )
+        assert visited == set(g.vertices()), f"star_shortcut_set not sound at s={s}"
     return {
         "graph": f"star_{n}",
         "optimal_|H|": len(H),
@@ -249,6 +249,7 @@ def verify_layered_dag_optimality(layers: int, layer_size: int) -> dict[str, obj
                 g.add_edge((i, j1), (i + 1, j2))
     H = layered_dag_shortcut_set(layers, layer_size)
     from collections import deque
+
     for s in g.vertices():
         visited = {s}
         q = deque([s])
@@ -274,5 +275,7 @@ def verify_layered_dag_optimality(layers: int, layer_size: int) -> dict[str, obj
     return {
         "graph": f"layered_{layers}x{layer_size}",
         "optimal_|H|": len(H),
-        "paper_bound": upper_bound_paper(layers * layer_size, (layers - 1) * layer_size * layer_size),
+        "paper_bound": upper_bound_paper(
+            layers * layer_size, (layers - 1) * layer_size * layer_size
+        ),
     }

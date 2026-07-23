@@ -8,7 +8,7 @@ preserve reachability.
 
 from reachq.graph import Digraph
 from reachq.reachability import bfs_reachability, parallel_bfs
-from reachq.shortcut_set import jls_with_tc_pruning, jls_shortcut_set
+from reachq.shortcut_set import jls_shortcut_set, jls_with_tc_pruning
 
 
 class TestRecursionTermination:
@@ -20,7 +20,11 @@ class TestRecursionTermination:
         for i in range(4):
             g.add_edge(i, i + 1)
         shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=3, n_global=5, random_seed=42,
+            g,
+            k=2.0,
+            max_level=3,
+            n_global=5,
+            random_seed=42,
         )
         # The shortcut set is finite.
         assert isinstance(shortcuts, set)
@@ -34,7 +38,11 @@ class TestRecursionTermination:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
         shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=4, n_global=n, random_seed=42,
+            g,
+            k=2.0,
+            max_level=4,
+            n_global=n,
+            random_seed=42,
         )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
@@ -47,7 +55,12 @@ class TestRecursionTermination:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
         shortcuts = jls_with_tc_pruning(
-            g, k=2.0, rho=2.0, max_level=4, n_global=n, random_seed=42,
+            g,
+            k=2.0,
+            rho=2.0,
+            max_level=4,
+            n_global=n,
+            random_seed=42,
         )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
@@ -56,7 +69,11 @@ class TestRecursionTermination:
         g = Digraph()
         g.add_edge(0, 1)
         shortcuts = jls_shortcut_set(
-            g, k=2.0, max_level=0, n_global=2, random_seed=42,
+            g,
+            k=2.0,
+            max_level=0,
+            n_global=2,
+            random_seed=42,
         )
         # No recursion, no shortcuts (sampling may produce pivots,
         # but max_level=0 means no recursion happens).

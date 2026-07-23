@@ -20,7 +20,6 @@ from __future__ import annotations
 
 import numpy as np
 
-
 # Conservative omega upper bounds per BLAS vendor. Sources:
 #   - OpenBLAS 0.3.23 (Apr 2024): Strassen-class, ~2.37.
 #   - Accelerate (Apple): Strassen-class, ~2.37.

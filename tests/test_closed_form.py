@@ -1,5 +1,6 @@
 """Tests for reachq.closed_form (paper contribution: tight bound on
-JLS essential shortcut set)."""
+JLS essential shortcut set).
+"""
 
 from __future__ import annotations
 
@@ -16,7 +17,8 @@ from reachq.closed_form import (
 class TestPathOptimality:
     def test_path_optimal_H_is_empty(self):
         """The n-path: optimal H is the empty set (the path already
-        has the right reachability via direct edges)."""
+        has the right reachability via direct edges).
+        """
         for n in [10, 50, 100]:
             assert path_shortcut_set(n) == set()
 
@@ -27,8 +29,10 @@ class TestPathOptimality:
 class TestCycleOptimality:
     def test_cycle_optimal_H_is_empty(self):
         """The n-cycle: every vertex reaches every other via the
-        cycle, so optimal H is empty."""
+        cycle, so optimal H is empty.
+        """
         from reachq.closed_form import cycle_shortcut_set
+
         for n in [10, 50, 100]:
             assert cycle_shortcut_set(n) == set()
 
@@ -36,7 +40,8 @@ class TestCycleOptimality:
 class TestStarOptimality:
     def test_star_optimal_H_is_empty(self):
         """The n-star: center reaches every leaf in 1 hop, every leaf
-        reaches center in 1 hop. The 2-hop clique needs no shortcuts."""
+        reaches center in 1 hop. The 2-hop clique needs no shortcuts.
+        """
         for n in [10, 50, 100]:
             assert star_shortcut_set(n) == set()
 
@@ -45,7 +50,8 @@ class TestLayeredDAGOptimality:
     def test_layered_dag_optimal_H_is_empty(self):
         """The layered DAG with complete bipartite between layers: each
         vertex reaches all later-layer vertices via the bipartite
-        edges. Optimal H is empty."""
+        edges. Optimal H is empty.
+        """
         for layers, layer_size in [(5, 10), (10, 10)]:
             assert layered_dag_shortcut_set(layers, layer_size) == set()
 
@@ -61,11 +67,11 @@ class TestPaperBoundGap:
         """For the n-path, paper bound = O(n^2) but optimal is 0."""
         for n in [10, 50, 100, 500]:
             # Approximate paper bound.
-            bound = float(n * n + (n - 1) * (n ** 0.5))
+            bound = float(n * n + (n - 1) * (n**0.5))
             assert paper_bound_const(n) >= bound / 2  # rough check
             assert path_shortcut_set(n) == set()
             # ratio
-            assert 0 < bound, f"path n={n} bound {bound} > 0 but optimal is 0"
+            assert bound > 0, f"path n={n} bound {bound} > 0 but optimal is 0"
 
     def test_layered_dag_bound_loose(self):
         for layers, layer_size in [(5, 10), (10, 10), (20, 10)]:

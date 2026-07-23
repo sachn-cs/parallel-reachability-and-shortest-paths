@@ -504,7 +504,7 @@ def _base_q_to_int(coords: list[int], q: int) -> int:
     """Convert base-q digit list (LSB at index 0) back to integer."""
     v = 0
     for i, x in enumerate(coords):
-        v += x * (q ** i)
+        v += x * (q**i)
     return v
 
 
@@ -512,27 +512,39 @@ SNAP_BASE = "https://snap.stanford.edu/data"
 SNAP_DATASETS: dict[str, dict[str, str | int]] = {
     "cit-HepPh": {
         "url": f"{SNAP_BASE}/cit-HepPh.txt.gz",
-        "nodes": 34546, "edges": 421578, "type": "citation",
+        "nodes": 34546,
+        "edges": 421578,
+        "type": "citation",
     },
     "p2p-Gnutella31": {
         "url": f"{SNAP_BASE}/p2p-Gnutella31.txt.gz",
-        "nodes": 62586, "edges": 147892, "type": "p2p",
+        "nodes": 62586,
+        "edges": 147892,
+        "type": "p2p",
     },
     "soc-Epinions1": {
         "url": f"{SNAP_BASE}/soc-Epinions1.txt.gz",
-        "nodes": 75879, "edges": 508837, "type": "social",
+        "nodes": 75879,
+        "edges": 508837,
+        "type": "social",
     },
     "web-NotreDame": {
         "url": f"{SNAP_BASE}/web-NotreDame.txt.gz",
-        "nodes": 325729, "edges": 1497134, "type": "web",
+        "nodes": 325729,
+        "edges": 1497134,
+        "type": "web",
     },
     "web-Stanford": {
         "url": f"{SNAP_BASE}/web-Stanford.txt.gz",
-        "nodes": 281903, "edges": 2312497, "type": "web",
+        "nodes": 281903,
+        "edges": 2312497,
+        "type": "web",
     },
     "web-Google": {
         "url": f"{SNAP_BASE}/web-Google.txt.gz",
-        "nodes": 875713, "edges": 5105039, "type": "web",
+        "nodes": 875713,
+        "edges": 5105039,
+        "type": "web",
     },
 }
 
@@ -592,6 +604,8 @@ def graph_stats(graph: Digraph) -> dict[str, int]:
     return {
         "n": graph.num_vertices(),
         "m": graph.num_edges(),
-        "max_out_degree": max((graph.degree_out(v) for v in graph.vertices()), default=0),
+        "max_out_degree": max(
+            (graph.degree_out(v) for v in graph.vertices()), default=0
+        ),
         "max_in_degree": max((graph.degree_in(v) for v in graph.vertices()), default=0),
     }

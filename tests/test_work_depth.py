@@ -245,6 +245,7 @@ class TestSpanProfiler:
 
     def test_empty_profiler_reports_zero_span(self):
         from reachq.work_depth import SpanProfiler
+
         p = SpanProfiler()
         assert p.total_span_seconds() == 0.0
         s = p.summary()
@@ -253,7 +254,9 @@ class TestSpanProfiler:
 
     def test_phases_accumulate(self):
         import time as _t
+
         from reachq.work_depth import SpanProfiler
+
         p = SpanProfiler()
         p.begin_phase("a")
         _t.sleep(0.01)
@@ -269,6 +272,7 @@ class TestSpanProfiler:
 
     def test_summary_includes_all_phases(self):
         from reachq.work_depth import SpanProfiler
+
         p = SpanProfiler()
         p.begin_phase("first")
         p.end_phase()
@@ -280,6 +284,7 @@ class TestSpanProfiler:
 
     def test_repr_includes_span(self):
         from reachq.work_depth import SpanProfiler
+
         p = SpanProfiler()
         r = repr(p)
         assert "SpanProfiler" in r

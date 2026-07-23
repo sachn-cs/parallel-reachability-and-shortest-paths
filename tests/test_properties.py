@@ -19,7 +19,6 @@ from reachq.generators import random_dag
 from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.shortcut_set import build_shortcut_set_for_reachability
 
-
 EXAMPLES = int(os.environ.get("reachq_HYPOTHESIS", "20"))
 
 
@@ -52,57 +51,69 @@ small_seed = st.integers(min_value=0, max_value=10**6)
 
 
 @given(n=small_n, p=small_p, seed=small_seed)
-@settings(max_examples=EXAMPLES, deadline=None,
-         suppress_health_check=[HealthCheck.too_slow])
+@settings(
+    max_examples=EXAMPLES, deadline=None, suppress_health_check=[HealthCheck.too_slow]
+)
 def test_reachability_preserved(n, p, seed):
     """For every source, R+(G, s) == R+(G∪H, s)."""
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
     shortcuts, _ = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=seed,
+        g,
+        omega=3.0,
+        random_seed=seed,
     )
     for v in g.vertices():
         assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
 
 
 @given(n=small_n, p=small_p, seed=small_seed)
-@settings(max_examples=EXAMPLES, deadline=None,
-         suppress_health_check=[HealthCheck.too_slow])
+@settings(
+    max_examples=EXAMPLES, deadline=None, suppress_health_check=[HealthCheck.too_slow]
+)
 def test_beta_hopbound_observed(n, p, seed):
     """Max BFS hops in G∪H is bounded by the beta from the construction."""
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
     shortcuts, beta = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=seed,
+        g,
+        omega=3.0,
+        random_seed=seed,
     )
     if beta <= 0 or not shortcuts:
         return
     for src in list(g.vertices())[:5]:
         max_obs = hopbound_max(g, src, shortcuts, beta)
-        assert max_obs <= beta + 1e-9, (
-            f"n={n} p={p} seed={seed}: max_obs={max_obs} > beta={beta}"
-        )
+        assert (
+            max_obs <= beta + 1e-9
+        ), f"n={n} p={p} seed={seed}: max_obs={max_obs} > beta={beta}"
 
 
 @given(n=small_n, p=small_p, seed=small_seed)
-@settings(max_examples=EXAMPLES, deadline=None,
-         suppress_health_check=[HealthCheck.too_slow])
+@settings(
+    max_examples=EXAMPLES, deadline=None, suppress_health_check=[HealthCheck.too_slow]
+)
 def test_no_self_loops_in_shortcut_set(n, p, seed):
     """Shortcut set must not contain self-loops."""
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
     shortcuts, _ = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=seed,
+        g,
+        omega=3.0,
+        random_seed=seed,
     )
     for u, v in shortcuts:
         assert u != v
 
 
 @given(n=small_n, p=small_p, seed=small_seed)
-@settings(max_examples=EXAMPLES, deadline=None,
-         suppress_health_check=[HealthCheck.too_slow])
+@settings(
+    max_examples=EXAMPLES, deadline=None, suppress_health_check=[HealthCheck.too_slow]
+)
 def test_shortcut_set_bounded_by_n_squared(n, p, seed):
     """Empirical sanity bound: |H| <= n*(n-1) (total possible DAG edges)."""
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
     shortcuts, _ = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=seed,
+        g,
+        omega=3.0,
+        random_seed=seed,
     )
     n_vertices = g.num_vertices()
     assert len(shortcuts) <= n_vertices * (n_vertices - 1)

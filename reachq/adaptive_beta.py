@@ -84,7 +84,9 @@ def adaptive_beta(
     beta = safety_factor * max(1, max_depth)
     log.info(
         "adaptive_beta: max_depth=%d over %d samples, beta=%.2f",
-        max_depth, len(sample), beta,
+        max_depth,
+        len(sample),
+        beta,
     )
     return float(beta)
 

@@ -25,7 +25,6 @@ from typing import Any
 from reachq.graph import Digraph
 from reachq.logging_config import get_logger
 from reachq.reachability import (
-    bfs_reachability,
     compute_r_minus,
     compute_r_plus,
 )
@@ -129,7 +128,10 @@ def fix_resample_shortcut_set(
             threshold = int(threshold_fraction * n)
             log.info(
                 "iter=%d reached=%d/%d threshold=%d",
-                iters, len(reached), n, threshold,
+                iters,
+                len(reached),
+                n,
+                threshold,
             )
             if len(reached) >= threshold:
                 break
@@ -137,7 +139,9 @@ def fix_resample_shortcut_set(
     if iters >= max_iterations:
         log.warning(
             "hit max_iterations=%d; reached=%d/%d",
-            max_iterations, len(reached), n,
+            max_iterations,
+            len(reached),
+            n,
         )
     return H
 
@@ -149,6 +153,7 @@ def fix_resample_reachable(
 ) -> set[Any]:
     """Reachable from source via graph + shortcuts, using the BFS-variant."""
     from collections import deque
+
     visited = {source}
     q = deque([source])
     out = graph.out_edges

@@ -105,7 +105,9 @@ class TestJlsBasic:
 class TestTcPruningBasic:
     def test_empty_graph(self):
         g = Digraph()
-        shortcuts = jls_with_tc_pruning(g, k=2.0, rho=1.0, max_level=1, n_global=0, random_seed=42)
+        shortcuts = jls_with_tc_pruning(
+            g, k=2.0, rho=1.0, max_level=1, n_global=0, random_seed=42
+        )
         assert shortcuts == set()
 
     def test_invalid_k_raises(self):
@@ -142,7 +144,9 @@ class TestTcPruningBasic:
         n = 20
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        shortcuts_base = jls_shortcut_set(g, k=2.0, max_level=4, n_global=n, random_seed=42)
+        shortcuts_base = jls_shortcut_set(
+            g, k=2.0, max_level=4, n_global=n, random_seed=42
+        )
         shortcuts_tc = jls_with_tc_pruning(
             g, k=2.0, rho=2.0, max_level=4, n_global=n, random_seed=42
         )
@@ -152,22 +156,30 @@ class TestTcPruningBasic:
         g = Digraph()
         for i in range(20):
             g.add_edge(i, i + 1)
-        s1 = jls_with_tc_pruning(g, k=2.0, rho=1.0, max_level=3, n_global=21, random_seed=123)
-        s2 = jls_with_tc_pruning(g, k=2.0, rho=1.0, max_level=3, n_global=21, random_seed=123)
+        s1 = jls_with_tc_pruning(
+            g, k=2.0, rho=1.0, max_level=3, n_global=21, random_seed=123
+        )
+        s2 = jls_with_tc_pruning(
+            g, k=2.0, rho=1.0, max_level=3, n_global=21, random_seed=123
+        )
         assert s1 == s2
 
 
 class TestWrapperBasic:
     def test_empty_graph_returns_empty(self):
         g = Digraph()
-        shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        shortcuts, beta = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=42
+        )
         assert shortcuts == set()
         assert beta == 0.0
 
     def test_single_vertex_returns_empty(self):
         g = Digraph()
         g.add_vertex(0)
-        shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        shortcuts, beta = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=42
+        )
         assert shortcuts == set()
 
     def test_dag_end_to_end(self):
@@ -176,7 +188,9 @@ class TestWrapperBasic:
         g.add_edge(1, 2)
         g.add_edge(2, 3)
         g.add_edge(0, 3)
-        shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        shortcuts, beta = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=42
+        )
         assert beta > 0
         for v in g.vertices():
             original = bfs_reachability(g, v)
@@ -189,7 +203,9 @@ class TestWrapperBasic:
         g.add_edge(1, 2)
         g.add_edge(2, 0)
         g.add_edge(2, 3)
-        shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        shortcuts, beta = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=42
+        )
         assert beta > 0
         for v in g.vertices():
             original = bfs_reachability(g, v)
@@ -210,7 +226,9 @@ class TestWrapperBasic:
         n = 50
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        shortcuts, beta = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=42
+        )
         assert beta > 0
         reached = parallel_bfs(g, 0, shortcuts)
         assert (n - 1) in reached
@@ -221,7 +239,9 @@ class TestWrapperBasic:
         n = 200
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        shortcuts, beta = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=42
+        )
         assert beta > 0
         reached = parallel_bfs(g, 0, shortcuts)
         assert (n - 1) in reached

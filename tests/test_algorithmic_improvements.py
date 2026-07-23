@@ -29,7 +29,10 @@ def test_shortcut_set_correctness_with_each_flag_off(off: str) -> None:
     g = random_dag(n=80, edge_probability=0.2, random_seed=7)
     flags = {name: False if name == off else True for name in _all_flag_names()}
     shortcuts, beta = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=7, flags=flags,
+        g,
+        omega=3.0,
+        random_seed=7,
+        flags=flags,
     )
     assert beta > 0
     for v in g.vertices():
@@ -52,9 +55,9 @@ def test_hopset_correctness_with_each_flag_off(off: str) -> None:
         if od == float("inf"):
             continue
         ad = approx.get(v, float("inf"))
-        assert ad <= 1.1 * od + 1e-9, (
-            f"flag {off} off breaks (1+eps) bound for {v}: orig={od}, approx={ad}"
-        )
+        assert (
+            ad <= 1.1 * od + 1e-9
+        ), f"flag {off} off breaks (1+eps) bound for {v}: orig={od}, approx={ad}"
 
 
 def test_flags_dataclass_rejects_unknown_names() -> None:
@@ -96,7 +99,9 @@ def test_networkx_cross_check_shortcut_set() -> None:
         nxg.add_edge(u, v)
 
     shortcuts, _ = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=42,
+        g,
+        omega=3.0,
+        random_seed=42,
     )
 
     # Build augmented graph and compare descendants.

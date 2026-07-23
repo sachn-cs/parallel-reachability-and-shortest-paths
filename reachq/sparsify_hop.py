@@ -102,7 +102,7 @@ def sparsify_hop_bounded(
 
     for iteration in range(max_iterations):
         changed = False
-        for (u, v) in list(H):
+        for u, v in list(H):
             H_minus = H - {(u, v)}
             # Check: v reachable from u in ≤ β hops in G + H_minus.
             dist = _bfs_limited(graph, u, beta, H_minus)
@@ -113,12 +113,14 @@ def sparsify_hop_bounded(
         if not changed:
             log.info(
                 "sparsify_hop_bounded: converged at iter=%d, |H|=%d",
-                iteration, len(H),
+                iteration,
+                len(H),
             )
             return H
     log.info(
         "sparsify_hop_bounded: hit max_iterations=%d, |H|=%d",
-        max_iterations, len(H),
+        max_iterations,
+        len(H),
     )
     return H
 

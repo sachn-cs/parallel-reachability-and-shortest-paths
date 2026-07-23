@@ -11,17 +11,17 @@ Bugs covered:
   4. TC self-loops: (i, i) entries were leaking into the shortcut set.
 """
 
-import pytest
-
 from reachq.graph import Digraph
+from reachq.numpy_bfs import (
+    build_csr_pair,
+    csr_reachable_backward,
+    csr_reachable_forward,
+)
 from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.shortcut_set import (
-    Flags,
     build_shortcut_set_for_reachability,
-    jls_with_tc_pruning,
 )
 from reachq.transitive_closure import transitive_closure_matrix
-from reachq.numpy_bfs import csr_reachable_forward, csr_reachable_backward, build_csr_pair
 
 
 class TestRegressionTcMatrixSparsity:
@@ -85,10 +85,13 @@ class TestRegressionCsrBfsCorrectness:
             g.add_vertex(i)
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        indptr_fwd, indices_fwd, indptr_rev, indices_rev, n_cs, idx_to_v = build_csr_pair(g)
+        indptr_fwd, indices_fwd, indptr_rev, indices_rev, n_cs, idx_to_v = (
+            build_csr_pair(g)
+        )
 
         # Python BFS from vertex 0.
         from reachq.reachability import bfs_reachability
+
         expected = bfs_reachability(g, 0)
 
         # CSR forward BFS from vertex 0 (index 0).
@@ -110,7 +113,9 @@ class TestRegressionCsrBfsCorrectness:
             g.add_vertex(i)
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        indptr_fwd, indices_fwd, indptr_rev, indices_rev, n_cs, idx_to_v = build_csr_pair(g)
+        indptr_fwd, indices_fwd, indptr_rev, indices_rev, n_cs, idx_to_v = (
+            build_csr_pair(g)
+        )
 
         # Backward BFS from 0 (source) returns {0}.
         idx_set = csr_reachable_backward(indptr_rev, indices_rev, 0, n_cs)
@@ -130,11 +135,15 @@ class TestRegressionSccRepTrivialPath:
 
     def test_scc_rep_works_for_dag(self):
         """Random DAG (trivial condensation): shortcut set must be
-        consistent. This is the case where the original bug fired."""
+        consistent. This is the case where the original bug fired.
+        """
         from reachq.generators import random_dag
+
         g = random_dag(20, edge_probability=0.2, random_seed=42)
         shortcuts, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42,
+            g,
+            omega=3.0,
+            random_seed=42,
         )
         # Soundness: R+(G, s) = R+(G+H, s) for all s.
         for v in g.vertices():
@@ -149,14 +158,17 @@ class TestRegressionSccRepTrivialPath:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
         shortcuts, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42,
+            g,
+            omega=3.0,
+            random_seed=42,
         )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
 
     def test_scc_rep_works_for_graph_with_scc(self):
         """Graph with SCC: condensation is non-trivial. Soundness
-        preserved by the (scc_rep[u_idx], scc_rep[v_idx]) translation."""
+        preserved by the (scc_rep[u_idx], scc_rep[v_idx]) translation.
+        """
         g = Digraph()
         for i in range(6):
             g.add_vertex(i)
@@ -172,7 +184,9 @@ class TestRegressionSccRepTrivialPath:
         g.add_edge(2, 3)
         g.add_edge(4, 5)
         shortcuts, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42,
+            g,
+            omega=3.0,
+            random_seed=42,
         )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
@@ -197,7 +211,9 @@ class TestRegressionTcSelfLoops:
         for i in range(4):
             g.add_edge(i, i + 1)
         shortcuts, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42,
+            g,
+            omega=3.0,
+            random_seed=42,
         )
         for u, v in shortcuts:
             assert u != v
@@ -210,7 +226,9 @@ class TestRegressionTcSelfLoops:
                 if i != j:
                     g.add_edge(i, j)
         shortcuts, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42,
+            g,
+            omega=3.0,
+            random_seed=42,
         )
         for u, v in shortcuts:
             assert u != v
@@ -224,7 +242,9 @@ class TestRegressionTcSelfLoops:
         g.add_edge(1, 2)
         g.add_edge(2, 3)
         shortcuts, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42,
+            g,
+            omega=3.0,
+            random_seed=42,
         )
         for u, v in shortcuts:
             assert u != v

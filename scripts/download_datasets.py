@@ -22,27 +22,39 @@ SNAP_BASE = "https://snap.stanford.edu/data"
 SNAP_DATASETS: dict[str, dict[str, str | int]] = {
     "cit-HepPh": {
         "url": f"{SNAP_BASE}/cit-HepPh.txt.gz",
-        "nodes": 34546, "edges": 421578, "type": "citation",
+        "nodes": 34546,
+        "edges": 421578,
+        "type": "citation",
     },
     "p2p-Gnutella31": {
         "url": f"{SNAP_BASE}/p2p-Gnutella31.txt.gz",
-        "nodes": 62586, "edges": 147892, "type": "p2p",
+        "nodes": 62586,
+        "edges": 147892,
+        "type": "p2p",
     },
     "soc-Epinions1": {
         "url": f"{SNAP_BASE}/soc-Epinions1.txt.gz",
-        "nodes": 75879, "edges": 508837, "type": "social",
+        "nodes": 75879,
+        "edges": 508837,
+        "type": "social",
     },
     "web-NotreDame": {
         "url": f"{SNAP_BASE}/web-NotreDame.txt.gz",
-        "nodes": 325729, "edges": 1497134, "type": "web",
+        "nodes": 325729,
+        "edges": 1497134,
+        "type": "web",
     },
     "web-Stanford": {
         "url": f"{SNAP_BASE}/web-Stanford.txt.gz",
-        "nodes": 281903, "edges": 2312497, "type": "web",
+        "nodes": 281903,
+        "edges": 2312497,
+        "type": "web",
     },
     "web-Google": {
         "url": f"{SNAP_BASE}/web-Google.txt.gz",
-        "nodes": 875713, "edges": 5105039, "type": "web",
+        "nodes": 875713,
+        "edges": 5105039,
+        "type": "web",
     },
 }
 
@@ -73,21 +85,26 @@ def download_one(name: str, dest_dir: Path, *, force: bool = False) -> Path:
     tmp.replace(dest)
     size_mb = dest.stat().st_size / (1024 * 1024)
     digest = sha256(dest)
-    log.info("done %s: %s (%.1f MB, sha256=%s...)",
-             name, dest, size_mb, digest[:16])
+    log.info("done %s: %s (%.1f MB, sha256=%s...)", name, dest, size_mb, digest[:16])
     return dest
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Download SNAP datasets")
     parser.add_argument(
-        "--datasets", nargs="+", default=list(SNAP_DATASETS.keys()),
+        "--datasets",
+        nargs="+",
+        default=list(SNAP_DATASETS.keys()),
     )
     parser.add_argument("--dest", default="data")
-    parser.add_argument("--force", action="store_true",
-                        help="Re-download even if cached")
-    parser.add_argument("--verify", action="store_true",
-                        help="Print sha256 of every cached file and exit")
+    parser.add_argument(
+        "--force", action="store_true", help="Re-download even if cached"
+    )
+    parser.add_argument(
+        "--verify",
+        action="store_true",
+        help="Print sha256 of every cached file and exit",
+    )
     args = parser.parse_args()
 
     dest_dir = Path(args.dest)

@@ -15,7 +15,6 @@ Honest framing in docs/span_measurement.md.
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 import time
 from pathlib import Path
@@ -50,7 +49,9 @@ def measure_one(n: int, density: float, seed: int) -> dict[str, float]:
     profiler.begin_phase("construction")
     t0 = time.perf_counter()
     shortcuts, beta = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=seed,
+        g,
+        omega=3.0,
+        random_seed=seed,
     )
     wall = time.perf_counter() - t0
     profiler.end_phase()
@@ -83,6 +84,7 @@ def main() -> int:
                 rows.append(summary)
 
     import csv
+
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     fields = sorted({k for r in rows for k in r.keys()})
@@ -96,9 +98,13 @@ def main() -> int:
         log.info(
             "n=%d d=%s seed=%d span=%.3fs wall=%.3fs "
             "theoretical_work=%.2e theoretical_depth=%.2f",
-            int(r["n"]), r["density"], int(r["seed"]),
-            r["span_seconds"], r["wall_clock_total_seconds"],
-            r["theoretical_work"], r["theoretical_depth"],
+            int(r["n"]),
+            r["density"],
+            int(r["seed"]),
+            r["span_seconds"],
+            r["wall_clock_total_seconds"],
+            r["theoretical_work"],
+            r["theoretical_depth"],
         )
     return 0
 

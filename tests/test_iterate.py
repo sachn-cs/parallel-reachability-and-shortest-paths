@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from reachq.generators import petersen_graph, random_dag
 from reachq.iterate import iterative_shortcut_set
 from reachq.reachability import bfs_reachability, parallel_bfs
@@ -25,11 +23,14 @@ class TestIterativeSoundness:
 
     def test_iterative_preserves_reachability_on_graph_with_sccs(self):
         from reachq.graph import Digraph
+
         g = Digraph()
         for i in range(5):
             g.add_vertex(i)
-        g.add_edge(0, 1); g.add_edge(1, 0)
-        g.add_edge(2, 3); g.add_edge(3, 2)
+        g.add_edge(0, 1)
+        g.add_edge(1, 0)
+        g.add_edge(2, 3)
+        g.add_edge(3, 2)
         g.add_edge(1, 2)
         g.add_edge(3, 4)
         H = iterative_shortcut_set(g, omega=3.0, max_iterations=3, random_seed=42)
@@ -38,7 +39,7 @@ class TestIterativeSoundness:
 
 
 class TestIterativeRefines:
-    """Iterative refinement produces a strict subset H_2 ⊂ H_1.
+    r"""Iterative refinement produces a strict subset H_2 ⊂ H_1.
 
     On the tested inputs, JLS(G∪H_1) is strictly smaller than JLS(G).
     The shortcuts in H_1 \ H_2 are "self-redundant": JLS added them, but
@@ -48,10 +49,14 @@ class TestIterativeRefines:
     def test_h2_strict_subset_of_h1_on_random_dag(self):
         g = random_dag(60, edge_probability=0.1, random_seed=42)
         H_direct, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         from reachq.graph import Digraph
         from reachq.shortcut_set import jls_with_tc_pruning
+
         aug = Digraph()
         for v in g.vertices():
             aug.add_vertex(v)
@@ -60,9 +65,14 @@ class TestIterativeRefines:
         for u, v in H_direct:
             aug.add_edge(u, v)
         H2 = jls_with_tc_pruning(
-            aug, k=3.0, rho=3.0, max_level=8, n_global=60, random_seed=42,
+            aug,
+            k=3.0,
+            rho=3.0,
+            max_level=8,
+            n_global=60,
+            random_seed=42,
         )
-        assert H2 < H_direct, (
+        assert H_direct > H2, (
             f"Expected H_2 ⊂ H_1 strictly; got |H_1|={len(H_direct)}, "
             f"|H_2|={len(H2)} (not strict subset)"
         )
@@ -73,10 +83,14 @@ class TestIterativeRefines:
     def test_iterative_matches_direct_wrapper(self):
         """The iterate.py wrapper uses the same parameters as
         build_shortcut_set_for_reachability, so the result equals the
-        direct wrapper's |H| when iteration is idempotent."""
+        direct wrapper's |H| when iteration is idempotent.
+        """
         g = random_dag(60, edge_probability=0.1, random_seed=42)
         H_direct, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         H_iter = iterative_shortcut_set(g, omega=3.0, max_iterations=3, random_seed=42)
         # H_iter is the robust core; for graphs where H_1 = H_2 = ... the
@@ -102,4 +116,4 @@ class TestIterativeConvergence:
     def test_max_iterations_zero_returns_empty(self):
         g = random_dag(20, edge_probability=0.3, random_seed=42)
         H = iterative_shortcut_set(g, omega=3.0, max_iterations=0, random_seed=42)
-        assert H == set()
+        assert set() == H

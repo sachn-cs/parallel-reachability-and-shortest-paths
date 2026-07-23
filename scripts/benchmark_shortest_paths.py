@@ -64,9 +64,11 @@ def benchmark_suite(
         for epsilon in epsilons:
             # Use a moderately dense weighted graph
             edge_count = min(n * (n - 1), int(0.3 * n * n))
-            graph = weighted_dense_graph(n, edge_count, weight_range=(1, 5), random_seed=seed)
-            hopset, beta, elapsed, max_ratio, mismatches, work = measure_hopset_construction(
-                graph, epsilon, seed
+            graph = weighted_dense_graph(
+                n, edge_count, weight_range=(1, 5), random_seed=seed
+            )
+            hopset, beta, elapsed, max_ratio, mismatches, work = (
+                measure_hopset_construction(graph, epsilon, seed)
             )
             row = {
                 "n": n,
@@ -96,7 +98,9 @@ def benchmark_suite(
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Benchmark hopset construction for shortest paths")
+    parser = argparse.ArgumentParser(
+        description="Benchmark hopset construction for shortest paths"
+    )
     parser.add_argument(
         "--sizes",
         type=int,
@@ -112,7 +116,9 @@ def main() -> None:
         help="Approximation factors epsilon",
     )
     parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument("--output", type=str, default=None, help="Optional CSV output path")
+    parser.add_argument(
+        "--output", type=str, default=None, help="Optional CSV output path"
+    )
     args = parser.parse_args()
     benchmark_suite(args.sizes, args.epsilons, args.seed, args.output)
 

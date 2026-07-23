@@ -33,13 +33,20 @@ def measure(n: int, density: float, seed: int, workers: int) -> dict[str, float]
     g = random_dag(n=n, edge_probability=density, random_seed=seed)
     t0 = time.perf_counter()
     shortcuts, beta = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=seed, parallel_workers=workers,
+        g,
+        omega=3.0,
+        random_seed=seed,
+        parallel_workers=workers,
     )
     elapsed = time.perf_counter() - t0
     return {
-        "n": n, "density": density, "seed": seed, "workers": workers,
+        "n": n,
+        "density": density,
+        "seed": seed,
+        "workers": workers,
         "elapsed_sec": round(elapsed, 3),
-        "|H|": len(shortcuts), "beta": round(beta, 3),
+        "|H|": len(shortcuts),
+        "beta": round(beta, 3),
     }
 
 
@@ -49,8 +56,7 @@ def main() -> int:
     parser.add_argument("--sizes", type=int, nargs="+", default=[200, 500, 1000])
     parser.add_argument("--densities", type=float, nargs="+", default=[0.1, 0.3])
     parser.add_argument("--seeds", type=int, nargs="+", default=[42])
-    parser.add_argument("--workers", type=int, nargs="+",
-                        default=[1, 2, 4, 8])
+    parser.add_argument("--workers", type=int, nargs="+", default=[1, 2, 4, 8])
     args = parser.parse_args()
 
     rows: list[dict[str, float]] = []
@@ -66,12 +72,23 @@ def main() -> int:
                     if w == 1:
                         continue
                     r = measure(n, density, seed, workers=w)
-                    r["speedup_vs_seq"] = round(seq_time / max(1e-9, r["elapsed_sec"]), 2)
+                    r["speedup_vs_seq"] = round(
+                        seq_time / max(1e-9, r["elapsed_sec"]), 2
+                    )
                     rows.append(r)
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    fields = ["n", "density", "seed", "workers", "elapsed_sec", "|H|", "beta", "speedup_vs_seq"]
+    fields = [
+        "n",
+        "density",
+        "seed",
+        "workers",
+        "elapsed_sec",
+        "|H|",
+        "beta",
+        "speedup_vs_seq",
+    ]
     with open(out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         w.writeheader()
@@ -88,7 +105,13 @@ def main() -> int:
         speedup = r.get("speedup_vs_seq", 1.0)
         log.info(
             "n=%d d=%s seed=%d workers=%d: %.3fs |H|=%d speedup=%.2fx",
-            n, d, seed, w, r["elapsed_sec"], r["|H|"], speedup,
+            n,
+            d,
+            seed,
+            w,
+            r["elapsed_sec"],
+            r["|H|"],
+            speedup,
         )
     return 0
 

@@ -50,9 +50,15 @@ def test_csr_reachable_forward_matches_python_bfs() -> None:  # noqa: D103
     for source in vertices:
         src_idx = index_map[source]
         expected = bfs_reachability(g, source)
-        result = {vertices[int(i)] for i in csr_reachable_forward(
-            indptr_fwd, indices_fwd, src_idx, n,
-        )}
+        result = {
+            vertices[int(i)]
+            for i in csr_reachable_forward(
+                indptr_fwd,
+                indices_fwd,
+                src_idx,
+                n,
+            )
+        }
         assert result == expected
 
 
@@ -63,9 +69,15 @@ def test_csr_reachable_backward_matches_python_reverse_bfs() -> None:  # noqa: D
     for target in vertices:
         tgt_idx = index_map[target]
         expected = reverse_bfs_reachability(g, target)
-        result = {vertices[int(i)] for i in csr_reachable_backward(
-            indptr_rev, indices_rev, tgt_idx, n,
-        )}
+        result = {
+            vertices[int(i)]
+            for i in csr_reachable_backward(
+                indptr_rev,
+                indices_rev,
+                tgt_idx,
+                n,
+            )
+        }
         assert result == expected
 
 

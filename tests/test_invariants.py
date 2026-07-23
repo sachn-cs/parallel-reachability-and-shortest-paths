@@ -22,7 +22,12 @@ class TestReachabilityPreserved:
     def test_path_with_shortcuts(self):
         g = path_graph(10)
         shortcuts = jls_with_tc_pruning(
-            g, k=2.0, rho=2.0, max_level=3, n_global=10, random_seed=1,
+            g,
+            k=2.0,
+            rho=2.0,
+            max_level=3,
+            n_global=10,
+            random_seed=1,
             flags={"tight_tc_trigger": False},  # tiny r_ball case
         )
         assert_reachability_preserved(g, shortcuts)
@@ -72,7 +77,8 @@ class TestSccShortcuts:
         """A shortcut set that connects every pair of SCC members via
         G+H satisfies the clique invariant. The cycle graph's SCC
         is reachable via G's cycle edges; adding shortcuts for missing
-        reverse directions keeps the invariant satisfied."""
+        reverse directions keeps the invariant satisfied.
+        """
         g = cycle_graph(3)
         # 3-cycle: 0->1, 1->2, 2->0. SCC = {0, 1, 2}.
         # Reverse edges (1->0, 2->1, 0->2) are needed because G
@@ -83,12 +89,14 @@ class TestSccShortcuts:
     def test_unsound_shortcut_set_violates_invariant(self):
         """A truly unsound shortcut set violates the invariant. Build
         a 3-cycle but pretend to omit a critical shortcut, then
-        assert that the invariant catches the failure."""
+        assert that the invariant catches the failure.
+        """
         from reachq.graph import Digraph as _Digraph
+
         g = _Digraph()
         # Build an SCC with 3 vertices and edges that make it
         # strongly connected.
-        for (u, v) in [(0, 1), (1, 2), (2, 0)]:
+        for u, v in [(0, 1), (1, 2), (2, 0)]:
             g.add_edge(u, v)
         # "Missing" critical shortcuts: empty H. SCC is still strongly
         # connected via G. So invariant holds. This is the *expected*
@@ -132,7 +140,9 @@ class TestDistanceApproximation:
     def test_exact_hopset(self):
         g = weighted_path_graph(5, weight_range=(1, 1), random_seed=1)
         hopset = {}
-        ratios = assert_distance_approximation(g, hopset, source=0, epsilon=0.0, max_hops=100)
+        ratios = assert_distance_approximation(
+            g, hopset, source=0, epsilon=0.0, max_hops=100
+        )
         # Source vertex has ratio 0.0; all others should be exactly 1.0.
         assert all(r == 1.0 for v, r in ratios.items() if v != 0)
 

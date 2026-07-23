@@ -46,13 +46,16 @@ class TestHopboundPreserved:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
         shortcuts, beta = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         for s in g.vertices():
             d = _max_hops(g, s, shortcuts, int(beta) + 1)
-            assert d <= int(beta) + 1, (
-                f"hopbound violated from {s}: max hop = {d}, beta = {beta}"
-            )
+            assert (
+                d <= int(beta) + 1
+            ), f"hopbound violated from {s}: max hop = {d}, beta = {beta}"
 
     def test_hopbound_on_dag_n_30(self):
         g = Digraph()
@@ -62,7 +65,10 @@ class TestHopboundPreserved:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
         shortcuts, beta = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         for s in g.vertices():
             d = _max_hops(g, s, shortcuts, int(beta) + 1)
@@ -79,7 +85,10 @@ class TestHopboundPreserved:
         g.add_edge(2, 0)
         g.add_edge(5, 3)
         shortcuts, beta = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         for s in g.vertices():
             d = _max_hops(g, s, shortcuts, int(beta) + 1)
@@ -87,7 +96,8 @@ class TestHopboundPreserved:
 
     def test_soundness_implies_hopbound(self):
         """If R+(G, s) = R+(G+H, s) for all s, and beta is set correctly,
-        the hopbound is preserved. We test soundness + soundness-of-empirical-hops."""
+        the hopbound is preserved. We test soundness + soundness-of-empirical-hops.
+        """
         g = Digraph()
         n = 12
         for i in range(n):
@@ -95,7 +105,10 @@ class TestHopboundPreserved:
         for i in range(0, n - 1, 2):
             g.add_edge(i, i + 1)
         shortcuts, beta = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         for s in g.vertices():
             assert bfs_reachability(g, s) == parallel_bfs(g, s, shortcuts)

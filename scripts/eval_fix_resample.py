@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.fix_resample import fix_resample_shortcut_set, fix_resample_reachable
+from reachq.fix_resample import fix_resample_reachable, fix_resample_shortcut_set
 from reachq.generators import (
     hamming_graph,
     paley_graph,
@@ -39,7 +39,9 @@ log = get_logger("reachq.fix_resample_eval")
 
 
 def jls_with_random_seed(g, seed):
-    shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=seed)
+    shortcuts, beta = build_shortcut_set_for_reachability(
+        g, omega=3.0, random_seed=seed
+    )
     return shortcuts, beta
 
 
@@ -62,6 +64,7 @@ def measure(label, g, seed):
 
     # Empirical hopbound: max BFS depth actually observed in G + H.
     from collections import deque
+
     def empirical_max_hops(shortcuts):
         out = g.out_edges
         index = {}
@@ -76,11 +79,15 @@ def measure(label, g, seed):
                 u = q.popleft()
                 for v in out.get(u, set()):
                     if dist[v] == float("inf"):
-                        dist[v] = dist[u] + 1; q.append(v)
+                        dist[v] = dist[u] + 1
+                        q.append(v)
                 for v in index.get(u, ()):
                     if dist[v] == float("inf"):
-                        dist[v] = dist[u] + 1; q.append(v)
-            max_h = max(max_h, max((d for d in dist.values() if d < float("inf")), default=0))
+                        dist[v] = dist[u] + 1
+                        q.append(v)
+            max_h = max(
+                max_h, max((d for d in dist.values() if d < float("inf")), default=0)
+            )
         return max_h
 
     jls_hops = empirical_max_hops(jls_H)
@@ -88,9 +95,12 @@ def measure(label, g, seed):
     ratio_size = len(fr_H) / max(1, len(jls_H))
     ratio_hops = fr_hops / max(1, jls_hops)
     return {
-        "label": label, "seed": seed,
-        "n": g.num_vertices(), "m": g.num_edges(),
-        "|H|_jls": len(jls_H), "|H|_fix_resample": len(fr_H),
+        "label": label,
+        "seed": seed,
+        "n": g.num_vertices(),
+        "m": g.num_edges(),
+        "|H|_jls": len(jls_H),
+        "|H|_fix_resample": len(fr_H),
         "size_ratio_fr_over_jls": round(ratio_size, 3),
         "empirical_hops_jls": jls_hops,
         "empirical_hops_fr": fr_hops,
@@ -123,9 +133,13 @@ def main() -> int:
             rows.append(row)
             log.info(
                 "%s seed=%d: |H|_jls=%d |H|_fr=%d size_ratio=%.2f hops_jls=%d hops_fr=%d",
-                label, seed, row["|H|_jls"], row["|H|_fix_resample"],
+                label,
+                seed,
+                row["|H|_jls"],
+                row["|H|_fix_resample"],
                 row["size_ratio_fr_over_jls"],
-                row["empirical_hops_jls"], row["empirical_hops_fr"],
+                row["empirical_hops_jls"],
+                row["empirical_hops_fr"],
             )
 
     log.info("random DAGs")
@@ -138,17 +152,31 @@ def main() -> int:
                 rows.append(row)
                 log.info(
                     "%s seed=%d: |H|_jls=%d |H|_fr=%d size_ratio=%.2f jls_time=%.2fs fr_time=%.2fs",
-                    label, seed, row["|H|_jls"], row["|H|_fix_resample"],
-                    row["size_ratio_fr_over_jls"], row["jls_time_s"], row["fr_time_s"],
+                    label,
+                    seed,
+                    row["|H|_jls"],
+                    row["|H|_fix_resample"],
+                    row["size_ratio_fr_over_jls"],
+                    row["jls_time_s"],
+                    row["fr_time_s"],
                 )
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     fields = [
-        "label", "seed", "n", "m",
-        "|H|_jls", "|H|_fix_resample", "size_ratio_fr_over_jls",
-        "empirical_hops_jls", "empirical_hops_fr", "hops_ratio_fr_over_jls",
-        "beta", "jls_time_s", "fr_time_s",
+        "label",
+        "seed",
+        "n",
+        "m",
+        "|H|_jls",
+        "|H|_fix_resample",
+        "size_ratio_fr_over_jls",
+        "empirical_hops_jls",
+        "empirical_hops_fr",
+        "hops_ratio_fr_over_jls",
+        "beta",
+        "jls_time_s",
+        "fr_time_s",
     ]
     with open(out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
