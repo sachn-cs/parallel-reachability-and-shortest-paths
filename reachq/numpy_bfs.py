@@ -18,7 +18,10 @@ _MIN_CSR_SIZE = 500
 
 
 def csr_reachable_forward(
-    indptr: np.ndarray, indices: np.ndarray, source: int, n: int,
+    indptr: np.ndarray,
+    indices: np.ndarray,
+    source: int,
+    n: int,
     max_depth: int | None = None,
 ) -> np.ndarray:
     """BFS forward on CSR adjacency. Returns array of reachable vertex indices.
@@ -61,15 +64,23 @@ def csr_reachable_forward(
 
 
 def csr_reachable_backward(
-    indptr_rev: np.ndarray, indices_rev: np.ndarray, source: int, n: int,
+    indptr_rev: np.ndarray,
+    indices_rev: np.ndarray,
+    source: int,
+    n: int,
     max_depth: int | None = None,
 ) -> np.ndarray:
     """BFS backward on reversed CSR adjacency. Returns array of vertex indices that reach source."""
-    return csr_reachable_forward(indptr_rev, indices_rev, source, n, max_depth=max_depth)
+    return csr_reachable_forward(
+        indptr_rev, indices_rev, source, n, max_depth=max_depth
+    )
 
 
 def csr_bfs_layered(
-    indptr: np.ndarray, indices: np.ndarray, source: int, n: int,
+    indptr: np.ndarray,
+    indices: np.ndarray,
+    source: int,
+    n: int,
     max_depth: int,
 ) -> tuple[set[int], list[set[int]]]:
     """BFS up to `max_depth` hops, returning (all_visited, per_layer_sets).
@@ -102,7 +113,9 @@ def csr_bfs_layered(
     return set(np.where(visited)[0].tolist()), layers
 
 
-def csr_to_index_map(graph_vertex_set: set[object]) -> tuple[dict[object, int], list[object]]:
+def csr_to_index_map(
+    graph_vertex_set: set[object],
+) -> tuple[dict[object, int], list[object]]:
     """Build bijection from vertex objects to int indices."""
     vertices = list(graph_vertex_set)
     index_map = {v: i for i, v in enumerate(vertices)}

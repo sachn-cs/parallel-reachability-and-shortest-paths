@@ -21,13 +21,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from reachq.logging_config import get_logger
 from reachq.lower_bound import (
     barbell_graph,
     cycle_graph_dag,
     layered_dag,
     long_path_dag,
 )
-from reachq.logging_config import get_logger
 from reachq.shortcut_set import build_shortcut_set_for_reachability
 
 log = get_logger("reachq.lower_bound_eval")
@@ -37,16 +37,25 @@ def measure(name, g, omega: float = 3.0, seed: int = 42) -> dict[str, object]:
     n = g.num_vertices()
     m = g.num_edges()
     H_with, beta = build_shortcut_set_for_reachability(
-        g, omega=omega, random_seed=seed, sparsify_shortcuts=True,
+        g,
+        omega=omega,
+        random_seed=seed,
+        sparsify_shortcuts=True,
     )
     H_without, _ = build_shortcut_set_for_reachability(
-        g, omega=omega, random_seed=seed, sparsify_shortcuts=False,
+        g,
+        omega=omega,
+        random_seed=seed,
+        sparsify_shortcuts=False,
     )
     rho = (n**0.5) / max(1e-9, beta)
     bound = m * rho + n * rho * rho
     return {
         "construction": name,
-        "n": n, "m": m, "beta": round(beta, 3), "rho": round(rho, 3),
+        "n": n,
+        "m": m,
+        "beta": round(beta, 3),
+        "rho": round(rho, 3),
         "|H|_with_sparsify": len(H_with),
         "|H|_without_sparsify": len(H_without),
         "paper_bound": round(bound, 3),
@@ -82,9 +91,16 @@ def main() -> int:
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     fields = [
-        "construction", "n", "m", "beta", "rho",
-        "|H|_with_sparsify", "|H|_without_sparsify",
-        "paper_bound", "ratio_with_to_bound", "ratio_without_to_bound",
+        "construction",
+        "n",
+        "m",
+        "beta",
+        "rho",
+        "|H|_with_sparsify",
+        "|H|_without_sparsify",
+        "paper_bound",
+        "ratio_with_to_bound",
+        "ratio_without_to_bound",
     ]
     with open(out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
@@ -96,12 +112,13 @@ def main() -> int:
     log.info("summary:")
     for r in rows:
         log.info(
-            "  %s: with=%d without=%d bound=%.0f "
-            "ratio_with=%.4f ratio_without=%.4f",
+            "  %s: with=%d without=%d bound=%.0f " "ratio_with=%.4f ratio_without=%.4f",
             r["construction"],
-            r["|H|_with_sparsify"], r["|H|_without_sparsify"],
+            r["|H|_with_sparsify"],
+            r["|H|_without_sparsify"],
             r["paper_bound"],
-            r["ratio_with_to_bound"], r["ratio_without_to_bound"],
+            r["ratio_with_to_bound"],
+            r["ratio_without_to_bound"],
         )
     avg_with = sum(r["ratio_with_to_bound"] for r in rows) / len(rows)
     avg_without = sum(r["ratio_without_to_bound"] for r in rows) / len(rows)

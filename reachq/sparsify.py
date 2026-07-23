@@ -33,7 +33,9 @@ from reachq.logging_config import get_logger
 log = get_logger("reachq.sparsify")
 
 
-def _reachable_via(graph: Digraph, source: Any, shortcuts: set[tuple[Any, Any]]) -> set[Any]:
+def _reachable_via(
+    graph: Digraph, source: Any, shortcuts: set[tuple[Any, Any]]
+) -> set[Any]:
     """Return all vertices reachable from source via G + shortcuts."""
     visited = {source}
     q = deque([source])

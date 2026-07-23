@@ -9,11 +9,9 @@ from __future__ import annotations
 
 import pytest
 
-from reachq import Flags
 from reachq.generators import random_dag
 from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.shortcut_set import build_shortcut_set_for_reachability
-
 
 PAPER_TC = {
     "enable_tc_pruning": True,
@@ -34,12 +32,15 @@ HOP_BOUNDED = {**NO_TC, "hop_bounded_bfs": True}
 
 
 def _run(g, flags: dict, seed: int):
-    return build_shortcut_set_for_reachability(g, omega=3.0, random_seed=seed, flags=flags)
+    return build_shortcut_set_for_reachability(
+        g, omega=3.0, random_seed=seed, flags=flags
+    )
 
 
 def _hopbound_max(graph, source, shortcuts, beta):
     """Return the max hops actually observed by parallel_bfs from source."""
     from collections import deque
+
     dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore
     dist[source] = 0
     q: deque = deque([source])
@@ -74,9 +75,9 @@ def test_lemma_2_1_tc_soundness(seed: int) -> None:
         for v in g.vertices():
             original = bfs_reachability(g, v)
             augmented = parallel_bfs(g, v, shortcuts)
-            assert original == augmented, (
-                f"seed={seed} flags={flags}: mismatch from {v}"
-            )
+            assert (
+                original == augmented
+            ), f"seed={seed} flags={flags}: mismatch from {v}"
 
 
 @pytest.mark.parametrize("seed", [1, 2, 3, 7, 42])
@@ -94,9 +95,9 @@ def test_lemma_2_2_size_contribution(seed: int) -> None:
     h_tight, _ = _run(g, TIGHT_TC, seed)
     # Tightened trigger fires at most as often as paper's trigger; thus
     # |H|_tight <= |H|_paper.
-    assert len(h_tight) <= len(h_paper), (
-        f"seed={seed}: |H|_tight={len(h_tight)} > |H|_paper={len(h_paper)}"
-    )
+    assert len(h_tight) <= len(
+        h_paper
+    ), f"seed={seed}: |H|_tight={len(h_tight)} > |H|_paper={len(h_paper)}"
     # Sampling-only baseline always valid (perhaps larger):
     assert len(h_no_tc) >= len(h_paper)
 
@@ -126,15 +127,14 @@ def test_lemma_3_2_reachability_correctness_hop_bounded(seed: int) -> None:
     for v in g.vertices():
         original = bfs_reachability(g, v)
         augmented = parallel_bfs(g, v, shortcuts)
-        assert original == augmented, (
-            f"seed={seed}: reachability mismatch from {v}"
-        )
+        assert original == augmented, f"seed={seed}: reachability mismatch from {v}"
 
 
 def test_flags_dataclass_is_public() -> None:
     """Flags must be importable from the top-level package, not be hidden."""
     from reachq import Flags as TopFlags
     from reachq.shortcut_set import Flags as LocalFlags
+
     assert TopFlags is LocalFlags
 
 
@@ -147,6 +147,6 @@ def test_paper_tc_vs_tight_tc_size_invariant_across_seeds() -> None:
         h_tight, _ = _run(g, TIGHT_TC, seed)
         if len(h_tight) > len(h_paper):
             n_violations += 1
-    assert n_violations == 0, (
-        f"tightened trigger increased |H| in {n_violations}/50 seeds"
-    )
+    assert (
+        n_violations == 0
+    ), f"tightened trigger increased |H| in {n_violations}/50 seeds"

@@ -15,20 +15,21 @@ from __future__ import annotations
 
 import argparse
 import csv
-import json
 import sys
 import time
 from collections import deque
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 
 def _time_limit_budget(seconds: int) -> Iterator[None]:
     import signal
+
     def handler(signum: int, frame: object) -> None:
         raise TimeoutError(f"timeout {seconds}s")
+
     old = signal.signal(signal.SIGALRM, handler)
     signal.alarm(seconds)
     try:
@@ -67,10 +68,12 @@ def _hopbound_actual(graph, source: object, shortcuts, beta: float) -> tuple[int
     return max_observed, sum(1 for d in reachable.values() if d > beta)
 
 
-def run_one(graph, flags: dict[str, bool], seed: int, omega: float,
-            max_seconds: int) -> dict[str, object]:
-    from reachq.shortcut_set import build_shortcut_set_for_reachability
+def run_one(
+    graph, flags: dict[str, bool], seed: int, omega: float, max_seconds: int
+) -> dict[str, object]:
     from reachq.reachability import bfs_reachability, parallel_bfs
+    from reachq.shortcut_set import build_shortcut_set_for_reachability
+
     row: dict[str, object] = {
         "n": graph.num_vertices(),
         "m": graph.num_edges(),
@@ -80,15 +83,20 @@ def run_one(graph, flags: dict[str, bool], seed: int, omega: float,
     try:
         t0 = time.perf_counter()
         shortcuts, beta = build_shortcut_set_for_reachability(
-            graph, omega=omega, random_seed=seed, flags=flags,
+            graph,
+            omega=omega,
+            random_seed=seed,
+            flags=flags,
         )
         elapsed = time.perf_counter() - t0
-        row.update({
-            "beta": round(beta, 3),
-            "|H|": len(shortcuts),
-            "elapsed_sec": round(elapsed, 3),
-            "error": "",
-        })
+        row.update(
+            {
+                "beta": round(beta, 3),
+                "|H|": len(shortcuts),
+                "elapsed_sec": round(elapsed, 3),
+                "error": "",
+            }
+        )
         # Reachability preservation: every source.
         reachable_correct = True
         for src in list(graph.vertices())[:20]:  # sample 20 sources
@@ -117,39 +125,81 @@ def main() -> int:
     parser.add_argument("--sizes", type=int, nargs="+", default=[500, 1000])
     parser.add_argument("--densities", type=float, nargs="+", default=[0.1])
     parser.add_argument("--timeout", type=int, default=60)
-    parser.add_argument("--datasets", nargs="+", default=None,
-                        help="Optional SNAP dataset names")
+    parser.add_argument(
+        "--datasets", nargs="+", default=None, help="Optional SNAP dataset names"
+    )
     args = parser.parse_args()
 
     from reachq.generators import random_dag
+
     configurations: list[tuple[str, dict[str, bool]]] = [
         # Lemma 7 — TC trigger
-        ("baseline_tc_off",
-         {"enable_tc_pruning": False, "tight_tc_trigger": False,
-          "adaptive_sampling": False, "label_compress": False,
-          "skip_condense": False, "hop_bounded_bfs": False,
-          "degree_ordered_pivots": False, "skip_trivial_part": False}),
-        ("paper_tc_trigger",
-         {"enable_tc_pruning": True, "tight_tc_trigger": False,
-          "adaptive_sampling": False, "label_compress": False,
-          "skip_condense": False, "hop_bounded_bfs": False,
-          "degree_ordered_pivots": False, "skip_trivial_part": False}),
-        ("tight_tc_trigger",
-         {"enable_tc_pruning": True, "tight_tc_trigger": True,
-          "adaptive_sampling": False, "label_compress": False,
-          "skip_condense": False, "hop_bounded_bfs": False,
-          "degree_ordered_pivots": False, "skip_trivial_part": False}),
+        (
+            "baseline_tc_off",
+            {
+                "enable_tc_pruning": False,
+                "tight_tc_trigger": False,
+                "adaptive_sampling": False,
+                "label_compress": False,
+                "skip_condense": False,
+                "hop_bounded_bfs": False,
+                "degree_ordered_pivots": False,
+                "skip_trivial_part": False,
+            },
+        ),
+        (
+            "paper_tc_trigger",
+            {
+                "enable_tc_pruning": True,
+                "tight_tc_trigger": False,
+                "adaptive_sampling": False,
+                "label_compress": False,
+                "skip_condense": False,
+                "hop_bounded_bfs": False,
+                "degree_ordered_pivots": False,
+                "skip_trivial_part": False,
+            },
+        ),
+        (
+            "tight_tc_trigger",
+            {
+                "enable_tc_pruning": True,
+                "tight_tc_trigger": True,
+                "adaptive_sampling": False,
+                "label_compress": False,
+                "skip_condense": False,
+                "hop_bounded_bfs": False,
+                "degree_ordered_pivots": False,
+                "skip_trivial_part": False,
+            },
+        ),
         # Lemma 4 — hop-bounded BFS
-        ("baseline_hbb_off",
-         {"enable_tc_pruning": False, "tight_tc_trigger": False,
-          "adaptive_sampling": False, "label_compress": False,
-          "skip_condense": False, "hop_bounded_bfs": False,
-          "degree_ordered_pivots": False, "skip_trivial_part": False}),
-        ("hop_bounded_bfs",
-         {"enable_tc_pruning": False, "tight_tc_trigger": False,
-          "adaptive_sampling": False, "label_compress": False,
-          "skip_condense": False, "hop_bounded_bfs": True,
-          "degree_ordered_pivots": False, "skip_trivial_part": False}),
+        (
+            "baseline_hbb_off",
+            {
+                "enable_tc_pruning": False,
+                "tight_tc_trigger": False,
+                "adaptive_sampling": False,
+                "label_compress": False,
+                "skip_condense": False,
+                "hop_bounded_bfs": False,
+                "degree_ordered_pivots": False,
+                "skip_trivial_part": False,
+            },
+        ),
+        (
+            "hop_bounded_bfs",
+            {
+                "enable_tc_pruning": False,
+                "tight_tc_trigger": False,
+                "adaptive_sampling": False,
+                "label_compress": False,
+                "skip_condense": False,
+                "hop_bounded_bfs": True,
+                "degree_ordered_pivots": False,
+                "skip_trivial_part": False,
+            },
+        ),
     ]
 
     rows: list[dict[str, object]] = []
@@ -168,14 +218,18 @@ def main() -> int:
     # SNAP datasets, if requested.
     if args.datasets:
         from reachq.generators import load_dataset
+
         for name in args.datasets:
             try:
                 g = load_dataset(name)
             except Exception as e:
-                rows.append({
-                    "config": "load_failed", "source": name,
-                    "error": f"{type(e).__name__}: {e}",
-                })
+                rows.append(
+                    {
+                        "config": "load_failed",
+                        "source": name,
+                        "error": f"{type(e).__name__}: {e}",
+                    }
+                )
                 continue
             for cfg_name, flags in configurations:
                 print(f"snap={name} cfg={cfg_name}", flush=True)
@@ -188,14 +242,32 @@ def main() -> int:
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     fields = [
-        "config", "source", "n", "m", "density", "seed",
-        "beta", "|H|", "elapsed_sec", "reachability_correct",
-        "max_hops_observed", "hopbound_violations", "error",
-        *(f"flag_{k}" for k in (
-            "enable_tc_pruning", "tight_tc_trigger", "adaptive_sampling",
-            "label_compress", "skip_condense", "hop_bounded_bfs",
-            "degree_ordered_pivots", "skip_trivial_part",
-        )),
+        "config",
+        "source",
+        "n",
+        "m",
+        "density",
+        "seed",
+        "beta",
+        "|H|",
+        "elapsed_sec",
+        "reachability_correct",
+        "max_hops_observed",
+        "hopbound_violations",
+        "error",
+        *(
+            f"flag_{k}"
+            for k in (
+                "enable_tc_pruning",
+                "tight_tc_trigger",
+                "adaptive_sampling",
+                "label_compress",
+                "skip_condense",
+                "hop_bounded_bfs",
+                "degree_ordered_pivots",
+                "skip_trivial_part",
+            )
+        ),
     ]
     with open(out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")

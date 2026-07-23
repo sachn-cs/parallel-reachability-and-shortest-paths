@@ -47,9 +47,6 @@ empirical evaluation. The actual contribution is:
 
 from __future__ import annotations
 
-import random
-from typing import Any
-
 from reachq.graph import Digraph
 
 
@@ -74,7 +71,7 @@ def barbell_graph(k: int) -> Digraph:
             if i != j:
                 g.add_edge(f"R{i}", f"R{j}")
     # Bridge: L0 -> R0 (single edge). Other vertices reach across via cliques.
-    g.add_edge(f"L0", f"R0")
+    g.add_edge("L0", "R0")
     return g
 
 

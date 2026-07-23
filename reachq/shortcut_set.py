@@ -45,7 +45,7 @@ from reachq.numpy_bfs import (
     csr_reachable_forward,
     should_use_csr,
 )
-from reachq.parallel import ParallelContext, SEQUENTIAL
+from reachq.parallel import SEQUENTIAL, ParallelContext
 from reachq.reachability import compute_r_minus, compute_r_plus
 from reachq.transitive_closure import transitive_closure_on_subset
 
@@ -64,7 +64,9 @@ _DENSITY_AWARE_CONSTANT: float | None = None
 _PIVOT_STATE: dict[str, Any] = {}
 
 
-def _set_pivot_state(csr_data: Any, rev: Any, graph: Any, max_hops: Optional[int]) -> None:
+def _set_pivot_state(
+    csr_data: Any, rev: Any, graph: Any, max_hops: Optional[int]
+) -> None:
     """Install the per-recursion-level pivot state for parallel workers."""
     _PIVOT_STATE["csr_data"] = csr_data
     _PIVOT_STATE["rev"] = rev
@@ -89,21 +91,43 @@ def _pivot_worker(pivot: Any) -> dict[str, Any]:
         v_to_idx = {v: i for i, v in enumerate(idx_to_v)}
         p_idx = v_to_idx[pivot]
         r_plus_arr = csr_reachable_forward(
-            indptr_fwd, indices_fwd, p_idx, csr_n, max_depth=max_hops,
+            indptr_fwd,
+            indices_fwd,
+            p_idx,
+            csr_n,
+            max_depth=max_hops,
         )
         r_minus_arr = csr_reachable_backward(
-            indptr_rev, indices_rev, p_idx, csr_n, max_depth=max_hops,
+            indptr_rev,
+            indices_rev,
+            p_idx,
+            csr_n,
+            max_depth=max_hops,
         )
         r_plus = {idx_to_v[int(i)] for i in r_plus_arr}
         r_minus = {idx_to_v[int(i)] for i in r_minus_arr}
     else:
         # Non-CSR path: walk graph.in_edges for r_minus, out_edges for r_plus.
         graph = _PIVOT_STATE["graph"]
-        r_minus = compute_r_minus(graph, pivot) if max_hops is None else _bfs_hop_limited(
-            graph, pivot, max_hops, forward=False,
+        r_minus = (
+            compute_r_minus(graph, pivot)
+            if max_hops is None
+            else _bfs_hop_limited(
+                graph,
+                pivot,
+                max_hops,
+                forward=False,
+            )
         )
-        r_plus = compute_r_plus(graph, pivot) if max_hops is None else _bfs_hop_limited(
-            graph, pivot, max_hops, forward=True,
+        r_plus = (
+            compute_r_plus(graph, pivot)
+            if max_hops is None
+            else _bfs_hop_limited(
+                graph,
+                pivot,
+                max_hops,
+                forward=True,
+            )
         )
     for v in r_minus:
         if v != pivot:
@@ -143,6 +167,8 @@ def density_aware_constant(rho: float, k: float) -> float:
         return 10.0
     scale = min(1.0, max(0.1, rho / max(1.0, k)))
     return 10.0 * scale
+
+
 # Default omega for the TC work comparison. The paper's analysis is
 # worst-case over omega < 2.371; we use 2.5 as a conservative upper bound
 # so the "tightened TC trigger" doesn't accidentally trigger too eagerly.
@@ -157,6 +183,7 @@ def _get_runtime_omega() -> float:
     global _OMEGA_RUNTIME
     if _OMEGA_RUNTIME is None:
         from reachq.blas_omega import runtime_omega
+
         _OMEGA_RUNTIME = runtime_omega()
     return _OMEGA_RUNTIME
 
@@ -240,7 +267,9 @@ def _sample_pivots_weighted(
 
 
 def _sample_pivots_uniform(
-    vertices: list[Any], prob: float, rng: random.Random,
+    vertices: list[Any],
+    prob: float,
+    rng: random.Random,
 ) -> list[Any]:
     return [v for v in vertices if rng.random() < prob]
 
@@ -290,7 +319,11 @@ def jls_with_tc_pruning(
         return set()
 
     log_n = math.log2(n_global) if n_global > 1 else 0.0
-    sampling_constant = _DENSITY_AWARE_CONSTANT if _DENSITY_AWARE_CONSTANT is not None else _SAMPLING_CONSTANT
+    sampling_constant = (
+        _DENSITY_AWARE_CONSTANT
+        if _DENSITY_AWARE_CONSTANT is not None
+        else _SAMPLING_CONSTANT
+    )
     base_prob = min(1.0, sampling_constant * (k ** (level + 1)) * log_n / n_global)
 
     # Improvement 6: skip recursion if sampling produces zero pivots.
@@ -299,7 +332,10 @@ def jls_with_tc_pruning(
     if f.degree_ordered_pivots:
         out_degrees = {v: graph.degree_out(v) for v in vertices}
         pivots = _sample_pivots_weighted(
-            vertices, out_degrees, base_prob, rng,
+            vertices,
+            out_degrees,
+            base_prob,
+            rng,
             degree_aware=True,
         )
         # Stable order by ascending out-degree for early termination benefit.
@@ -324,7 +360,8 @@ def jls_with_tc_pruning(
         omega_runtime = min(_OMEGA_DEFAULT, _get_runtime_omega())
         tight_cap = (
             (rho * n * k * log_n) ** (1.0 / omega_runtime)
-            if log_n > 0 else float("inf")
+            if log_n > 0
+            else float("inf")
         )
         tc_pruning_threshold = min(tc_pruning_threshold, tight_cap)
 
@@ -409,8 +446,14 @@ def jls_with_tc_pruning(
         sub = graph.induced_subgraph(part)
         sub_seed = rng.randint(0, 2**31 - 1) if random_seed is not None else None
         sub_shortcuts = jls_with_tc_pruning(
-            sub, k, rho, max_level, n_global, level + 1,
-            random_seed=sub_seed, flags=flags,
+            sub,
+            k,
+            rho,
+            max_level,
+            n_global,
+            level + 1,
+            random_seed=sub_seed,
+            flags=flags,
         )
         shortcuts |= sub_shortcuts
 
@@ -418,8 +461,12 @@ def jls_with_tc_pruning(
 
 
 def _bfs_hop_limited(
-    graph: Digraph, source: object, max_hops: int,
-    *, forward: bool, rev: Optional[Digraph] = None,
+    graph: Digraph,
+    source: object,
+    max_hops: int,
+    *,
+    forward: bool,
+    rev: Optional[Digraph] = None,
 ) -> set[object]:
     """Hop-bounded BFS. Used by Improvement 4 when CSR is not available."""
     from collections import deque
@@ -483,8 +530,13 @@ def jls_shortcut_set(
     should use :func:`jls_with_tc_pruning` directly.
     """
     return jls_with_tc_pruning(
-        graph, k=k, rho=1.0, max_level=max_level, n_global=n_global,
-        level=level, random_seed=random_seed,
+        graph,
+        k=k,
+        rho=1.0,
+        max_level=max_level,
+        n_global=n_global,
+        level=level,
+        random_seed=random_seed,
         flags={"enable_tc_pruning": False},
     )
 
@@ -557,8 +609,14 @@ def build_shortcut_set_for_reachability(
         _DENSITY_AWARE_CONSTANT = None
 
     dag_shortcuts = jls_with_tc_pruning(
-        dag, k, rho, max_level, dag.num_vertices(), level=0,
-        random_seed=random_seed, flags=flags,
+        dag,
+        k,
+        rho,
+        max_level,
+        dag.num_vertices(),
+        level=0,
+        random_seed=random_seed,
+        flags=flags,
         parallel_workers=parallel_workers,
     )
 
@@ -601,11 +659,14 @@ def build_shortcut_set_for_reachability(
     # one source-target reachability query.
     if sparsify_shortcuts and shortcuts:
         from reachq.sparsify import sparsify_shortcut_set
+
         before = len(shortcuts)
         shortcuts = sparsify_shortcut_set(graph, shortcuts)
         log.info(
             "sparsify: |H| %d -> %d (%d shortcuts removed, %.1f%%)",
-            before, len(shortcuts), before - len(shortcuts),
+            before,
+            len(shortcuts),
+            before - len(shortcuts),
             100 * (before - len(shortcuts)) / max(1, before),
         )
 

@@ -34,10 +34,12 @@ def configure(level: int | str | None = None) -> None:
         level = getattr(logging, level.upper(), logging.INFO)
 
     handler = logging.StreamHandler(sys.stderr)
-    handler.setFormatter(logging.Formatter(
-        "%(asctime)s %(levelname)s %(name)s: %(message)s",
-        datefmt="%H:%M:%S",
-    ))
+    handler.setFormatter(
+        logging.Formatter(
+            "%(asctime)s %(levelname)s %(name)s: %(message)s",
+            datefmt="%H:%M:%S",
+        )
+    )
     root = logging.getLogger()
     root.addHandler(handler)
     root.setLevel(level)

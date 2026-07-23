@@ -42,7 +42,9 @@ def weighted_digraph_to_dict(graph: WeightedDigraph) -> dict[str, Any]:
     return {
         "type": "WeightedDigraph",
         "vertices": [vertex_to_json(v) for v in graph.vertices()],
-        "edges": [[vertex_to_json(u), vertex_to_json(v), w] for u, v, w in graph.edges()],
+        "edges": [
+            [vertex_to_json(u), vertex_to_json(v), w] for u, v, w in graph.edges()
+        ],
     }
 
 

@@ -24,8 +24,9 @@ between pivots, just collect results and merge.
 
 from __future__ import annotations
 
-from concurrent.futures import ThreadPoolExecutor, ProcessPoolExecutor
-from typing import Any, Callable, Iterable, TypeVar
+from collections.abc import Iterable
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
+from typing import Any, Callable, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -77,10 +78,7 @@ class ParallelContext:
         raise ValueError(f"unknown parallel mode: {self.mode!r}")
 
     def __repr__(self) -> str:
-        return (
-            f"ParallelContext(mode={self.mode!r}, "
-            f"n_workers={self.n_workers})"
-        )
+        return f"ParallelContext(mode={self.mode!r}, " f"n_workers={self.n_workers})"
 
 
 SEQUENTIAL = ParallelContext("sequential", 1)

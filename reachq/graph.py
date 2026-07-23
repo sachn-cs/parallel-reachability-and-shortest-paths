@@ -379,7 +379,9 @@ class WeightedDigraph(Digraph):
 
     def edges(self) -> list[tuple[object, object, int]]:  # type: ignore[override]
         """Return the list of edges as triples (u, v, weight)."""
-        return [(u, v, w) for u in self.vertex_set for v, w in self.out_edges[u].items()]
+        return [
+            (u, v, w) for u in self.vertex_set for v, w in self.out_edges[u].items()
+        ]
 
     def out_neighbors(self, v: object) -> dict[object, int]:  # type: ignore[override]
         """Return the out-neighbors of v with weights as a dict."""

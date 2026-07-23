@@ -101,18 +101,24 @@ def truncated_dijkstra(
     return distances
 
 
-def compute_d_descendants(graph: WeightedDigraph, vertex: object, distance: int) -> set[object]:
+def compute_d_descendants(
+    graph: WeightedDigraph, vertex: object, distance: int
+) -> set[object]:
     """Compute R^+_d(G, v) = {t : v ⪯_d t}."""
     return set(truncated_dijkstra(graph, vertex, distance).keys())
 
 
-def compute_d_ancestors(graph: WeightedDigraph, vertex: object, distance: int) -> set[object]:
+def compute_d_ancestors(
+    graph: WeightedDigraph, vertex: object, distance: int
+) -> set[object]:
     """Compute R^-_d(G, v) = {s : s ⪯_d v}."""
     rev = graph.reversed()
     return set(truncated_dijkstra(rev, vertex, distance).keys())
 
 
-def compute_d_ball(graph: WeightedDigraph, vertex: object, distance: int) -> set[object]:
+def compute_d_ball(
+    graph: WeightedDigraph, vertex: object, distance: int
+) -> set[object]:
     """Compute R_d(G, v) = R^+_d(G, v) ∪ R^-_d(G, v)."""
     return compute_d_descendants(graph, vertex, distance) | compute_d_ancestors(
         graph, vertex, distance
@@ -158,7 +164,9 @@ def shortest_path_hopbound(
     return {v: d for v, d in distances.items() if d < float("inf")}
 
 
-def shortest_path_tree(graph: WeightedDigraph, source: object) -> dict[object, Optional[object]]:
+def shortest_path_tree(
+    graph: WeightedDigraph, source: object
+) -> dict[object, Optional[object]]:
     """Compute a shortest path tree from source using Dijkstra.
 
     Returns a parent map where parent[v] is the predecessor of v, or None

@@ -45,9 +45,13 @@ class TestBoundGap:
 
     def test_jls_overshoots_bound_on_long_path(self):
         from reachq.shortcut_set import build_shortcut_set_for_reachability
+
         g = long_path_dag(20)
         H, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         n = g.num_vertices()
         m = g.num_edges()
@@ -67,9 +71,12 @@ class TestBoundGap:
         paper's bound, since the JLS-added shortcuts are mostly redundant.
         """
         from reachq.shortcut_set import build_shortcut_set_for_reachability
+
         g = long_path_dag(20)
         H, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42,  # sparsify_shortcuts=True (default)
+            g,
+            omega=3.0,
+            random_seed=42,  # sparsify_shortcuts=True (default)
         )
         # On a path graph, the JLS adds O(n^2) shortcuts but they all
         # compress the same path, so sparsify removes them all.

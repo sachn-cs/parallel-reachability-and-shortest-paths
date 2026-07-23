@@ -60,7 +60,9 @@ def main() -> int:
         second_largest = float(eigs[-2]) if len(eigs) > 1 else 0.0
         t0 = time.perf_counter()
         shortcuts, beta = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42,
+            g,
+            omega=3.0,
+            random_seed=42,
         )
         elapsed = time.perf_counter() - t0
         row = {
@@ -78,17 +80,30 @@ def main() -> int:
         rows.append(row)
         log.info(
             "%s: n=%d m=%d lambda1=%.2f gap=%.2f beta=%.2f |H|=%d |H|/n=%.2f t=%.3fs",
-            label, row["n"], row["m"], row["largest_eig"],
-            row["spectral_gap"], row["beta"], row["|H|"],
-            row["|H|/n"], row["time_s"],
+            label,
+            row["n"],
+            row["m"],
+            row["largest_eig"],
+            row["spectral_gap"],
+            row["beta"],
+            row["|H|"],
+            row["|H|/n"],
+            row["time_s"],
         )
 
     out = Path(args.out)
     out.parent.mkdir(parents=True, exist_ok=True)
     fields = [
-        "label", "n", "m",
-        "largest_eig", "second_largest_eig", "spectral_gap",
-        "beta", "|H|", "|H|/n", "time_s",
+        "label",
+        "n",
+        "m",
+        "largest_eig",
+        "second_largest_eig",
+        "spectral_gap",
+        "beta",
+        "|H|",
+        "|H|/n",
+        "time_s",
     ]
     with open(out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")

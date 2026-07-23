@@ -14,9 +14,9 @@ import csv
 import signal
 import sys
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -29,6 +29,7 @@ log = get_logger("reachq.ablation")
 def _time_limit(seconds: int) -> Iterator[None]:
     def handler(signum: int, frame: object) -> None:
         raise TimeoutError(f"exceeded {seconds}s")
+
     old = signal.signal(signal.SIGALRM, handler)
     signal.alarm(seconds)
     try:
@@ -39,9 +40,14 @@ def _time_limit(seconds: int) -> Iterator[None]:
 
 
 FLAG_NAMES = (
-    "adaptive_sampling", "label_compress", "skip_condense",
-    "hop_bounded_bfs", "degree_ordered_pivots", "tight_tc_trigger",
-    "skip_trivial_part", "enable_tc_pruning",
+    "adaptive_sampling",
+    "label_compress",
+    "skip_condense",
+    "hop_bounded_bfs",
+    "degree_ordered_pivots",
+    "tight_tc_trigger",
+    "skip_trivial_part",
+    "enable_tc_pruning",
 )
 
 
@@ -58,8 +64,8 @@ def main() -> int:
     args = parser.parse_args()
 
     from reachq.generators import random_dag, weighted_random_dag
-    from reachq.shortcut_set import build_shortcut_set_for_reachability
     from reachq.hopset import build_hopset_for_sssp
+    from reachq.shortcut_set import build_shortcut_set_for_reachability
 
     rows: list[dict[str, object]] = []
     all_on = {n: True for n in FLAG_NAMES}
@@ -70,8 +76,7 @@ def main() -> int:
         *((f"only_{name}", _all_off_except(name)) for name in FLAG_NAMES),
     ]
 
-    log.info("ablation starting; sizes=%s densities=%s",
-             args.sizes, args.densities)
+    log.info("ablation starting; sizes=%s densities=%s", args.sizes, args.densities)
     for n in args.sizes:
         for density in args.densities:
             g = random_dag(n, edge_probability=density, random_seed=42)
@@ -79,7 +84,9 @@ def main() -> int:
             for name, flags in configurations:
                 log.info("n=%d d=%s cfg=%s", n, density, name)
                 row: dict[str, object] = {
-                    "config": name, "n": n, "density": density,
+                    "config": name,
+                    "n": n,
+                    "density": density,
                     "m": g.num_edges(),
                     "flag_count_on": sum(1 for v in flags.values() if v),
                     **{f"flag_{k}": v for k, v in flags.items()},
@@ -88,28 +95,38 @@ def main() -> int:
                     with _time_limit(args.timeout):
                         t0 = time.perf_counter()
                         shortcuts, beta = build_shortcut_set_for_reachability(
-                            g, omega=3.0, random_seed=42, flags=flags,
+                            g,
+                            omega=3.0,
+                            random_seed=42,
+                            flags=flags,
                         )
                         elapsed = time.perf_counter() - t0
-                    row.update({
-                        "reach_beta": round(beta, 3),
-                        "reach_|H|": len(shortcuts),
-                        "reach_time_s": round(elapsed, 3),
-                    })
+                    row.update(
+                        {
+                            "reach_beta": round(beta, 3),
+                            "reach_|H|": len(shortcuts),
+                            "reach_time_s": round(elapsed, 3),
+                        }
+                    )
                 except TimeoutError:
                     row["reach_error"] = "timeout"
                 try:
                     with _time_limit(args.timeout):
                         t0 = time.perf_counter()
                         hopset, beta = build_hopset_for_sssp(
-                            wg, epsilon=0.1, random_seed=42, flags=flags,
+                            wg,
+                            epsilon=0.1,
+                            random_seed=42,
+                            flags=flags,
                         )
                         elapsed = time.perf_counter() - t0
-                    row.update({
-                        "hop_beta": round(beta, 3),
-                        "hop_|H|": len(hopset),
-                        "hop_time_s": round(elapsed, 3),
-                    })
+                    row.update(
+                        {
+                            "hop_beta": round(beta, 3),
+                            "hop_|H|": len(hopset),
+                            "hop_time_s": round(elapsed, 3),
+                        }
+                    )
                 except TimeoutError:
                     row["hop_error"] = "timeout"
                 rows.append(row)
@@ -117,9 +134,19 @@ def main() -> int:
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
     header = [
-        "config", "n", "density", "m", "flag_count_on",
-        "reach_beta", "reach_|H|", "reach_time_s", "reach_error",
-        "hop_beta", "hop_|H|", "hop_time_s", "hop_error",
+        "config",
+        "n",
+        "density",
+        "m",
+        "flag_count_on",
+        "reach_beta",
+        "reach_|H|",
+        "reach_time_s",
+        "reach_error",
+        "hop_beta",
+        "hop_|H|",
+        "hop_time_s",
+        "hop_error",
         *(f"flag_{k}" for k in FLAG_NAMES),
     ]
     with open(out_path, "w", newline="") as f:

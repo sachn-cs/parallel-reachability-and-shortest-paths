@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from reachq.generators import petersen_graph, random_dag
 from reachq.graph import Digraph
 from reachq.reachability import bfs_reachability, parallel_bfs
@@ -40,7 +38,10 @@ class TestSparsifyBasic:
         """Sparsification preserves R+(G, s) == R+(G+H, s) for all s."""
         g = random_dag(60, edge_probability=0.3, random_seed=42)
         H_orig, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         # First verify the unsparsified set is sound.
         for v in g.vertices():
@@ -48,15 +49,18 @@ class TestSparsifyBasic:
         # Now sparsify and verify soundness is preserved.
         H_sparse = sparsify_shortcut_set(g, H_orig)
         for v in g.vertices():
-            assert bfs_reachability(g, v) == parallel_bfs(g, v, H_sparse), (
-                f"sparsification broke soundness at v={v}"
-            )
+            assert bfs_reachability(g, v) == parallel_bfs(
+                g, v, H_sparse
+            ), f"sparsification broke soundness at v={v}"
 
     def test_sparsify_reduces_or_preserves(self):
         """Sparsification never increases |H|."""
         g = random_dag(50, edge_probability=0.3, random_seed=42)
         H_orig, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         H_sparse = sparsify_shortcut_set(g, H_orig)
         assert len(H_sparse) <= len(H_orig)
@@ -65,7 +69,10 @@ class TestSparsifyBasic:
         """Sparsifying twice gives the same result as sparsifying once."""
         g = random_dag(40, edge_probability=0.2, random_seed=42)
         H_orig, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         H_once = sparsify_shortcut_set(g, H_orig)
         H_twice = sparsify_shortcut_set(g, H_once)
@@ -79,7 +86,10 @@ class TestSparsifyReducesJLS:
         """On random DAGs, sparsification should remove most shortcuts."""
         g = random_dag(100, edge_probability=0.3, random_seed=42)
         H_orig, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         H_sparse = sparsify_shortcut_set(g, H_orig)
         # We expect most JLS shortcuts to be redundant on dense graphs.
@@ -94,11 +104,16 @@ class TestSparsifyReducesJLS:
         """build_shortcut_set_for_reachability sparsifies by default."""
         g = random_dag(60, edge_probability=0.3, random_seed=42)
         H_default = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42,
+            g,
+            omega=3.0,
+            random_seed=42,
         )
         # sparsify_shortcuts=False should give a larger H.
         H_unsparsified = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         assert len(H_default) <= len(H_unsparsified)
 
@@ -109,13 +124,17 @@ class TestSparsifyCorrectnessInvariant:
     def test_scc_clique_after_sparsify(self):
         """After sparsification, every SCC is still mutually reachable."""
         from reachq.invariants import assert_scc_shortcuts_form_cliques
+
         g = random_dag(80, edge_probability=0.2, random_seed=42)
         # Build a graph with cycles.
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         g.add_edge(2, 0)  # SCC = {0, 1, 2}
         H_orig, _ = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
         )
         H_sparse = sparsify_shortcut_set(g, H_orig)
         assert_scc_shortcuts_form_cliques(g, H_sparse)

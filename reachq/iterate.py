@@ -44,7 +44,7 @@ def iterative_shortcut_set(
     max_iterations: int = 5,
     random_seed: int | None = None,
 ) -> set[tuple[object, object]]:
-    """Iteratively refine the shortcut set.
+    r"""Iteratively refine the shortcut set.
 
     Each iteration: H_{k+1} = jls_with_tc_pruning(G ∪ H_k, ...).
     Uses the same parameter selection as build_shortcut_set_for_reachability
@@ -61,6 +61,7 @@ def iterative_shortcut_set(
 
     if random_seed is not None:
         from reachq.logging_config import configure
+
         configure()
 
     # Match the parameter selection of build_shortcut_set_for_reachability.
@@ -74,7 +75,10 @@ def iterative_shortcut_set(
 
     log.info(
         "iterative: starting (max_iterations=%d, k=%.2f, rho=%.2f, max_level=%d)",
-        max_iterations, k, rho, max_level,
+        max_iterations,
+        k,
+        rho,
+        max_level,
     )
     if max_iterations == 0:
         return set()
@@ -88,8 +92,12 @@ def iterative_shortcut_set(
         for u, v in H:
             augmented.add_edge(u, v)
         return jls_with_tc_pruning(
-            augmented, k=k, rho=rho, max_level=max_level,
-            n_global=n, random_seed=random_seed,
+            augmented,
+            k=k,
+            rho=rho,
+            max_level=max_level,
+            n_global=n,
+            random_seed=random_seed,
         )
 
     history: list[set[tuple[object, object]]] = []
@@ -100,7 +108,10 @@ def iterative_shortcut_set(
         elapsed = time.perf_counter() - t0
         history.append(H_new)
         log.info(
-            "iterative: iter=%d |H_{k+1}|=%d (%.2fs)", k_iter, len(H_new), elapsed,
+            "iterative: iter=%d |H_{k+1}|=%d (%.2fs)",
+            k_iter,
+            len(H_new),
+            elapsed,
         )
         if k_iter == 0:
             core = H_new
@@ -119,6 +130,7 @@ def iterative_shortcut_set(
             break
     log.info(
         "iterative: returning robust core |core|=%d (history |H|=%s)",
-        len(core), [len(h) for h in history],
+        len(core),
+        [len(h) for h in history],
     )
     return core

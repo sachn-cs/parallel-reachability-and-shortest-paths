@@ -46,6 +46,7 @@ def _get_runtime_omega() -> float:
     global _OMEGA_RUNTIME_HOP
     if _OMEGA_RUNTIME_HOP is None:
         from reachq.blas_omega import runtime_omega
+
         _OMEGA_RUNTIME_HOP = runtime_omega()
     return _OMEGA_RUNTIME_HOP
 
@@ -88,15 +89,31 @@ def _cfr_recursive(
         return {}
 
     log_n = math.log2(n_global) if n_global > 1 else 0.0
-    base_prob = min(1.0, _OMEGA_DEFAULT * (k ** (level + 1)) * log_n / n_global) if _OMEGA_RUNTIME_HOP is None else min(1.0, min(_OMEGA_DEFAULT, _get_runtime_omega()) * (k ** (level + 1)) * log_n / n_global)
+    base_prob = (
+        min(1.0, _OMEGA_DEFAULT * (k ** (level + 1)) * log_n / n_global)
+        if _OMEGA_RUNTIME_HOP is None
+        else min(
+            1.0,
+            min(_OMEGA_DEFAULT, _get_runtime_omega())
+            * (k ** (level + 1))
+            * log_n
+            / n_global,
+        )
+    )
 
     vertices = graph.vertices()
 
     if flags.degree_ordered_pivots:
         out_degrees = {v: graph.degree_out(v) for v in vertices}
-        pivots = [v for v in vertices if _bernoulli_weighted(
-            base_prob, out_degrees.get(v, 0), rng,
-        )]
+        pivots = [
+            v
+            for v in vertices
+            if _bernoulli_weighted(
+                base_prob,
+                out_degrees.get(v, 0),
+                rng,
+            )
+        ]
         pivots.sort(key=lambda v: out_degrees.get(v, 0))
     else:
         pivots = [v for v in vertices if rng.random() < base_prob]
@@ -177,8 +194,16 @@ def _cfr_recursive(
         # Advance the RNG so the recursion sees a different stream.
         rng.randint(0, 2**31 - 1)
         sub_hopset = _cfr_recursive(
-            sub, k, epsilon, rho, max_level, n_global, level + 1,
-            rng, flags, prunning=prunning,
+            sub,
+            k,
+            epsilon,
+            rho,
+            max_level,
+            n_global,
+            level + 1,
+            rng,
+            flags,
+            prunning=prunning,
         )
         for edge, w in sub_hopset.items():
             prev = hopset.get(edge)
@@ -221,8 +246,16 @@ def cfr_hopset(
         raise ValueError("max_level must be non-negative")
     rng = random.Random(random_seed)
     return _cfr_recursive(
-        graph, k, epsilon, rho=1.0, max_level=max_level,
-        n_global=n_global, level=level, rng=rng, flags=f, prunning=False,
+        graph,
+        k,
+        epsilon,
+        rho=1.0,
+        max_level=max_level,
+        n_global=n_global,
+        level=level,
+        rng=rng,
+        flags=f,
+        prunning=False,
     )
 
 
@@ -249,8 +282,16 @@ def cfr_with_truncsssp_pruning(
         raise ValueError("max_level must be non-negative")
     rng = random.Random(random_seed)
     return _cfr_recursive(
-        graph, k, epsilon, rho=rho, max_level=max_level,
-        n_global=n_global, level=level, rng=rng, flags=f, prunning=True,
+        graph,
+        k,
+        epsilon,
+        rho=rho,
+        max_level=max_level,
+        n_global=n_global,
+        level=level,
+        rng=rng,
+        flags=f,
+        prunning=True,
     )
 
 
@@ -298,9 +339,15 @@ def build_hopset_for_sssp(
     max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
 
     dag_hopset = cfr_with_truncsssp_pruning(
-        dag, k, epsilon, rho, max_level,
-        dag.num_vertices(), level=0,
-        random_seed=random_seed, flags=flags,
+        dag,
+        k,
+        epsilon,
+        rho,
+        max_level,
+        dag.num_vertices(),
+        level=0,
+        random_seed=random_seed,
+        flags=flags,
     )
 
     hopset: dict[tuple[object, object], int] = {}

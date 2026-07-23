@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from reachq.fix_resample import fix_resample_reachable, fix_resample_shortcut_set
 from reachq.generators import (
     hamming_graph,
@@ -42,6 +40,7 @@ class TestFixResampleBasic:
 
     def test_empty_graph(self):
         from reachq.graph import Digraph
+
         g = Digraph()
         shortcuts = fix_resample_shortcut_set(g)
         assert shortcuts == set()

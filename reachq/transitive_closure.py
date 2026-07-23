@@ -76,15 +76,19 @@ def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
     col_list.extend(diag_idx.tolist())
     data = np.ones(len(row_list), dtype=np.int8)
     adj: Any = csr_matrix(
-        (data, (np.asarray(row_list, dtype=np.int32),
-                np.asarray(col_list, dtype=np.int32))),
+        (
+            data,
+            (
+                np.asarray(row_list, dtype=np.int32),
+                np.asarray(col_list, dtype=np.int32),
+            ),
+        ),
         shape=(n, n),
     )
 
     # Reachability as a Python set of (row, col) pairs in [0, n).
     reach: set[tuple[int, int]] = {
-        (int(i), int(j))
-        for i, j in zip(adj.tocoo().row, adj.tocoo().col)
+        (int(i), int(j)) for i, j in zip(adj.tocoo().row, adj.tocoo().col)
     }
 
     # Repeated squaring. The dtype of the CSR data must be wide enough to
@@ -119,7 +123,9 @@ def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
     return {(vertices[i], vertices[j]) for i, j in reach}
 
 
-def transitive_closure_on_subset(graph: Digraph, subset: set[object]) -> set[tuple[object, object]]:
+def transitive_closure_on_subset(
+    graph: Digraph, subset: set[object]
+) -> set[tuple[object, object]]:
     """Compute TC(G[subset]): transitive closure of the induced subgraph.
 
     Used by TC-Pruning (Section 4.2): "add all edges in TC(G[R(G, p)]) to H."

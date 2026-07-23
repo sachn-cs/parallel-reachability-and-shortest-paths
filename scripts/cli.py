@@ -100,12 +100,16 @@ def cmd_shortest_paths(args: argparse.Namespace) -> None:
     if args.graph:
         graph = load_weighted_digraph(args.graph)
     else:
-        graph = weighted_dense_graph(args.n, args.m, weight_range=(1, 5), random_seed=args.seed)
+        graph = weighted_dense_graph(
+            args.n, args.m, weight_range=(1, 5), random_seed=args.seed
+        )
 
     accountant = WorkDepthAccountant()
     accountant.start_timer()
     start = time.perf_counter()
-    hopset, beta = build_hopset_for_sssp(graph, epsilon=args.epsilon, random_seed=args.seed)
+    hopset, beta = build_hopset_for_sssp(
+        graph, epsilon=args.epsilon, random_seed=args.seed
+    )
     elapsed = time.perf_counter() - start
     accountant.stop_timer()
 
@@ -177,8 +181,12 @@ def cmd_benchmark_large(args: argparse.Namespace) -> None:
         run_snap_benchmarks(args.datasets, args.omega, args.seed, args.output)
     if not args.snap_only:
         run_synthetic_scaling(
-            args.synthetic_sizes, args.edge_density, args.omega, args.epsilon,
-            args.seed, args.output,
+            args.synthetic_sizes,
+            args.edge_density,
+            args.omega,
+            args.epsilon,
+            args.seed,
+            args.output,
         )
 
 
@@ -187,7 +195,9 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
         if args.generator == "path":
             graph = weighted_path_graph(args.n, random_seed=args.seed)
         elif args.generator == "random_dag":
-            graph = weighted_random_dag(args.n, edge_probability=args.p, random_seed=args.seed)
+            graph = weighted_random_dag(
+                args.n, edge_probability=args.p, random_seed=args.seed
+            )
         elif args.generator == "dense":
             edge_count = min(args.n * (args.n - 1), args.m)
             graph = weighted_dense_graph(args.n, edge_count, random_seed=args.seed)
@@ -205,7 +215,9 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
         elif args.generator == "random_dag":
             graph = random_dag(args.n, edge_probability=args.p, random_seed=args.seed)
         elif args.generator == "erdos_renyi":
-            graph = erdos_renyi_digraph(args.n, edge_probability=args.p, random_seed=args.seed)
+            graph = erdos_renyi_digraph(
+                args.n, edge_probability=args.p, random_seed=args.seed
+            )
         elif args.generator == "dense":
             edge_count = min(args.n * (args.n - 1), args.m)
             graph = dense_graph(args.n, edge_count, random_seed=args.seed)
@@ -242,16 +254,24 @@ def main() -> None:
         "reachability", help="Build shortcut set and query reachability"
     )
     p_reach.add_argument("--graph", type=str, default=None, help="Input graph JSON")
-    p_reach.add_argument("--n", type=int, default=100, help="Vertices (if --graph omitted)")
-    p_reach.add_argument("--m", type=int, default=1000, help="Edges (if --graph omitted)")
+    p_reach.add_argument(
+        "--n", type=int, default=100, help="Vertices (if --graph omitted)"
+    )
+    p_reach.add_argument(
+        "--m", type=int, default=1000, help="Edges (if --graph omitted)"
+    )
     p_reach.add_argument("--omega", type=float, default=3.0)
     p_reach.add_argument("--source", type=int, default=None)
     p_reach.add_argument("--seed", type=int, default=42)
     p_reach.set_defaults(func=cmd_reachability)
 
     # shortest-paths
-    p_sp = subparsers.add_parser("shortest-paths", help="Build hopset and query shortest paths")
-    p_sp.add_argument("--graph", type=str, default=None, help="Input weighted graph JSON")
+    p_sp = subparsers.add_parser(
+        "shortest-paths", help="Build hopset and query shortest paths"
+    )
+    p_sp.add_argument(
+        "--graph", type=str, default=None, help="Input weighted graph JSON"
+    )
     p_sp.add_argument("--n", type=int, default=80, help="Vertices (if --graph omitted)")
     p_sp.add_argument("--m", type=int, default=800, help="Edges (if --graph omitted)")
     p_sp.add_argument("--epsilon", type=float, default=0.1)
@@ -261,18 +281,26 @@ def main() -> None:
     p_sp.set_defaults(func=cmd_shortest_paths)
 
     # benchmark-reachability
-    p_br = subparsers.add_parser("benchmark-reachability", help="Run reachability benchmarks")
+    p_br = subparsers.add_parser(
+        "benchmark-reachability", help="Run reachability benchmarks"
+    )
     p_br.add_argument("--sizes", type=int, nargs="+", default=[20, 50, 100, 200])
-    p_br.add_argument("--densities", type=float, nargs="+", default=[0.1, 0.3, 0.5, 0.8])
+    p_br.add_argument(
+        "--densities", type=float, nargs="+", default=[0.1, 0.3, 0.5, 0.8]
+    )
     p_br.add_argument("--omega", type=float, default=3.0)
     p_br.add_argument("--seed", type=int, default=42)
     p_br.add_argument("--output", type=str, default=None)
     p_br.set_defaults(func=cmd_benchmark_reachability)
 
     # benchmark-shortest-paths
-    p_bs = subparsers.add_parser("benchmark-shortest-paths", help="Run shortest-path benchmarks")
+    p_bs = subparsers.add_parser(
+        "benchmark-shortest-paths", help="Run shortest-path benchmarks"
+    )
     p_bs.add_argument("--sizes", type=int, nargs="+", default=[20, 50, 100])
-    p_bs.add_argument("--epsilons", type=float, nargs="+", default=[0.05, 0.1, 0.2, 0.5])
+    p_bs.add_argument(
+        "--epsilons", type=float, nargs="+", default=[0.05, 0.1, 0.2, 0.5]
+    )
     p_bs.add_argument("--seed", type=int, default=42)
     p_bs.add_argument("--output", type=str, default=None)
     p_bs.set_defaults(func=cmd_benchmark_shortest_paths)
@@ -283,11 +311,15 @@ def main() -> None:
         help="Run large-graph benchmarks (SNAP + synthetic)",
     )
     p_bl.add_argument(
-        "--datasets", nargs="+", default=list(SNAP_DATASETS.keys()),
+        "--datasets",
+        nargs="+",
+        default=list(SNAP_DATASETS.keys()),
         help="SNAP datasets (default: all)",
     )
     p_bl.add_argument(
-        "--synthetic-sizes", type=int, nargs="*",
+        "--synthetic-sizes",
+        type=int,
+        nargs="*",
         default=[1000, 5000, 10000, 50000, 100000],
     )
     p_bl.add_argument("--edge-density", type=float, default=0.1)
@@ -300,7 +332,9 @@ def main() -> None:
     p_bl.set_defaults(func=cmd_benchmark_large)
 
     # generate-graph
-    p_gen = subparsers.add_parser("generate-graph", help="Generate and serialize a graph")
+    p_gen = subparsers.add_parser(
+        "generate-graph", help="Generate and serialize a graph"
+    )
     p_gen.add_argument(
         "generator",
         choices=[
@@ -315,12 +349,20 @@ def main() -> None:
         help="Graph generator type",
     )
     p_gen.add_argument("--n", type=int, default=100, help="Number of vertices")
-    p_gen.add_argument("--m", type=int, default=1000, help="Number of edges (for dense)")
+    p_gen.add_argument(
+        "--m", type=int, default=1000, help="Number of edges (for dense)"
+    )
     p_gen.add_argument("--p", type=float, default=0.3, help="Edge probability")
     p_gen.add_argument(
-        "--scc-sizes", type=int, nargs="+", default=None, help="SCC sizes (for scc generator)"
+        "--scc-sizes",
+        type=int,
+        nargs="+",
+        default=None,
+        help="SCC sizes (for scc generator)",
     )
-    p_gen.add_argument("--weighted", action="store_true", help="Generate weighted graph")
+    p_gen.add_argument(
+        "--weighted", action="store_true", help="Generate weighted graph"
+    )
     p_gen.add_argument("--seed", type=int, default=42)
     p_gen.add_argument("--output", type=str, default=None, help="Output JSON file")
     p_gen.set_defaults(func=cmd_generate_graph)

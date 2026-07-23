@@ -17,8 +17,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from reachq.closed_form import (
     binary_tree_dag,
     layered_dag_shortcut_set,
-    path_shortcut_set,
     paper_bound_const,
+    path_shortcut_set,
 )
 from reachq.graph import Digraph
 from reachq.logging_config import get_logger
@@ -32,13 +32,18 @@ def measure(name: str, g: Digraph, optimal_H: set) -> dict[str, object]:
     n = g.num_vertices()
     m = g.num_edges()
     H, beta = build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
+        g,
+        omega=3.0,
+        random_seed=42,
+        sparsify_shortcuts=False,
     )
     H_ess = sparsify_shortcut_set(g, H)
     bound = paper_bound_const(n)
     return {
         "construction": name,
-        "n": n, "m": m, "beta": round(beta, 3),
+        "n": n,
+        "m": m,
+        "beta": round(beta, 3),
         "|H|_JLS": len(H),
         "|H|_essential": len(H_ess),
         "optimal_|H|": len(optimal_H),
@@ -85,9 +90,15 @@ def main() -> int:
     out = Path("results/closed_form_eval.csv")
     out.parent.mkdir(parents=True, exist_ok=True)
     fields = [
-        "construction", "n", "m", "beta",
-        "|H|_JLS", "|H|_essential", "optimal_|H|",
-        "paper_bound", "ratio_essential_to_bound",
+        "construction",
+        "n",
+        "m",
+        "beta",
+        "|H|_JLS",
+        "|H|_essential",
+        "optimal_|H|",
+        "paper_bound",
+        "ratio_essential_to_bound",
     ]
     with open(out, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
@@ -100,8 +111,11 @@ def main() -> int:
     for r in rows:
         log.info(
             "  %s: |H|_JLS=%d |H|_essential=%d optimal=%d bound=%.0f ratio=%.4f",
-            r["construction"], r["|H|_JLS"], r["|H|_essential"],
-            r["optimal_|H|"], r["paper_bound"],
+            r["construction"],
+            r["|H|_JLS"],
+            r["|H|_essential"],
+            r["optimal_|H|"],
+            r["paper_bound"],
             r["ratio_essential_to_bound"],
         )
     avg_ratio = sum(r["ratio_essential_to_bound"] for r in rows) / max(1, len(rows))

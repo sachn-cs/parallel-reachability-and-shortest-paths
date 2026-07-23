@@ -24,9 +24,9 @@ import socket
 import subprocess
 import sys
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Iterator
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -38,6 +38,7 @@ log = get_logger("reachq.reproduce")
 @contextmanager
 def _time_limit(seconds: int) -> Iterator[None]:
     """Raise TimeoutError after *seconds* (POSIX-only)."""
+
     def handler(signum: int, frame: object) -> None:
         raise TimeoutError(f"exceeded {seconds}s timeout")
 
@@ -63,34 +64,40 @@ def detect_hardware() -> dict[str, str]:
     }
     try:
         import numpy as np
+
         info["numpy"] = np.__version__
         info["numpy_blas"] = _detect_blas(np)
     except Exception as e:
         log.warning("numpy detection failed: %s", e)
     try:
         import scipy
+
         info["scipy"] = scipy.__version__
     except Exception as e:
         log.warning("scipy detection failed: %s", e)
     try:
         import psutil
+
         info["ram_gb"] = f"{psutil.virtual_memory().total / (1024 ** 3):.1f}"
     except ImportError:
         try:
             out = subprocess.check_output(
-                ["sysctl", "-n", "hw.memsize"], text=True,
+                ["sysctl", "-n", "hw.memsize"],
+                text=True,
             ).strip()
             info["ram_gb"] = f"{int(out) / (1024 ** 3):.1f}"
         except Exception:
             info["ram_gb"] = "(unknown)"
     try:
         import sysconfig
+
         info["python_compiler"] = sysconfig.get_config_var("CC") or "(unknown)"
     except Exception:
         pass
     try:
         out = subprocess.check_output(
-            ["sysctl", "-n", "machdep.cpu.brand_string"], text=True,
+            ["sysctl", "-n", "machdep.cpu.brand_string"],
+            text=True,
             stderr=subprocess.DEVNULL,
         ).strip()
         info["cpu_brand"] = out
@@ -103,6 +110,7 @@ def _detect_blas(np_mod: object) -> str:
     """Detect the BLAS backend. Suppresses numpy's chatty stdout."""
     import contextlib
     import io
+
     with contextlib.redirect_stdout(io.StringIO()):
         try:
             cfg = np_mod.show_config()  # type: ignore[attr-defined]
@@ -136,8 +144,8 @@ def run_sampling(
 ) -> list[dict[str, object]]:
     """Run synthetic random DAGs. Per-graph timeouts land in `error`."""
     from reachq.generators import random_dag, weighted_random_dag
-    from reachq.reachability import bfs_reachability, parallel_bfs
     from reachq.hopset import build_hopset_for_sssp
+    from reachq.reachability import bfs_reachability, parallel_bfs
     from reachq.shortcut_set import build_shortcut_set_for_reachability
     from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
@@ -164,14 +172,19 @@ def run_sampling(
                 with _time_limit(timeout):
                     t0 = time.perf_counter()
                     shortcuts, beta = build_shortcut_set_for_reachability(
-                        g, omega=omega, random_seed=seed, flags=flags,
+                        g,
+                        omega=omega,
+                        random_seed=seed,
+                        flags=flags,
                     )
                     elapsed = time.perf_counter() - t0
-                row.update({
-                    "beta": round(beta, 3),
-                    "shortcut_size": len(shortcuts),
-                    "elapsed_sec": round(elapsed, 3),
-                })
+                row.update(
+                    {
+                        "beta": round(beta, 3),
+                        "shortcut_size": len(shortcuts),
+                        "elapsed_sec": round(elapsed, 3),
+                    }
+                )
                 if n <= 2000:
                     src = next(iter(g.vertices()))
                     original = bfs_reachability(g, src)
@@ -199,20 +212,26 @@ def run_sampling(
                 with _time_limit(timeout):
                     t0 = time.perf_counter()
                     hopset, beta = build_hopset_for_sssp(
-                        wg, epsilon=epsilon, random_seed=seed, flags=flags,
+                        wg,
+                        epsilon=epsilon,
+                        random_seed=seed,
+                        flags=flags,
                     )
                     elapsed = time.perf_counter() - t0
-                wrow.update({
-                    "beta": round(beta, 3),
-                    "hopset_size": len(hopset),
-                    "elapsed_sec": round(elapsed, 3),
-                })
+                wrow.update(
+                    {
+                        "beta": round(beta, 3),
+                        "hopset_size": len(hopset),
+                        "elapsed_sec": round(elapsed, 3),
+                    }
+                )
                 if n <= 2000:
                     src = next(iter(wg.vertices()))
                     orig = dijkstra(wg, src)
                     approx = shortest_path_hopbound(wg, hopset, src, max_hops=1000)
                     mismatches = sum(
-                        1 for v in wg.vertices()
+                        1
+                        for v in wg.vertices()
                         if orig.get(v, float("inf")) < float("inf")
                         and approx.get(v, float("inf")) > (1 + epsilon) * orig[v] + 1e-9
                     )
@@ -223,9 +242,21 @@ def run_sampling(
             rows.append(wrow)
 
     header = [
-        "kind", "source", "n", "m", "omega", "epsilon", "density", "seed",
-        "beta", "shortcut_size", "hopset_size", "elapsed_sec",
-        "correct", "mismatches", "error",
+        "kind",
+        "source",
+        "n",
+        "m",
+        "omega",
+        "epsilon",
+        "density",
+        "seed",
+        "beta",
+        "shortcut_size",
+        "hopset_size",
+        "elapsed_sec",
+        "correct",
+        "mismatches",
+        "error",
         *(f"flag_{k}" for k in flags),
     ]
     _write_csv(_csv_path(out_dir, "scaling"), rows, header)
@@ -233,11 +264,16 @@ def run_sampling(
 
 
 def run_snap(
-    datasets: list[str], omega: float, epsilon: float, seed: int,
-    timeout: int, flags: dict[str, bool], out_dir: Path,
+    datasets: list[str],
+    omega: float,
+    epsilon: float,
+    seed: int,
+    timeout: int,
+    flags: dict[str, bool],
+    out_dir: Path,
 ) -> list[dict[str, object]]:
     """Run SNAP datasets. Skips datasets with no cached file. Per-graph timeouts land in `error`."""
-    from reachq.generators import SNAP_DATASETS, load_dataset
+    from reachq.generators import load_dataset
     from reachq.reachability import bfs_reachability, parallel_bfs
     from reachq.shortcut_set import build_shortcut_set_for_reachability
 
@@ -247,11 +283,14 @@ def run_snap(
         try:
             g = load_dataset(name)
         except FileNotFoundError as e:
-            rows.append({
-                "kind": "snap-reachability", "source": name,
-                "error": f"load failed: {e}",
-                **{f"flag_{k}": v for k, v in flags.items()},
-            })
+            rows.append(
+                {
+                    "kind": "snap-reachability",
+                    "source": name,
+                    "error": f"load failed: {e}",
+                    **{f"flag_{k}": v for k, v in flags.items()},
+                }
+            )
             log.warning("snap load failed for %s: %s", name, e)
             continue
 
@@ -268,14 +307,19 @@ def run_snap(
             with _time_limit(timeout):
                 t0 = time.perf_counter()
                 shortcuts, beta = build_shortcut_set_for_reachability(
-                    g, omega=omega, random_seed=seed, flags=flags,
+                    g,
+                    omega=omega,
+                    random_seed=seed,
+                    flags=flags,
                 )
                 elapsed = time.perf_counter() - t0
-            row.update({
-                "beta": round(beta, 3),
-                "shortcut_size": len(shortcuts),
-                "elapsed_sec": round(elapsed, 3),
-            })
+            row.update(
+                {
+                    "beta": round(beta, 3),
+                    "shortcut_size": len(shortcuts),
+                    "elapsed_sec": round(elapsed, 3),
+                }
+            )
             if g.num_vertices() <= 5000:
                 src = next(iter(g.vertices()))
                 original = bfs_reachability(g, src)
@@ -287,8 +331,17 @@ def run_snap(
         rows.append(row)
 
     header = [
-        "kind", "source", "n", "m", "omega", "seed",
-        "beta", "shortcut_size", "elapsed_sec", "correct", "error",
+        "kind",
+        "source",
+        "n",
+        "m",
+        "omega",
+        "seed",
+        "beta",
+        "shortcut_size",
+        "elapsed_sec",
+        "correct",
+        "error",
         *(f"flag_{k}" for k in flags),
     ]
     _write_csv(_csv_path(out_dir, "snap"), rows, header)
@@ -320,7 +373,9 @@ def write_summary(
 
     if scaling:
         lines.append("## Sampling")
-        lines.append("| kind | source | n | m | beta | |H| | time (s) | correct/error |")
+        lines.append(
+            "| kind | source | n | m | beta | |H| | time (s) | correct/error |"
+        )
         lines.append("|---|---|---|---|---|---|---|---|")
         for r in scaling:
             err = r.get("error", "")
@@ -336,7 +391,9 @@ def write_summary(
 
     if snap:
         lines.append("## SNAP")
-        lines.append("| kind | source | n | m | beta | |H| | time (s) | correct/error |")
+        lines.append(
+            "| kind | source | n | m | beta | |H| | time (s) | correct/error |"
+        )
         lines.append("|---|---|---|---|---|---|---|---|")
         for r in snap:
             err = r.get("error", "")
@@ -353,31 +410,60 @@ def write_summary(
 def main() -> int:
     parser = argparse.ArgumentParser(description="Reproduce benchmark results")
     parser.add_argument("--out", default="results", help="Output directory")
-    parser.add_argument("--sizes", nargs="+", type=int, default=[200, 500, 1000, 2000, 5000])
     parser.add_argument(
-        "--densities", nargs="+", type=float, default=[0.05, 0.1, 0.3],
+        "--sizes", nargs="+", type=int, default=[200, 500, 1000, 2000, 5000]
+    )
+    parser.add_argument(
+        "--densities",
+        nargs="+",
+        type=float,
+        default=[0.05, 0.1, 0.3],
     )
     parser.add_argument("--datasets", nargs="+", default=None)
     parser.add_argument("--omega", type=float, default=3.0)
     parser.add_argument("--epsilon", type=float, default=0.1)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--timeout", type=int, default=60)
-    parser.add_argument("--no-adaptive-sampling", action="store_true",
-                        help="Disable adaptive sampling probability (Improvement 1)")
-    parser.add_argument("--no-label-compress", action="store_true",
-                        help="Disable label compression (Improvement 2)")
-    parser.add_argument("--no-skip-condense", action="store_true",
-                        help="Disable skip-condensation on DAG inputs (Improvement 3)")
-    parser.add_argument("--no-hop-bounded-bfs", action="store_true",
-                        help="Disable hop-bounded BFS in pivot loop (Improvement 4)")
-    parser.add_argument("--no-degree-ordered-pivots", action="store_true",
-                        help="Disable degree-ordered pivot iteration (Improvement 5)")
-    parser.add_argument("--no-tight-tc-trigger", action="store_true",
-                        help="Disable tightened TC-pruning trigger (Improvement 7)")
-    parser.add_argument("--no-skip-trivial-part", action="store_true",
-                        help="Disable skip-trivial-partition guard (Improvement 6)")
-    parser.add_argument("--no-tc-pruning", action="store_true",
-                        help="Disable TC pruning entirely (baselined comparison)")
+    parser.add_argument(
+        "--no-adaptive-sampling",
+        action="store_true",
+        help="Disable adaptive sampling probability (Improvement 1)",
+    )
+    parser.add_argument(
+        "--no-label-compress",
+        action="store_true",
+        help="Disable label compression (Improvement 2)",
+    )
+    parser.add_argument(
+        "--no-skip-condense",
+        action="store_true",
+        help="Disable skip-condensation on DAG inputs (Improvement 3)",
+    )
+    parser.add_argument(
+        "--no-hop-bounded-bfs",
+        action="store_true",
+        help="Disable hop-bounded BFS in pivot loop (Improvement 4)",
+    )
+    parser.add_argument(
+        "--no-degree-ordered-pivots",
+        action="store_true",
+        help="Disable degree-ordered pivot iteration (Improvement 5)",
+    )
+    parser.add_argument(
+        "--no-tight-tc-trigger",
+        action="store_true",
+        help="Disable tightened TC-pruning trigger (Improvement 7)",
+    )
+    parser.add_argument(
+        "--no-skip-trivial-part",
+        action="store_true",
+        help="Disable skip-trivial-partition guard (Improvement 6)",
+    )
+    parser.add_argument(
+        "--no-tc-pruning",
+        action="store_true",
+        help="Disable TC pruning entirely (baselined comparison)",
+    )
     parser.add_argument("--skip-snap", action="store_true")
     parser.add_argument("--skip-sampling", action="store_true")
     args = parser.parse_args()
@@ -407,25 +493,38 @@ def main() -> int:
     if not args.skip_sampling:
         log.info("starting sampling ladder")
         scaling = run_sampling(
-            args.sizes, args.densities, args.omega, args.epsilon,
-            args.seed, args.timeout, flags, out_dir,
+            args.sizes,
+            args.densities,
+            args.omega,
+            args.epsilon,
+            args.seed,
+            args.timeout,
+            flags,
+            out_dir,
         )
 
     if not args.skip_snap:
         from reachq.generators import SNAP_DATASETS
+
         data_dir = Path("data")
         if args.datasets is not None:
             datasets = args.datasets
         else:
             datasets = [
-                name for name, info in SNAP_DATASETS.items()
+                name
+                for name, info in SNAP_DATASETS.items()
                 if (data_dir / str(info["url"]).rsplit("/", 1)[-1]).exists()
             ]
         if datasets:
             log.info("starting SNAP benchmarks on %s", datasets)
             snap = run_snap(
-                datasets, args.omega, args.epsilon, args.seed,
-                args.timeout, flags, out_dir,
+                datasets,
+                args.omega,
+                args.epsilon,
+                args.seed,
+                args.timeout,
+                flags,
+                out_dir,
             )
         else:
             log.warning(
