@@ -300,15 +300,24 @@ def petersen_graph() -> Digraph:
 
     Triangle-free, girth 5, automorphism group S_5 in its natural action.
     Canonical small test case from algebraic graph theory (Paper 3 §1.3).
+
+    Construction (matches NetworkX's nx.petersen_graph):
+      * Outer 5-cycle on vertices 0..4: 0-1-2-3-4-0.
+      * Inner 5-cycle on vertices 5..9 in pentagram order: 5-7-9-6-8-5.
+      * Spokes (0,5), (1,6), (2,7), (3,8), (4,9).
+
+    Note: the inner cycle is NOT a pentagon on {5,6,7,8,9}; it is a
+    pentagram (5-cycle on those vertices but with a non-trivial rotation
+    of the labels). Using the wrong inner cycle yields a non-isomorphic
+    3-regular graph whose spectrum is the prism graph's, not the
+    Petersen's.
     """
     g = Digraph()
     for i in range(10):
         g.add_vertex(i)
-    # Outer 5-cycle: 0-1-2-3-4-0, inner 5-cycle: 5-7-9-6-8-5.
     outer_cycle = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
     inner_cycle = [(5, 7), (7, 9), (9, 6), (6, 8), (8, 5)]
-    # Spokes: each outer vertex i connects to inner vertex 5 + 2i (mod 5).
-    spokes = [(0, 5), (1, 7), (2, 9), (3, 6), (4, 8)]
+    spokes = [(0, 5), (1, 6), (2, 7), (3, 8), (4, 9)]
     for u, v in outer_cycle + inner_cycle + spokes:
         g.add_undirected_edge(u, v)
     return g
@@ -483,7 +492,7 @@ def hamming_graph(d: int, q: int) -> Digraph:
 
 
 def _int_to_base_q(v: int, q: int, d: int) -> list[int]:
-    """Convert integer to base-q representation with d digits."""
+    """Convert integer to base-q representation with d digits (LSB at index 0)."""
     out = [0] * d
     for i in range(d):
         out[i] = v % q
@@ -492,10 +501,10 @@ def _int_to_base_q(v: int, q: int, d: int) -> list[int]:
 
 
 def _base_q_to_int(coords: list[int], q: int) -> int:
-    """Convert base-q digit list back to integer."""
+    """Convert base-q digit list (LSB at index 0) back to integer."""
     v = 0
-    for x in coords:
-        v = v * q + x
+    for i, x in enumerate(coords):
+        v += x * (q ** i)
     return v
 
 
