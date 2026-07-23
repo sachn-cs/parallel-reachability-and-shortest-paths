@@ -286,6 +286,85 @@ def weighted_dense_graph(
     return g
 
 
+SNAP_BASE = "https://snap.stanford.edu/data"
+SNAP_DATASETS: dict[str, dict[str, str | int]] = {
+    "cit-HepPh": {
+        "url": f"{SNAP_BASE}/cit-HepPh.txt.gz",
+        "nodes": 34546, "edges": 421578, "type": "citation",
+    },
+    "p2p-Gnutella31": {
+        "url": f"{SNAP_BASE}/p2p-Gnutella31.txt.gz",
+        "nodes": 62586, "edges": 147892, "type": "p2p",
+    },
+    "soc-Epinions1": {
+        "url": f"{SNAP_BASE}/soc-Epinions1.txt.gz",
+        "nodes": 75879, "edges": 508837, "type": "social",
+    },
+    "web-NotreDame": {
+        "url": f"{SNAP_BASE}/web-NotreDame.txt.gz",
+        "nodes": 325729, "edges": 1497134, "type": "web",
+    },
+    "web-Stanford": {
+        "url": f"{SNAP_BASE}/web-Stanford.txt.gz",
+        "nodes": 281903, "edges": 2312497, "type": "web",
+    },
+    "web-Google": {
+        "url": f"{SNAP_BASE}/web-Google.txt.gz",
+        "nodes": 875713, "edges": 5105039, "type": "web",
+    },
+}
+
+
+def _parse_snap_file(path: str) -> Digraph:
+    """Parse a SNAP edge list file into a Digraph."""
+    import gzip
+
+    g = Digraph()
+    open_fn = gzip.open if path.endswith(".gz") else open  # type: ignore[assignment]
+    with open_fn(path, "rt") as f:  # type: ignore[arg-type]
+        for line in f:
+            if line.startswith("#") or not line.strip():
+                continue
+            parts = line.split()
+            if len(parts) >= 2:
+                u, v = int(parts[0]), int(parts[1])
+                g.add_edge(u, v)
+    return g
+
+
+def load_dataset(name: str, cache_dir: str = "data") -> Digraph:
+    """Load a SNAP dataset by name, downloading to cache_dir if needed.
+
+    Args:
+        name: One of the keys in SNAP_DATASETS (e.g. "cit-HepPh").
+        cache_dir: Directory for cached downloads.
+
+    Returns:
+        A Digraph with integer vertex labels.
+
+    Raises:
+        KeyError: If name is not in SNAP_DATASETS.
+    """
+    import urllib.request
+    from pathlib import Path
+
+    if name not in SNAP_DATASETS:
+        raise KeyError(f"Unknown dataset {name!r}; available: {list(SNAP_DATASETS)}")
+
+    info = SNAP_DATASETS[name]
+    url = str(info["url"])
+    filename = url.rsplit("/", 1)[-1]
+    dest = Path(cache_dir) / filename
+
+    if not dest.exists():
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        print(f"Downloading {name} from {url}...")
+        urllib.request.urlretrieve(url, dest)
+        print(f"Saved to {dest}")
+
+    return _parse_snap_file(str(dest))
+
+
 def graph_stats(graph: Digraph) -> dict[str, int]:
     """Return basic statistics for a graph."""
     return {
