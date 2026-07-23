@@ -10,7 +10,7 @@ in ``docs/algorithmic_improvements.md``:
   4. Hop-bounded pivot BFS at the wrapper's beta hopbound (Improvement 4)
   5. Degree-ordered pivot iteration (cheap BFS first) (Improvement 5;
      replaces a planned multi-source BFS that would have over-claimed
-     per-pivot reachability — see CHANGELOG)
+     per-pivot reachability -- see CHANGELOG)
   6. Skip-trivial-partition guard (Improvement 6)
   7. Tightened TC-pruning trigger by work comparison (Improvement 7)
 
@@ -20,6 +20,14 @@ Bug fixes vs earlier versions:
   * No module-level multiprocessing globals.
   * SCC clique expansion skips size-1 SCCs (the common case for DAG inputs).
   * ``graph.reversed()`` is no longer rebuilt inside per-pivot loops.
+
+Parallel pivot processing (Phase 2b):
+  The per-pivot loop can be dispatched in parallel via
+  ``ParallelContext`` (see ``prspnsd/parallel.py``). Pivots are
+  embarrassingly parallel: each computes (r_plus, r_minus, label
+  contributions) on read-only shared CSR state. Per-pivot results are
+  merged into the main-thread shortcut set and label dicts after
+  dispatch.
 """
 
 from __future__ import annotations
@@ -36,6 +44,7 @@ from prspnsd.numpy_bfs import (
     csr_reachable_forward,
     should_use_csr,
 )
+from prspnsd.parallel import ParallelContext, SEQUENTIAL
 from prspnsd.reachability import compute_r_minus, compute_r_plus
 from prspnsd.transitive_closure import transitive_closure_on_subset
 
@@ -44,6 +53,69 @@ _SAMPLING_CONSTANT = 10
 # from graph density (rho), it lands here. See density_aware_constant()
 # for the formula and rationale.
 _DENSITY_AWARE_CONSTANT: float | None = None
+
+# Module-level pivot-processing state for parallel pivot dispatch.
+# Workers read these globals; the main thread fills them before dispatch.
+# Using module globals (not closures) keeps workers picklable for the
+# process variant and free of closure overhead for the thread variant.
+_PIVOT_STATE: dict[str, Any] = {}
+
+
+def _set_pivot_state(csr_data: Any, rev: Any, graph: Any, max_hops: Optional[int]) -> None:
+    """Install the per-recursion-level pivot state for parallel workers."""
+    _PIVOT_STATE["csr_data"] = csr_data
+    _PIVOT_STATE["rev"] = rev
+    _PIVOT_STATE["graph"] = graph
+    _PIVOT_STATE["max_hops"] = max_hops
+
+
+def _pivot_worker(pivot: Any) -> dict[str, Any]:
+    """Process one pivot: BFS, label accumulation, shortcut set.
+
+    Reads shared state from _PIVOT_STATE. Returns per-pivot results to
+    be merged by the main thread.
+    """
+    csr_data = _PIVOT_STATE.get("csr_data")
+    rev = _PIVOT_STATE.get("rev")
+    max_hops = _PIVOT_STATE.get("max_hops")
+    shortcuts: set[tuple[Any, Any]] = set()
+    anc: list[Any] = []
+    des: list[Any] = []
+    if csr_data is not None:
+        indptr_fwd, indices_fwd, indptr_rev, indices_rev, csr_n, idx_to_v = csr_data
+        v_to_idx = {v: i for i, v in enumerate(idx_to_v)}
+        p_idx = v_to_idx[pivot]
+        r_plus_arr = csr_reachable_forward(
+            indptr_fwd, indices_fwd, p_idx, csr_n, max_depth=max_hops,
+        )
+        r_minus_arr = csr_reachable_backward(
+            indptr_rev, indices_rev, p_idx, csr_n, max_depth=max_hops,
+        )
+        r_plus = {idx_to_v[int(i)] for i in r_plus_arr}
+        r_minus = {idx_to_v[int(i)] for i in r_minus_arr}
+    else:
+        # Non-CSR path: walk graph.in_edges for r_minus, out_edges for r_plus.
+        graph = _PIVOT_STATE["graph"]
+        r_minus = compute_r_minus(graph, pivot) if max_hops is None else _bfs_hop_limited(
+            graph, pivot, max_hops, forward=False,
+        )
+        r_plus = compute_r_plus(graph, pivot) if max_hops is None else _bfs_hop_limited(
+            graph, pivot, max_hops, forward=True,
+        )
+    for v in r_minus:
+        if v != pivot:
+            shortcuts.add((v, pivot))
+            anc.append(v)
+    for v in r_plus:
+        if v != pivot:
+            shortcuts.add((pivot, v))
+            des.append(v)
+    return {
+        "pivot": pivot,
+        "shortcuts": shortcuts,
+        "anc": anc,
+        "des": des,
+    }
 
 
 def density_aware_constant(rho: float, k: float) -> float:
@@ -91,6 +163,7 @@ class Flags:
     tight_tc_trigger: bool = True
     skip_trivial_part: bool = True
     enable_tc_pruning: bool = True
+    parallel: bool = False
 
     @classmethod
     def from_dict(cls, d: Optional[dict[str, bool]]) -> Flags:
@@ -166,6 +239,7 @@ def jls_with_tc_pruning(
     level: int = 0,
     random_seed: Optional[int] = None,
     flags: Optional[dict[str, bool]] = None,
+    parallel_workers: int = 1,
 ) -> set[tuple[object, object]]:
     """Construct the JLS shortcut set with TC-Pruning (Section 4.2, Theorem 5).
 
@@ -178,6 +252,11 @@ def jls_with_tc_pruning(
         level: Current recursion level r.
         random_seed: Optional seed for reproducibility.
         flags: Optional dict of algorithmic refinement toggles.
+        parallel_workers: Number of threads for per-pivot BFS dispatch
+            (default 1 = sequential). Pivots are embarrassingly parallel;
+            threading helps when the per-pivot bottleneck is the numpy
+            CSR frontier expansion (which releases the GIL on large
+            arrays).
 
     Returns:
         A set of shortcut edges H ⊆ V × V.
@@ -248,42 +327,36 @@ def jls_with_tc_pruning(
         # Hoisted once per recursion level (was per-pivot in the old code).
         rev = graph.reversed()
 
-    for pivot in pivots:
-        if use_csr and csr_data is not None:
-            indptr_fwd, indices_fwd, indptr_rev, indices_rev, csr_n, idx_to_v = csr_data
-            v_to_idx = {v: i for i, v in enumerate(idx_to_v)}
-            p_idx = v_to_idx[pivot]
-            r_plus_arr = csr_reachable_forward(
-                indptr_fwd, indices_fwd, p_idx, csr_n,
-                max_depth=max_hops_for_bfs,
-            )
-            r_minus_arr = csr_reachable_backward(
-                indptr_rev, indices_rev, p_idx, csr_n,
-                max_depth=max_hops_for_bfs,
-            )
-            r_plus = {idx_to_v[int(i)] for i in r_plus_arr}
-            r_minus = {idx_to_v[int(i)] for i in r_minus_arr}
+    # Install shared state for parallel pivot workers.
+    _set_pivot_state(csr_data, rev, graph, max_hops_for_bfs)
+
+    parallel: ParallelContext = (
+        ParallelContext("threads", parallel_workers)
+        if parallel_workers > 1
+        else SEQUENTIAL
+    )
+    pivot_results = parallel.imap_unordered(_pivot_worker, pivots)
+
+    for result in pivot_results:
+        pivot = result["pivot"]
+        r_minus_set = set(result["anc"])  # already filtered: v != pivot
+        r_plus_set = set(result["des"])
+        shortcuts |= result["shortcuts"]
+        if f.label_compress:
+            for v in result["anc"]:
+                anc_labels[v].append(pivot)
+            for v in result["des"]:
+                des_labels[v].append(pivot)
         else:
-            assert rev is not None
-            r_minus = compute_r_minus(graph, pivot) if max_hops_for_bfs is None else _bfs_hop_limited(
-                graph, pivot, max_hops_for_bfs, forward=False, rev=rev,
-            )
-            r_plus = compute_r_plus(graph, pivot) if max_hops_for_bfs is None else _bfs_hop_limited(
-                graph, pivot, max_hops_for_bfs, forward=True,
-            )
-        _apply_pivot(
-            pivot, r_minus, r_plus, shortcuts,
-            anc_labels if f.label_compress else None,
-            des_labels if f.label_compress else None,
-            labels if not f.label_compress else None,
-        )
+            for v in result["anc"]:
+                labels[v].add((pivot, "anc"))
+            for v in result["des"]:
+                labels[v].add((pivot, "des"))
 
         # Improvement 7: tighter TC pruning.
-        r_ball = r_minus | r_plus
+        r_ball = r_minus_set | r_plus_set | {pivot}
         if f.enable_tc_pruning and 0 < len(r_ball) <= tc_pruning_threshold:
             tc = transitive_closure_on_subset(graph, r_ball)
-            # Strip self-loops (parallel_bfs can't make progress on them
-            # but they do nothing useful as shortcuts).
             shortcuts |= {(u, v) for u, v in tc if u != v}
 
     if f.label_compress:
@@ -402,6 +475,7 @@ def build_shortcut_set_for_reachability(
     omega: float = 3.0,
     random_seed: Optional[int] = None,
     flags: Optional[dict[str, bool]] = None,
+    parallel_workers: int = 1,
 ) -> tuple[set[tuple[object, object]], float]:
     """High-level wrapper: build a beta-shortcut set matching Theorem 2.
 
@@ -412,6 +486,8 @@ def build_shortcut_set_for_reachability(
         omega: Fast matrix multiplication exponent.
         random_seed: Optional seed for reproducibility.
         flags: Optional dict of algorithmic refinement toggles.
+        parallel_workers: Number of threads for per-pivot BFS dispatch
+            (default 1 = sequential). See jls_with_tc_pruning.
 
     Returns:
         (shortcut_set, beta) where beta is the target hopbound.
@@ -459,6 +535,7 @@ def build_shortcut_set_for_reachability(
     dag_shortcuts = jls_with_tc_pruning(
         dag, k, rho, max_level, dag.num_vertices(), level=0,
         random_seed=random_seed, flags=flags,
+        parallel_workers=parallel_workers,
     )
 
     shortcuts: set[tuple[object, object]] = set()

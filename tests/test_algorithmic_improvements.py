@@ -63,8 +63,14 @@ def test_flags_dataclass_rejects_unknown_names() -> None:
 
 
 def test_all_on_matches_dataclass_default() -> None:
+    """All *algorithmic* refinements default on; parallel is opt-in."""
     flags = Flags.from_dict(None)
-    assert all(getattr(flags, name) is True for name in _all_flag_names())
+    algorithmic = [n for n in _all_flag_names() if n != "parallel"]
+    assert all(getattr(flags, name) is True for name in algorithmic)
+    # parallel is opt-in because threading has overhead the user must
+    # explicitly accept (otherwise it changes reproducibility in
+    # subtle ways via thread scheduling).
+    assert flags.parallel is False
 
 
 def test_networkx_cross_check_shortcut_set() -> None:
