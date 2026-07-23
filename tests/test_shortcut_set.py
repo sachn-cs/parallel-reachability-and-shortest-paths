@@ -271,3 +271,66 @@ class TestDensityAwareSampling:
         assert density_aware_constant(rho=-1.0, k=2.0) == 10.0
         # k <= 1 -> default
         assert density_aware_constant(rho=2.0, k=1.0) == 10.0
+
+
+class TestParallelPivots:
+    """Thread-parallel pivot dispatch (Phase 2b)."""
+
+    def test_parallel_workers_matches_sequential_on_small(self):
+        """Same shortcut set with parallel_workers=1 vs =4 on a small graph."""
+        from prspnsd.generators import random_dag
+        from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+        g = random_dag(n=80, edge_probability=0.2, random_seed=42)
+        s_seq, b_seq = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=42, parallel_workers=1,
+        )
+        s_par, b_par = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=42, parallel_workers=4,
+        )
+        assert b_seq == b_par
+        assert s_seq == s_par, (
+            f"parallel produced different shortcut set: |H|={len(s_par)} vs {len(s_seq)}"
+        )
+
+    def test_parallel_preserves_reachability(self):
+        from prspnsd.generators import random_dag
+        from prspnsd.reachability import bfs_reachability, parallel_bfs
+        from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+        g = random_dag(n=60, edge_probability=0.2, random_seed=7)
+        shortcuts, _ = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=7, parallel_workers=4,
+        )
+        for v in g.vertices():
+            assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
+
+    def test_pivot_worker_returns_expected_keys(self):
+        from prspnsd.shortcut_set import _pivot_worker, _set_pivot_state
+        from prspnsd.graph import Digraph
+        from prspnsd.numpy_bfs import build_csr_pair
+        g = Digraph()
+        g.add_edge(0, 1)
+        g.add_edge(1, 2)
+        g.add_edge(2, 3)
+        csr = build_csr_pair(g)
+        _set_pivot_state(csr, None, g, max_hops=None)
+        result = _pivot_worker(0)
+        assert result["pivot"] == 0
+        assert isinstance(result["shortcuts"], set)
+        assert isinstance(result["anc"], list)
+        assert isinstance(result["des"], list)
+        # 0 reaches 1, 2, 3 via the path 0->1->2->3.
+        assert 1 in result["des"]
+        assert 3 in result["des"]
+
+    def test_pivot_worker_skips_self_edges(self):
+        from prspnsd.shortcut_set import _pivot_worker, _set_pivot_state
+        from prspnsd.graph import Digraph
+        from prspnsd.numpy_bfs import build_csr_pair
+        g = Digraph()
+        g.add_edge(0, 1)
+        csr = build_csr_pair(g)
+        _set_pivot_state(csr, None, g, max_hops=None)
+        result = _pivot_worker(0)
+        # Self-loops (0, 0) must never appear.
+        for u, v in result["shortcuts"]:
+            assert u != v
