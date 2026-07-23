@@ -238,3 +238,49 @@ class TestTheoreticalBounds:
     def test_theoretical_hopset_depth_positive(self):
         d = theoretical_hopset_depth(n=100, m=500, rho=2.0)
         assert d > 0.0
+
+
+class TestSpanProfiler:
+    """Tests for SpanProfiler (empirical parallel span measurement)."""
+
+    def test_empty_profiler_reports_zero_span(self):
+        from prspnsd.work_depth import SpanProfiler
+        p = SpanProfiler()
+        assert p.total_span_seconds() == 0.0
+        s = p.summary()
+        assert s["span_seconds"] == 0.0
+        assert s["theoretical_work"] == 0.0
+
+    def test_phases_accumulate(self):
+        import time as _t
+        from prspnsd.work_depth import SpanProfiler
+        p = SpanProfiler()
+        p.begin_phase("a")
+        _t.sleep(0.01)
+        # begin_phase closes the previous phase, so 'a' is recorded.
+        p.begin_phase("b")
+        _t.sleep(0.01)
+        p.end_phase()
+        span = p.total_span_seconds()
+        # a + b = ~20ms minimum; allow slack
+        assert span >= 0.02, f"expected >= 20ms, got {span}"
+        assert len(p.phases) == 2
+        assert {ph.name for ph in p.phases} == {"a", "b"}
+
+    def test_summary_includes_all_phases(self):
+        from prspnsd.work_depth import SpanProfiler
+        p = SpanProfiler()
+        p.begin_phase("first")
+        p.end_phase()
+        p.begin_phase("second")
+        p.end_phase()
+        s = p.summary()
+        assert "phase_first_seconds" in s
+        assert "phase_second_seconds" in s
+
+    def test_repr_includes_span(self):
+        from prspnsd.work_depth import SpanProfiler
+        p = SpanProfiler()
+        r = repr(p)
+        assert "SpanProfiler" in r
+        assert "span=" in r
