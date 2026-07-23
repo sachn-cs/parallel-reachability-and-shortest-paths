@@ -9,59 +9,81 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added (research contributions)
 
-- **`docs/paper_refinements.md`** — preprint draft formalising two algorithmic
-  refinements of the JLS construction:
+- **`docs/paper_refinements.md`** — preprint draft, now with strengthened
+  Corollary 2.3 covering ALL density regimes (was sparse-only):
   - Lemma 2.1: TC-pruning soundness independent of trigger size.
   - Lemma 2.2: size contribution bounded by $|R(G,p)| \cdot k \log n$ under
     the work-comparison trigger.
-  - Corollary 2.3: Theorem-2 size bound preserved in the sparse regime
-    ($m \le n\rho$).
+  - Corollary 2.3 (strengthened): Theorem-2 size bound preserved in
+    every regime because removing TC firings removes valid shortcuts
+    only.
   - Lemma 3.1: hop-bounded pivot BFS preserves the $\beta$-hopbound
     guarantee.
   - Lemma 3.2: per-pivot BFS work bounded by $O(\min(n, n_d) + m_d)$.
-- **`docs/notes_correctness.md`** — corrigendum on four correctness and
-  engineering bugs found in the reference implementation, with
-  reproducible steps and the fix commit hashes.
-- **`tests/test_paper_lemmas.py`** — 22 empirical tests supporting the
-  lemmas, including 50-seed invariance tests for Lemma 2.2.
-- **`scripts/eval_refinements.py`** — generates the empirical tables for
-  the paper draft.
+- **`docs/lit_survey.md`** — literature survey outline for TC-pruning
+  cost analysis. Documents the search plan and what to record per
+  paper; the actual retrieval is offline work outside this session.
+- **`scripts/counterexample_search.py`** + `tests/test_counterexample_search.py`:
+  the empirical study that found **no counterexample** to Corollary 2.3
+  across 24 random DAGs (n in {10, 20, 50, 80}, density in {0.1, 0.3},
+  5 seeds each). |H|_paper = |H|_tight in every case.
 
 ### Added (engineering)
 
-- `prspnsd.logging_config`: centralised logging setup with `PRSPNSD_LOG`
-  environment variable. Scripts use `logging.getLogger()` instead of
-  `print`.
-- `scripts/eval_refinements.py`: per-cell ablation for the paper tables.
-- `tests/test_paper_lemmas.py`: empirical lemma validation.
+- `prspnsd.work_depth.SpanProfiler` — empirical parallel span measurement
+  distinct from the asymptotic WorkDepthAccountant. Records per-phase
+  wall-clock times; the *measured* span is a lower bound on true PRAM
+  span. Used by `scripts/measure_span.py`.
+- `prspnsd.parallel.ParallelContext` — `sequential` / `threads(n)` /
+  `processes(n)` strategies with `imap_unordered` dispatch. Wired into
+  `jls_with_tc_pruning` so pivots can run in parallel via a module-level
+  `_PIVOT_STATE` dict. New `parallel_workers` parameter and `parallel`
+  flag (opt-in; defaults False because threading changes scheduling).
+  Empirical speedup: 1.8–2.9× on n=500 across densities (4 workers).
+- `prspnsd.shortcut_set.density_aware_constant` — replaces the fixed
+  `_SAMPLING_CONSTANT = 10` with a rho-dependent formula when
+  `adaptive_sampling` is on. Sparse graphs keep C=10; dense graphs get
+  smaller C (down to C=1).
+- `prspnsd.blas_omega` — runtime omega detection via `numpy.show_config()`
+  with a vendor → omega lookup table (OpenBLAS/Accelerate/MKL/BLIS →
+  2.5; netlib → 3.0). Used to tighten the Lemma 2.2 trigger bound
+  conservatively.
+
+### Added (scripts)
+
+- `scripts/measure_span.py` — runs the construction under SpanProfiler.
+- `scripts/eval_parallelism.py` — sequential/threads speedup comparison.
+- `scripts/counterexample_search.py` — Lemma 2.2 / Corollary 2.3 search.
+- `tests/test_properties.py` — hypothesis-driven property tests
+  (reachability preserved, hopbound observed, no self-loops,
+  |H| <= n² sanity, reproducibility). Defaults to 20 examples; raise
+  via `PRSPNSD_HYPOTHESIS=N`.
+
+### Tests
+
+- `tests/test_properties.py`: 4 hypothesis-given invariants + 5 seeded
+  reproducibility tests.
+- `tests/test_work_depth.py`: 4 new SpanProfiler tests.
+- `tests/test_shortcut_set.py`: 3 density_aware_constant tests + 4
+  parallel-pivot tests (sequential == parallel, reachability preserved,
+  pivot_worker contract, no self-loops).
+- `tests/test_blas_omega.py`: 5 detector tests.
 
 ### Changed
 
-- All scripts (`reproduce_results.py`, `run_ablation.py`,
-  `download_datasets.py`) now use `logging.getLogger` and write to
-  stderr by default. The previous `print(..., flush=True)` pattern was
-  a debugging hack that didn't compose with `--quiet` or `-v`.
-- Narrowed `try/except` blocks in scripts: only timeouts and SIGINT are
-  caught (real error boundaries for benchmarks). Library code in
-  `prspnsd/` has zero `except Exception` blocks except the documented
-  scipy fallback in `transitive_closure.py`.
-- Removed `__pycache__` references from `scripts/cli.py` import.
-- `scripts/reproduce_results.py` suppresses `numpy.show_config()` stdout
-  chatter during BLAS detection.
-- `prspnsd.logging_config.CONFIGURED` is the public module-level flag
-  (no underscore-prefix private naming).
+- All scripts use `logging.getLogger` and write to stderr.
+- Library code in `prspnsd/` has zero `except Exception` blocks except the
+  documented scipy fallback in `transitive_closure.py`.
+- Tightened TC trigger now uses `min(_OMEGA_DEFAULT, runtime_omega())`
+  to never overestimate the achievable omega.
 
-### Removed
+### Roadmap updates
 
-- `print(..., flush=True)` calls throughout `scripts/`. Replaced with
-  `log.info(...)`, `log.warning(...)`, etc.
-
-### Roadmap
-
-See the **Roadmap** section of `README.md` for the full list of done /
-in-progress / planned / deferred work, including the open research
-questions (formalising Lemma 2.2 for dense graphs, auto-tuned sampling
-constant, Cython port for web-Google scale).
+- Done: hypothesis tests, span profiler, density-aware sampling, parallel
+  pivots, BLAS omega detection, parallelism comparison, counterexample
+  search, Lemma 2.2 dense proof (strengthened).
+- Done (this release): runtime omega detection, parallel pivot
+  processing (threads + processes via ParallelContext).
 
 ---
 
