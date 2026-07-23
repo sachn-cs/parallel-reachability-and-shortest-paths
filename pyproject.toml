@@ -63,6 +63,19 @@ Issues = "https://github.com/sachncs/parallel-reachability-and-shortest-paths/is
 where = ["."]
 include = ["reachq*"]
 
+[tool.cibuildwheel]
+# The user-side [6.x] commit uploads built wheels via GitHub Release
+# artifacts. This block configures what cibuildwheel will build.
+build = ["cp39-*", "cp310-*", "cp311-*", "cp312-*", "cp313-*"]
+build-platform = "linux"
+archs = ["auto64", "arm64"]  # amd64 + arm64 on Linux
+[tool.cibuildwheel.linux]
+archs = ["x86_64", "aarch64"]
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64"]
+[tool.cibuildwheel.windows]
+archs = ["AMD64"]
+
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-v --tb=short --strict-markers --doctest-modules"
