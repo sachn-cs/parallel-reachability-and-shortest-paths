@@ -288,25 +288,32 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 - [x] Empirical paper tables (`scripts/eval_refinements.py`)
 - [x] Logging-based output (no prints in scripts)
 
-### In progress (v0.6.x)
-- [ ] Networkx cross-check in CI for every PR
-- [ ] Hypothesis-based property testing on random DAGs
-- [ ] Formalise Lemma 2.2 for dense graphs (currently only proved for sparse regime)
+### Done (v0.7.0)
+- [x] Hypothesis-based property testing on random DAGs (`tests/test_properties.py`)
+- [x] SpanProfiler for empirical parallel span (`prspnsd/work_depth.py`)
+- [x] Formalise Lemma 2.2 for dense graphs — strengthened Corollary 2.3 to ALL regimes
+- [x] Counterexample search for Lemma 2.2 — no counterexample found in 24 cases
+- [x] Auto-tuned sampling constant per graph density (`density_aware_constant`)
+- [x] Parallel pivot processing — `ParallelContext` with threads + processes modes, 1.8–2.9× speedup
+- [x] Fast matrix multiplication support (ω < 3) — runtime omega detection (`prspnsd/blas_omega.py`)
+- [x] PRAM span measurement — `SpanProfiler` for sequential phase timing
+- [x] True PRAM parallelism integration — `ParallelContext` with process-based dispatch
 
-### Planned (v0.7+)
-- [ ] Auto-tuned sampling constant per graph density (currently fixed at C=10)
+### In progress (v0.7.x)
+- [ ] Networkx cross-check in CI for every PR
+- [ ] Hypothesis-based property tests in CI (currently run locally)
+- [ ] Property-based tests for the lemmas at scale (PRSPNSD_HYPOTHESIS=10000)
+
+### Planned (v0.8+)
 - [ ] Cython port of the per-pivot BFS inner loop (for web-Google-scale inputs)
-- [ ] Parallel pivot processing (currently single-process; per-pivot work is embarrassingly parallel)
 - [ ] Online documentation site (MkDocs)
 - [ ] PyPI publishing workflow
 - [ ] Pre-commit hooks (ruff + mypy + pytest)
-- [ ] Property-based tests for the lemmas (hypothesis)
+- [ ] Fill in literature survey citations (`docs/lit_survey.md`)
 - [ ] Star / sponsor / contributor recognition
 
 ### Deferred
-- [ ] Fast matrix multiplication support (ω < 3) — requires a matrix-mult library; not on the critical path
-- [ ] True PRAM parallelism integration — the user explicitly requested algorithmic improvements only, no JIT/native
-- [ ] PRAM span measurement — the implementation is sequential
+- [ ] PRAM span for the *actual* parallel runtime (requires real PRAM model; SpanProfiler measures sequential phases only)
 
 ---
 
