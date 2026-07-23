@@ -1,4 +1,4 @@
-"""Command-line interface for PRSPNSD.
+"""Command-line interface for reachq.
 
 Provides subcommands:
 - reachability: build shortcut set and query reachability

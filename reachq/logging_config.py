@@ -4,7 +4,7 @@ Call ``configure()`` once at the entry point of a CLI / script. Module
 loggers (``logging.getLogger(__name__)``) inside ``reachq`` pick up the
 handler automatically because we attach to the root logger.
 
-Honour the ``PRSPNSD_LOG`` environment variable: ``DEBUG``, ``INFO``
+Honour the ``REACHQ_LOG`` environment variable: ``DEBUG``, ``INFO``
 (default), ``WARNING``, ``ERROR``. Or pass an explicit level to
 ``configure``.
 """
@@ -28,7 +28,7 @@ def configure(level: int | str | None = None) -> None:
     if CONFIGURED:
         return
     if level is None:
-        env = os.environ.get("PRSPNSD_LOG", "INFO").upper()
+        env = os.environ.get("REACHQ_LOG", "INFO").upper()
         level = getattr(logging, env, logging.INFO)
     elif isinstance(level, str):
         level = getattr(logging, level.upper(), logging.INFO)

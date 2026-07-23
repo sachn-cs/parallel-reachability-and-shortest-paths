@@ -2,14 +2,14 @@
 
 ## General
 
-### What is PRSPNSD?
+### What is reachq?
 
-PRSPNSD is a Python reproduction of the algorithms from the paper "Parallel
+reachq is a Python reproduction of the algorithms from the paper "Parallel
 Reachability and Shortest Paths on Non-sparse Digraphs: Near-linear Work and
 Sub-square-root Depth" by Ashvinkumar, Bernstein, Probst Gutenberg, and
 Saranurak (2026).
 
-### What does PRSPNSD implement?
+### What does reachq implement?
 
 - Graph hierarchy: `Graph` → `Digraph` → `WeightedDigraph` with template hooks
 - Shortcut set construction (Theorem 2) with TC-Pruning
@@ -123,7 +123,7 @@ empirical measurements:
 python -m scripts.cli benchmark-reachability --sizes 20 50 100
 ```
 
-### Can I use PRSPNSD for large graphs?
+### Can I use reachq for large graphs?
 
 The algorithms handle large graphs, but Python's single-threaded nature limits
 throughput. For graphs with millions of vertices, consider:
