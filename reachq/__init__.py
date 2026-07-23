@@ -1,4 +1,41 @@
-"""Parallel reachability and shortest paths on non-sparse digraphs.
+"""reachq: graph reachability, queryable.
+
+## How to read this code
+
+reachq is a typed Python package. Public API lives in `__all__`
+(below) and is re-exported from each submodule. Private helpers
+are not in `__all__` and should not be imported from outside the
+package.
+
+The package is organised into two layers:
+
+  - Top-level (always imported): graph primitives, reachability,
+    shortcut-set construction, hopset construction, work-depth
+    accounting, serialisation.
+  - reachq.research.* (opt-in): refinements and new algorithms that
+    the paper does not include. These are gated behind
+    `reachq.research.enable()` if they need runtime activation, but
+    importing them directly always works.
+
+The public API is in this `__init__.py`. The algorithms module
+(reachq.shortcut_set) is the most important; reachq.reachability
+holds the BFS implementation; reachq.graph is the Digraph base
+class. The `flags` parameter on the public functions is a
+`reachq.shortcut_set.Flags` dataclass of boolean toggles; the
+`parallel_workers` parameter is the thread pool size; and
+`reachq.logging_config.get_logger(name)` gives you a per-module
+logger.
+
+The recommended first test after install:
+
+    >>> from reachq.graph import Digraph
+    >>> from reachq.shortcut_set import build_shortcut_set_for_reachability
+    >>> g = Digraph(); g.add_edge(0, 1); g.add_edge(1, 2)
+    >>> H, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    >>> isinstance(H, set)
+    True
+    >>> beta > 0
+    True
 
 This package implements the algorithms from:
 "Parallel Reachability and Shortest Paths on Non-sparse Digraphs:
