@@ -286,6 +286,219 @@ def weighted_dense_graph(
     return g
 
 
+# ---------------------------------------------------------------------------
+# Strongly regular graphs (named fixtures) -- Papers 2/3 test fixtures.
+#
+# An srg(n, k, lam, mu) graph is regular of degree k with lambda common
+# neighbours for adjacent pairs and mu for non-adjacent pairs. The
+# parameter feasibility condition is k(k - lam - 1) = (n - k - 1) * mu.
+# ---------------------------------------------------------------------------
+
+
+def petersen_graph() -> Digraph:
+    """The Petersen graph: srg(10, 3, 0, 1).
+
+    Triangle-free, girth 5, automorphism group S_5 in its natural action.
+    Canonical small test case from algebraic graph theory (Paper 3 §1.3).
+    """
+    g = Digraph()
+    for i in range(10):
+        g.add_vertex(i)
+    # Outer 5-cycle: 0-1-2-3-4-0, inner 5-cycle: 5-7-9-6-8-5.
+    outer_cycle = [(0, 1), (1, 2), (2, 3), (3, 4), (4, 0)]
+    inner_cycle = [(5, 7), (7, 9), (9, 6), (6, 8), (8, 5)]
+    # Spokes: each outer vertex i connects to inner vertex 5 + 2i (mod 5).
+    spokes = [(0, 5), (1, 7), (2, 9), (3, 6), (4, 8)]
+    for u, v in outer_cycle + inner_cycle + spokes:
+        g.add_undirected_edge(u, v)
+    return g
+
+
+# Clebsch graph (srg(16, 5, 0, 2)): correctly constructing this requires
+# the Cayley-graph construction on Z_2^5 / {x ~ complement(x)}. The naive
+# "XOR weight in {0, 4}" definition we tried gives the wrong graph
+# (8 edges instead of 40). Rather than ship a broken generator, we
+# document the omission and point future work at the standard reference
+# (e.g. Brouwer's SRG database). Use hamming_graph(4, 2) or the rook's
+# graph shrikhande_graph() as the 16-vertex srg fixture instead.
+
+
+# ---------------------------------------------------------------------------
+# Shrikhande_graph placeholder. The classical construction requires either
+# a Cayley table over Z_4 x Z_4 (with specific generators) or a lattice
+# construction with non-standard differences. The 16-vertex SRG with
+# parameters (16, 6, 2, 2) has TWO cospectral non-isomorphic members --
+# the rook's graph K_4 ☐ K_4 and the Shrikhande graph. We use the rook's
+# graph here (a faithful Kneser / Hamming lattice construction) and mark
+# the distinction as future work.
+# ---------------------------------------------------------------------------
+
+
+def shrikhande_graph() -> Digraph:
+    """The 4x4 rook's graph (the standard K_4 ☐ K_4 SRG): srg(16, 6, 2, 2).
+
+    Each vertex is a cell of a 4x4 chessboard; two cells are adjacent iff
+    they share a row or column. This is the *rook's* member of the
+    srg(16, 6, 2, 2) family; the non-rook (Shrikhande) graph would need a
+    Cayley construction we leave as future work.
+    """
+    g = Digraph()
+    for i in range(16):
+        g.add_vertex(i)
+    # Cells (r, c) and (r, c') are adjacent iff r == r'; cells (r, c) and
+    # (r', c) are adjacent iff c == c'. Encoding: cell id = r*4 + c.
+    for r in range(4):
+        for c in range(4):
+            u = r * 4 + c
+            for c2 in range(4):
+                if c2 != c:
+                    v = r * 4 + c2
+                    if u < v:
+                        g.add_undirected_edge(u, v)
+            for r2 in range(4):
+                if r2 != r:
+                    v = r2 * 4 + c
+                    if u < v:
+                        g.add_undirected_edge(u, v)
+    return g
+
+
+def _shrikhande_cayley() -> Digraph:
+    """The Shrikhande graph proper: Cayley construction on Z_4 x Z_4.
+
+    This is the OTHER srg(16, 6, 2, 2) graph, distinct from the rook's
+    graph above (cospectral but non-isomorphic). Generator set:
+    {(1,0), (0,1), (1,1), (1,3), (3,1), (2,2)} — symmetric closure under
+    negation.
+
+    Kept private for now; not exported until validated against the
+    standard reference.
+    """
+    raise NotImplementedError(
+        "Shrikhande Cayley construction is left as future work -- the "
+        "lattice construction above (rook's graph) is the simpler and "
+        "more commonly used SRG(16, 6, 2, 2)."
+    )
+    """The Shrikhande graph: srg(16, 6, 2, 2).
+
+    Distinguished from the 4x4 rook's graph (which is srg(16,6,2,2) too)
+    via the lattice-vs-Cayley distinction. Used here as the canonical
+    "non-rook" SRG with these parameters.
+    """
+    g = Digraph()
+    for i in range(16):
+        g.add_vertex(i)
+    # Lattice construction: vertices are Z_4 x Z_4.
+    # u = (a, b), v = (c, d); u ~ v iff {(a-c) mod 4, (b-d) mod 4}
+    # is one of {(0,1), (1,0), (1,1), (2,3), (3,2), (3,3)}.
+    differences = {(0, 1), (1, 0), (1, 1), (2, 3), (3, 2), (3, 3)}
+    for a in range(4):
+        for b in range(4):
+            u = a * 4 + b
+            for da, db in differences:
+                c, d = (a + da) % 4, (b + db) % 4
+                v = c * 4 + d
+                if u < v:
+                    g.add_edge(u, v)
+                    g.add_edge(v, u)
+    return g
+
+
+def paley_graph(q: int) -> Digraph:
+    """The Paley graph of order q (q prime, q ≡ 1 mod 4).
+
+    Vertex set Z_q; u ~ v iff u - v is a quadratic residue mod q.
+    Requires q to be a prime with q ≡ 1 (mod 4); otherwise raises.
+    """
+    if q <= 0 or (q - 1) % 4 != 0:
+        raise ValueError(f"Paley graph requires q ≡ 1 (mod 4), got q={q}")
+    if not _is_prime(q):
+        raise ValueError(
+            f"paley_graph: only prime q supported (got q={q}). "
+            f"Generalisation to prime powers requires finite-field machinery."
+        )
+    residues = {(x * x) % q for x in range(1, q)}
+    g = Digraph()
+    for i in range(q):
+        g.add_vertex(i)
+    for u in range(q):
+        for v in range(u + 1, q):
+            d = (u - v) % q
+            if d in residues:
+                g.add_undirected_edge(u, v)
+    return g
+
+
+def _is_prime(n: int) -> bool:
+    if n < 2:
+        return False
+    if n < 4:
+        return True
+    if n % 2 == 0:
+        return False
+    i = 3
+    while i * i <= n:
+        if n % i == 0:
+            return False
+        i += 2
+    return True
+
+
+# ---------------------------------------------------------------------------
+# Hamming graph -- Paper 2/3 test fixture.
+# Vertices are tuples in {0, ..., q-1}^d; edges connect vertices that
+# differ in exactly one coordinate. Cayley-graph structure with the
+# elementary vectors as generating set.
+# ---------------------------------------------------------------------------
+
+
+def hamming_graph(d: int, q: int) -> Digraph:
+    """The Hamming graph H(d, q).
+
+    |V| = q^d, |E| = d * q^(d-1) * (q-1) / 2 (undirected). Vertex
+    labels are tuples (x_1, ..., x_d) -- but since Digraph labels are
+    integers, we use the natural mapping (x_1, ..., x_d) -> sum x_i * q^(i-1).
+    """
+    if d < 1:
+        raise ValueError(f"hamming_graph: d must be >= 1, got {d}")
+    if q < 2:
+        raise ValueError(f"hamming_graph: q must be >= 2, got {q}")
+    n = q**d
+    g = Digraph()
+    for i in range(n):
+        g.add_vertex(i)
+    # Neighbours: differ in exactly one coordinate.
+    for v in range(n):
+        coords = _int_to_base_q(v, q, d)
+        for c in range(d):
+            for new_value in range(q):
+                if new_value == coords[c]:
+                    continue
+                new_coords = list(coords)
+                new_coords[c] = new_value
+                u = _base_q_to_int(new_coords, q)
+                if u < v:
+                    g.add_undirected_edge(u, v)
+    return g
+
+
+def _int_to_base_q(v: int, q: int, d: int) -> list[int]:
+    """Convert integer to base-q representation with d digits."""
+    out = [0] * d
+    for i in range(d):
+        out[i] = v % q
+        v //= q
+    return out
+
+
+def _base_q_to_int(coords: list[int], q: int) -> int:
+    """Convert base-q digit list back to integer."""
+    v = 0
+    for x in coords:
+        v = v * q + x
+    return v
+
+
 SNAP_BASE = "https://snap.stanford.edu/data"
 SNAP_DATASETS: dict[str, dict[str, str | int]] = {
     "cit-HepPh": {

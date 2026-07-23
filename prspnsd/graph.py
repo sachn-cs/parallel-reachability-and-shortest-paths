@@ -191,6 +191,25 @@ class Digraph(Graph):
             self.in_edges[v].add(u)
             self.edge_count += 1
 
+    def add_undirected_edge(self, u: object, v: object) -> None:
+        """Add an undirected edge {u, v}: both directions, counted once.
+
+        Useful for symmetric graph generators (Petersen, SRGs, Hamming).
+        Increments ``edge_count`` once per pair, regardless of which
+        direction is added first.
+        """
+        if u == v:
+            raise ValueError("self-loops not supported")
+        self.add_vertex(u)
+        self.add_vertex(v)
+        if v in self.out_edges[u]:
+            return  # already added
+        self.out_edges[u].add(v)
+        self.in_edges[v].add(u)
+        self.out_edges[v].add(u)
+        self.in_edges[u].add(v)
+        self.edge_count += 1
+
     def has_edge(self, u: object, v: object) -> bool:
         """Check if edge (u, v) exists in O(1) time."""
         return v in self.out_edges.get(u, set())
