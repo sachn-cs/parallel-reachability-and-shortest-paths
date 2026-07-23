@@ -10,11 +10,11 @@ import argparse
 import csv
 import time
 
-from prspnsd.generators import weighted_dense_graph
-from prspnsd.graph import WeightedDigraph
-from prspnsd.hopset import build_hopset_for_sssp
-from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
-from prspnsd.work_depth import WorkDepthAccountant
+from reachq.generators import weighted_dense_graph
+from reachq.graph import WeightedDigraph
+from reachq.hopset import build_hopset_for_sssp
+from reachq.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.work_depth import WorkDepthAccountant
 
 
 def measure_hopset_construction(

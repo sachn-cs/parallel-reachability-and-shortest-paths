@@ -13,24 +13,24 @@ Four complementary refinements of the JLS shortcut-set construction,
 each with implementation, tests, and an honest empirical finding.
 See `docs/paper_innovations.md` for the full preprint draft.
 
-- **Innovation #1: Shortcut-set sparsification (`prspnsd/sparsify.py`).**
+- **Innovation #1: Shortcut-set sparsification (`reachq/sparsify.py`).**
   Iteratively remove redundant shortcuts in polynomial time. On
   tested constructions (random DAGs, barbell, layered DAG, path,
   cycle), the JLS shortcut set is 50–100% redundant; sparsify
   achieves 100% reduction while preserving reachability.
 
-- **Innovation #2: Iterative refinement (`prspnsd/iterate.py`).**
+- **Innovation #2: Iterative refinement (`reachq/iterate.py`).**
   Run JLS on `G ∪ H_1` to get `H_2`; the robust core is `H_1 ∩ H_2`.
   On random DAGs, `H_2 ⊂ H_1` strictly; the "self-redundant"
   shortcuts in `H_1 \ H_2` are characterised.
 
 - **Innovation #3: Adaptive β from graph structure
-  (`prspnsd/adaptive_beta.py`).** Replace the worst-case
+  (`reachq/adaptive_beta.py`).** Replace the worst-case
   `β_paper = (n^ω / m)^(1/(2ω-2))` with a graph-aware estimate from
   the eccentricity. Empirical comparison shows the two estimates
   diverge on dense graphs and converge on sparse ones.
 
-- **Innovation #4: Bound-gap analysis (`prspnsd/lower_bound.py`,
+- **Innovation #4: Bound-gap analysis (`reachq/lower_bound.py`,
   `scripts/eval_lower_bound.py`).** Construct four graph families
   and measure `|H|` against the paper's bound. Empirical finding
   (NEGATIVE for the bound's tightness): the JLS construction
@@ -50,14 +50,14 @@ See `docs/paper_innovations.md` for the full preprint draft.
 
 - `docs/paper_innovations.md` — preprint draft consolidating all four
   innovations with empirical tables.
-- `prspnsd/{sparsify,iterate,adaptive_beta,lower_bound}.py` — implementations.
+- `reachq/{sparsify,iterate,adaptive_beta,lower_bound}.py` — implementations.
 - `scripts/eval_lower_bound.py` — bound-gap evaluation script.
 - `tests/test_{sparsify,iterate,adaptive_beta,lower_bound}.py` — tests.
 
 ### Added (test fixtures from Papers 2/3 — algebraic graph theory)
 
 - `petersen_graph()`, `paley_graph(q)`, `shrikhande_graph()`,
-  `hamming_graph(d, q)` in `prspnsd/generators.py`. Canonical graphs
+  `hamming_graph(d, q)` in `reachq/generators.py`. Canonical graphs
   from the algebraic graph theory literature with known structural
   properties. The rook's graph (K₄ □ K₄) substitutes for the proper
   Shrikhande Cayley construction since both share parameters
@@ -66,14 +66,14 @@ See `docs/paper_innovations.md` for the full preprint draft.
   tables on Z₂⁵ / {x ~ complement(x)}).
 - `Digraph.add_undirected_edge(u, v)`: adds both directions, counts
   one edge. Required for the symmetric generators.
-- `prspnsd/spectrum.py`: `spectrum(g)` and `spectral_gap(g)` helpers
+- `reachq/spectrum.py`: `spectrum(g)` and `spectral_gap(g)` helpers
   for the cross-check script.
 - `docs/spectral_fixtures.md`: explains the test fixtures and what's
   deliberately not here.
 
 ### Added (Fix/Resample variant — Paper 1)
 
-- `prspnsd/fix_resample.py`: experimental Fix/Resample variant
+- `reachq/fix_resample.py`: experimental Fix/Resample variant
   inspired by Assadi–Yazdanyar's dynamic coloring algorithm.
   Static analogue only — the dynamic-update bounds from Paper 1 do
   not apply to our codebase. Honest framing as an experimental
@@ -127,7 +127,7 @@ See `docs/paper_innovations.md` for the full preprint draft.
 - `scripts/reproduce_results.py`: end-to-end benchmark reproducer with hardware auto-detection,
   sampling ladder, SNAP benchmarks, and Markdown summary. Writes `results/{scaling,snap}.csv`
   and `results/{summary.md,hardware.json}`.
-- `prspnsd.shortcut_set.Flags`: dataclass of toggles for every algorithmic refinement.
+- `reachq.shortcut_set.Flags`: dataclass of toggles for every algorithmic refinement.
   Pass via the `flags` keyword to `jls_with_tc_pruning`, `build_shortcut_set_for_reachability`,
   `cfr_hopset`, `cfr_with_truncsssp_pruning`, `build_hopset_for_sssp`.
 - Algorithmic improvements (each toggleable, all on by default):
@@ -144,10 +144,10 @@ See `docs/paper_innovations.md` for the full preprint draft.
 
 ### Changed
 
-- **Bug fix**: `prspnsd.transitive_closure.transitive_closure_matrix` now uses
+- **Bug fix**: `reachq.transitive_closure.transitive_closure_matrix` now uses
   `scipy.sparse` Boolean matmul. The previous dense `np.zeros((n, n))` OOMed above ~50k
   vertices; sparse stays O(n + m) memory and scales to web-Google (n=875k).
-- **Bug fix**: `prspnsd.numpy_bfs.csr_reachable_forward` had a Python `for i in
+- **Bug fix**: `reachq.numpy_bfs.csr_reachable_forward` had a Python `for i in
   range(frontier.size)` loop inside the frontier expansion, defeating the numpy fast path.
   Replaced with a vectorised `np.repeat` + `cumsum` gather.
 - **Bug fix**: SCC-representative translation in `build_shortcut_set_for_reachability`
@@ -156,21 +156,21 @@ See `docs/paper_innovations.md` for the full preprint draft.
   phantom shortcuts to leak into `parallel_bfs`. Fixed by branching on `trivial`.
 - **Bug fix**: TC-pruning leaked self-loops into the shortcut set, breaking parallel_bfs.
   Filtered at the call site.
-- **Bug fix**: `prspnsd.hopset` previously rebuilt `graph.reversed()` once per pivot inside
+- **Bug fix**: `reachq.hopset` previously rebuilt `graph.reversed()` once per pivot inside
   the per-pivot loop; now hoisted once per recursion level.
 - `jls_shortcut_set` (no-pruning baseline) is now a thin compatibility wrapper around
   `jls_with_tc_pruning` with `enable_tc_pruning=False`. The separate code path that
   existed previously has been deleted (along with its 4 `DEBUG print(...)` blocks).
-- `prspnsd.shortcut_set` multiprocessing pivot-parallelisation path removed. It was
+- `reachq.shortcut_set` multiprocessing pivot-parallelisation path removed. It was
   half-wired (module-level `_worker_*` globals + `assert graph is not None` after use)
   and defaulted to `workers=1` anyway. Replaced with a clean CSR-or-Python-BFS branch.
 
 ### Removed
 
-- `prspnsd/shortcut_set.py:45-119` original `jls_shortcut_set` body (kept as a one-line
+- `reachq/shortcut_set.py:45-119` original `jls_shortcut_set` body (kept as a one-line
   wrapper above).
 - 4× `print(f"DEBUG level=...", flush=True)` blocks in the shortcut-set hot path.
-- Half-wired `multiprocessing` pivot-parallelisation scaffold in `prspnsd/shortcut_set.py`
+- Half-wired `multiprocessing` pivot-parallelisation scaffold in `reachq/shortcut_set.py`
   (`_pivot_bfs_python`, `_pivot_bfs_csr`, `_process_pivots_worker`, `_init_worker_csr`,
   `_init_worker_graph`, the `_worker_*` globals).
 

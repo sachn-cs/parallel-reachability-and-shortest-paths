@@ -2,13 +2,13 @@
 
 import pytest
 
-from prspnsd.graph import WeightedDigraph
-from prspnsd.hopset import (
+from reachq.graph import WeightedDigraph
+from reachq.hopset import (
     build_hopset_for_sssp,
     cfr_hopset,
     cfr_with_truncsssp_pruning,
 )
-from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
 
 class TestCfrHopset:

@@ -14,18 +14,18 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from prspnsd.closed_form import (
+from reachq.closed_form import (
     binary_tree_dag,
     layered_dag_shortcut_set,
     path_shortcut_set,
     paper_bound_const,
 )
-from prspnsd.graph import Digraph
-from prspnsd.logging_config import get_logger
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.sparsify import sparsify_shortcut_set
+from reachq.graph import Digraph
+from reachq.logging_config import get_logger
+from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.sparsify import sparsify_shortcut_set
 
-log = get_logger("prspnsd.closed_form_eval")
+log = get_logger("reachq.closed_form_eval")
 
 
 def measure(name: str, g: Digraph, optimal_H: set) -> dict[str, object]:

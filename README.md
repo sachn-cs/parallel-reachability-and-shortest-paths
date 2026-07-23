@@ -5,7 +5,7 @@
     <a href="#installation"><img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
     <a href="https://github.com/sachncs/parallel-reachability-and-shortest-paths/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/parallel-reachability-and-shortest-paths/ci.yml?branch=master" alt="CI"></a>
-    <a href="https://pypi.org/project/prspnsd/"><img src="https://img.shields.io/pypi/v/prspnsd" alt="PyPI"></a>
+    <a href="https://pypi.org/project/reachq/"><img src="https://img.shields.io/pypi/v/reachq" alt="PyPI"></a>
     <a href="https://github.com/sachncs/parallel-reachability-and-shortest-paths/stargazers"><img src="https://img.shields.io/github/stars/sachncs/parallel-reachability-and-shortest-paths" alt="Stars"></a>
   </p>
 </p>
@@ -30,7 +30,7 @@ It also contains three research contributions layered on top:
 ## Installation
 
 ```bash
-pip install prspnsd
+pip install reachq
 # or
 git clone https://github.com/sachncs/parallel-reachability-and-shortest-paths.git
 cd parallel-reachability-and-shortest-paths
@@ -44,9 +44,9 @@ pip install -e ".[dev]"
 ## Quick start
 
 ```python
-from prspnsd.generators import random_dag
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.reachability import bfs_reachability, parallel_bfs
+from reachq.generators import random_dag
+from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.reachability import bfs_reachability, parallel_bfs
 
 g = random_dag(n=1000, edge_probability=0.1, random_seed=42)
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
@@ -107,7 +107,7 @@ Every script auto-detects hardware (CPU, RAM, Python, BLAS) and writes it to `re
 ```bash
 pytest                        # 304 tests
 pytest -m "not slow"          # skip slow tests
-pytest --cov=prspnsd          # with coverage
+pytest --cov=reachq          # with coverage
 pytest tests/test_paper_lemmas.py -v   # the 22 empirical lemma tests
 ```
 
@@ -118,34 +118,34 @@ The lemma tests run 50 random seeds per invariant claim; failures would indicate
 ## API summary
 
 ```python
-from prspnsd import Flags, Digraph, WeightedDigraph
-from prspnsd.shortcut_set import (
+from reachq import Flags, Digraph, WeightedDigraph
+from reachq.shortcut_set import (
     build_shortcut_set_for_reachability,  # Theorem-2 wrapper
     jls_with_tc_pruning,                  # direct recursion
     jls_shortcut_set,                     # wrapper, TC pruning off
 )
-from prspnsd.hopset import (
+from reachq.hopset import (
     build_hopset_for_sssp,                # Theorem-4 wrapper
     cfr_with_truncsssp_pruning,           # direct recursion
     cfr_hopset,                           # wrapper, TruncSSSP off
 )
-from prspnsd.reachability import (
+from reachq.reachability import (
     bfs_reachability, parallel_bfs, strongly_connected_components,
     topological_sort,
 )
-from prspnsd.shortest_paths import (
+from reachq.shortest_paths import (
     dijkstra, shortest_path_hopbound, truncated_dijkstra,
     compute_d_ball, compute_d_ancestors, compute_d_descendants,
 )
-from prspnsd.transitive_closure import (
+from reachq.transitive_closure import (
     transitive_closure_matrix, transitive_closure_brute_force,
 )
-from prspnsd.generators import (
+from reachq.generators import (
     random_dag, weighted_random_dag, layered_dag, dense_graph,
     graph_with_sccs, path_graph, cycle_graph, grid_graph,
     petersen_graph, paley_graph, shrikhande_graph, hamming_graph,
 )
-from prspnsd.serialization import (
+from reachq.serialization import (
     digraph_to_json, digraph_from_json,
     weighted_digraph_to_json, weighted_digraph_from_json,
 )
@@ -159,7 +159,7 @@ Full API reference: [`docs/algorithms.md`](docs/algorithms.md).
 
 ```
 parallel-reachability-and-shortest-paths/
-├── prspnsd/                          # Main package
+├── reachq/                          # Main package
 │   ├── logging_config.py             # Centralised logging setup
 │   ├── graph.py                      # Digraph, WeightedDigraph
 │   ├── reachability.py               # BFS, SCC, topological sort
@@ -282,7 +282,7 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 - [x] Two formalised algorithmic refinements with proofs (`docs/paper_refinements.md`)
 - [x] Corrigendum on four correctness bugs found (`docs/notes_correctness.md`)
 - [x] Five engineering refinements documented (`docs/algorithmic_improvements.md`)
-- [x] Toggleable per-refinement flags (`prspnsd.Flags`)
+- [x] Toggleable per-refinement flags (`reachq.Flags`)
 - [x] Sparse Boolean transitive closure (scipy.sparse)
 - [x] Vectorised CSR BFS (numpy)
 - [x] SNAP dataset loader + sha256 verification
@@ -293,24 +293,24 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 
 ### Done (v0.7.0)
 - [x] Hypothesis-based property testing on random DAGs (`tests/test_properties.py`)
-- [x] SpanProfiler for empirical parallel span (`prspnsd/work_depth.py`)
+- [x] SpanProfiler for empirical parallel span (`reachq/work_depth.py`)
 - [x] Formalise Lemma 2.2 for dense graphs — strengthened Corollary 2.3 to ALL regimes
 - [x] Counterexample search for Lemma 2.2 — no counterexample found in 24 cases
 - [x] Auto-tuned sampling constant per graph density (`density_aware_constant`)
 - [x] Parallel pivot processing — `ParallelContext` with threads + processes modes, 1.8–2.9× speedup
-- [x] Fast matrix multiplication support (ω < 3) — runtime omega detection (`prspnsd/blas_omega.py`)
+- [x] Fast matrix multiplication support (ω < 3) — runtime omega detection (`reachq/blas_omega.py`)
 - [x] PRAM span measurement — `SpanProfiler` for sequential phase timing
 - [x] True PRAM parallelism integration — `ParallelContext` with process-based dispatch
 
 ### Done (v0.8.0 — Papers 1, 2, 3 ideas)
 - [x] SRG + Hamming graph test fixtures (Papers 2/3) — `petersen_graph`,
   `paley_graph`, `shrikhande_graph`, `hamming_graph` in
-  `prspnsd/generators.py`.
-- [x] Spectrum helpers + cross-check script (Paper 2) — `prspnsd/spectrum.py`,
+  `reachq/generators.py`.
+- [x] Spectrum helpers + cross-check script (Paper 2) — `reachq/spectrum.py`,
   `scripts/spectral_check.py`. Verifies generator spectra match published
   values; documents `|H|/n` correlation with density rather than spectrum.
 - [x] Fix/Resample experimental variant (Paper 1) —
-  `prspnsd/fix_resample.py`, `scripts/eval_fix_resample.py`. Empirical
+  `reachq/fix_resample.py`, `scripts/eval_fix_resample.py`. Empirical
   finding across 9/9 fixtures: Fix/Resample produces smaller `|H|`
   (16% of JLS on average) but with looser hopbound. Trade-off
   documented in `docs/fix_resample.md`.
@@ -361,7 +361,7 @@ For the refinements in this implementation:
 @misc{prspnsd2026refinements,
   title={Algorithmic refinements for parallel reachability:
          tightened TC-pruning and hop-bounded pivot BFS},
-  author={prspnsd contributors},
+  author={reachq contributors},
   year={2026},
   howpublished={\url{https://github.com/sachncs/parallel-reachability-and-shortest-paths}}
 }

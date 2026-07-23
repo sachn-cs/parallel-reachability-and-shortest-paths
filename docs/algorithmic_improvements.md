@@ -19,7 +19,7 @@ the parametrised tests in `tests/test_algorithmic_improvements.py`).
 
 ## 1. Adaptive sampling probability
 
-**File:** `prspnsd/shortcut_set.py`, `prspnsd/hopset.py`.
+**File:** `reachq/shortcut_set.py`, `reachq/hopset.py`.
 
 The paper's sampling probability at recursion level `r` is
 
@@ -40,8 +40,8 @@ while real-graph behaviour tightens.
 
 ## 2. Label compression: pivot-sets, not strings
 
-**File:** `prspnsd/shortcut_set.py`, `prspnsd/hopset.py`,
-`prspnsd/graph.py:partition_by_labels`.
+**File:** `reachq/shortcut_set.py`, `reachq/hopset.py`,
+`reachq/graph.py:partition_by_labels`.
 
 The paper's algorithm stores a `set[str]` of labels per vertex, where
 the strings (e.g. `f"{p} d-reaches me"`) are never read — only set
@@ -66,8 +66,8 @@ other validators.
 
 ## 3. Skip SCC condensation on DAG inputs
 
-**File:** `prspnsd/shortcut_set.py:build_shortcut_set_for_reachability`,
-`prspnsd/hopset.py:build_hopset_for_sssp`.
+**File:** `reachq/shortcut_set.py:build_shortcut_set_for_reachability`,
+`reachq/hopset.py:build_hopset_for_sssp`.
 
 Random DAGs, grid graphs, layered DAGs, and most synthetic generators
 produce acyclic inputs where every SCC has size 1. The original code
@@ -88,7 +88,7 @@ DOM construction dominated.
 
 ## 4. Hop-bounded pivot BFS
 
-**File:** `prspnsd/shortcut_set.py`, `prspnsd/numpy_bfs.py`.
+**File:** `reachq/shortcut_set.py`, `reachq/numpy_bfs.py`.
 
 The pivot BFS explores the full reachability of each sampled pivot,
 which on dense graphs can visit every vertex. But the shortcut set
@@ -113,8 +113,8 @@ upper bound.
 
 ## 5. Degree-ordered pivot iteration (cheap BFS first)
 
-**File:** `prspnsd/shortcut_set.py:_sample_pivots_weighted`,
-`prspnsd/hopset.py:_bernoulli_weighted`.
+**File:** `reachq/shortcut_set.py:_sample_pivots_weighted`,
+`reachq/hopset.py:_bernoulli_weighted`.
 
 **Note:** A planned multi-source pivot BFS (one BFS computing
 `r_plus(p)` for all pivots simultaneously) was abandoned during
@@ -141,7 +141,7 @@ hubs would otherwise dominate.
 
 ## 6. Skip-trivial-partition guard
 
-**File:** `prspnsd/shortcut_set.py`, `prspnsd/hopset.py`.
+**File:** `reachq/shortcut_set.py`, `reachq/hopset.py`.
 
 If `partition_by_labels` produces a single part (i.e. no pivot
 distinguished any vertex from any other), the recursion cannot shrink
@@ -155,7 +155,7 @@ This refinement returns the accumulated shortcut set immediately when
 
 ## 7. Tightened TC-pruning trigger
 
-**File:** `prspnsd/shortcut_set.py`.
+**File:** `reachq/shortcut_set.py`.
 
 The paper's TC-pruning condition is `|R(G, p)| <= k² * log²n * rho²`.
 This is a *correctness* condition: when satisfied, TC can be substituted

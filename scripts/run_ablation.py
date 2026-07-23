@@ -20,9 +20,9 @@ from typing import Iterator
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from prspnsd.logging_config import get_logger
+from reachq.logging_config import get_logger
 
-log = get_logger("prspnsd.ablation")
+log = get_logger("reachq.ablation")
 
 
 @contextmanager
@@ -57,9 +57,9 @@ def main() -> int:
     parser.add_argument("--out", default="results/ablation.csv")
     args = parser.parse_args()
 
-    from prspnsd.generators import random_dag, weighted_random_dag
-    from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-    from prspnsd.hopset import build_hopset_for_sssp
+    from reachq.generators import random_dag, weighted_random_dag
+    from reachq.shortcut_set import build_shortcut_set_for_reachability
+    from reachq.hopset import build_hopset_for_sssp
 
     rows: list[dict[str, object]] = []
     all_on = {n: True for n in FLAG_NAMES}

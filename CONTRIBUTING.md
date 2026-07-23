@@ -65,8 +65,8 @@ This project uses:
 Run all checks before submitting a PR:
 
 ```bash
-ruff check prspnsd tests scripts
-mypy prspnsd
+ruff check reachq tests scripts
+mypy reachq
 pytest
 ```
 
@@ -142,8 +142,8 @@ chore(ci): update GitHub Actions workflow
 
 1. Ensure your code passes all checks:
    ```bash
-   ruff check prspnsd tests scripts
-   mypy prspnsd
+   ruff check reachq tests scripts
+   mypy reachq
    pytest
    ```
 2. Update documentation if needed.
@@ -171,7 +171,7 @@ Include:
 - [ ] Code follows the project's coding standards
 - [ ] Tests pass locally (`pytest`)
 - [ ] Linting passes (`ruff check`)
-- [ ] Type checking passes (`mypy prspnsd`)
+- [ ] Type checking passes (`mypy reachq`)
 - [ ] Documentation is updated (if applicable)
 - [ ] CHANGELOG.md is updated
 - [ ] Commit messages follow Conventional Commits
@@ -206,7 +206,7 @@ Include:
 pytest
 
 # Run with coverage
-pytest --cov=prspnsd --cov-report=term-missing
+pytest --cov=reachq --cov-report=term-missing
 
 # Skip slow tests
 pytest -m "not slow"

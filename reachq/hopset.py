@@ -2,7 +2,7 @@
 
 Implements the CFR hopset (Cao, Fineman, Russell [CFR20]) with the
 paper's TruncSSSP-Pruning (Section 6), plus the same algorithmic
-refinements as :mod:`prspnsd.shortcut_set`:
+refinements as :mod:`reachq.shortcut_set`:
 
   1. Adaptive sampling probability (Improvement 1)
   2. Label compression: pivot-set labels instead of strings (Improvement 2)
@@ -28,9 +28,9 @@ import math
 import random
 from typing import Any, Optional
 
-from prspnsd.graph import WeightedDigraph, contract_sccs, partition_by_labels
-from prspnsd.shortcut_set import Flags
-from prspnsd.shortest_paths import (
+from reachq.graph import WeightedDigraph, contract_sccs, partition_by_labels
+from reachq.shortcut_set import Flags
+from reachq.shortest_paths import (
     compute_d_ancestors,
     compute_d_ball,
     compute_d_descendants,
@@ -45,7 +45,7 @@ def _get_runtime_omega() -> float:
     """Return runtime omega, cached; same impl as in shortcut_set."""
     global _OMEGA_RUNTIME_HOP
     if _OMEGA_RUNTIME_HOP is None:
-        from prspnsd.blas_omega import runtime_omega
+        from reachq.blas_omega import runtime_omega
         _OMEGA_RUNTIME_HOP = runtime_omega()
     return _OMEGA_RUNTIME_HOP
 

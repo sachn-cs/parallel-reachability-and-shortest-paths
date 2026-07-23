@@ -15,9 +15,9 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from prspnsd.generators import random_dag
-from prspnsd.reachability import bfs_reachability, parallel_bfs
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+from reachq.generators import random_dag
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut_set import build_shortcut_set_for_reachability
 
 
 EXAMPLES = int(os.environ.get("PRSPNSD_HYPOTHESIS", "20"))

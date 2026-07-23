@@ -1,7 +1,7 @@
 """Tests for transitive closure computation."""
 
-from prspnsd.graph import Digraph
-from prspnsd.transitive_closure import (
+from reachq.graph import Digraph
+from reachq.transitive_closure import (
     transitive_closure_brute_force,
     transitive_closure_matrix,
     transitive_closure_on_subset,

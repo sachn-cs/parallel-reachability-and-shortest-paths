@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from prspnsd.graph import Digraph, WeightedDigraph
+from reachq.graph import Digraph, WeightedDigraph
 
 
 def vertex_to_json(v: object) -> Any:

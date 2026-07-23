@@ -9,10 +9,10 @@ from __future__ import annotations
 
 import pytest
 
-from prspnsd import Flags
-from prspnsd.generators import random_dag
-from prspnsd.reachability import bfs_reachability, parallel_bfs
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+from reachq import Flags
+from reachq.generators import random_dag
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut_set import build_shortcut_set_for_reachability
 
 
 PAPER_TC = {
@@ -133,8 +133,8 @@ def test_lemma_3_2_reachability_correctness_hop_bounded(seed: int) -> None:
 
 def test_flags_dataclass_is_public() -> None:
     """Flags must be importable from the top-level package, not be hidden."""
-    from prspnsd import Flags as TopFlags
-    from prspnsd.shortcut_set import Flags as LocalFlags
+    from reachq import Flags as TopFlags
+    from reachq.shortcut_set import Flags as LocalFlags
     assert TopFlags is LocalFlags
 
 

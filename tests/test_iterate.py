@@ -1,13 +1,13 @@
-"""Tests for prspnsd.iterate (Innovation #2: iterative refinement)."""
+"""Tests for reachq.iterate (Innovation #2: iterative refinement)."""
 
 from __future__ import annotations
 
 import pytest
 
-from prspnsd.generators import petersen_graph, random_dag
-from prspnsd.iterate import iterative_shortcut_set
-from prspnsd.reachability import bfs_reachability, parallel_bfs
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+from reachq.generators import petersen_graph, random_dag
+from reachq.iterate import iterative_shortcut_set
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut_set import build_shortcut_set_for_reachability
 
 
 class TestIterativeSoundness:
@@ -24,7 +24,7 @@ class TestIterativeSoundness:
             assert bfs_reachability(g, v) == parallel_bfs(g, v, H)
 
     def test_iterative_preserves_reachability_on_graph_with_sccs(self):
-        from prspnsd.graph import Digraph
+        from reachq.graph import Digraph
         g = Digraph()
         for i in range(5):
             g.add_vertex(i)
@@ -50,8 +50,8 @@ class TestIterativeRefines:
         H_direct, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
         )
-        from prspnsd.graph import Digraph
-        from prspnsd.shortcut_set import jls_with_tc_pruning
+        from reachq.graph import Digraph
+        from reachq.shortcut_set import jls_with_tc_pruning
         aug = Digraph()
         for v in g.vertices():
             aug.add_vertex(v)

@@ -27,10 +27,10 @@ from __future__ import annotations
 from collections import deque
 from typing import Any
 
-from prspnsd.graph import Digraph
-from prspnsd.logging_config import get_logger
+from reachq.graph import Digraph
+from reachq.logging_config import get_logger
 
-log = get_logger("prspnsd.sparsify")
+log = get_logger("reachq.sparsify")
 
 
 def _reachable_via(graph: Digraph, source: Any, shortcuts: set[tuple[Any, Any]]) -> set[Any]:

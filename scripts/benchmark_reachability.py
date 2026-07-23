@@ -10,12 +10,12 @@ import argparse
 import csv
 import time
 
-from prspnsd.generators import (
+from reachq.generators import (
     dense_graph,
 )
-from prspnsd.graph import Digraph
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.work_depth import WorkDepthAccountant
+from reachq.graph import Digraph
+from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.work_depth import WorkDepthAccountant
 
 
 def measure_shortcut_construction(

@@ -11,11 +11,11 @@ This script demonstrates end-to-end usage of:
 import random
 import time
 
-from prspnsd.graph import Digraph, WeightedDigraph
-from prspnsd.hopset import build_hopset_for_sssp
-from prspnsd.reachability import bfs_reachability, parallel_bfs, strongly_connected_components
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.shortest_paths import astar, dijkstra, shortest_path_hopbound
+from reachq.graph import Digraph, WeightedDigraph
+from reachq.hopset import build_hopset_for_sssp
+from reachq.reachability import bfs_reachability, parallel_bfs, strongly_connected_components
+from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.shortest_paths import astar, dijkstra, shortest_path_hopbound
 
 
 def demo_reachability():

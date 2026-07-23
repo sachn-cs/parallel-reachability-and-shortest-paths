@@ -2,8 +2,8 @@
 
 import pytest
 
-from prspnsd.graph import Digraph
-from prspnsd.reachability import (
+from reachq.graph import Digraph
+from reachq.reachability import (
     bfs_reachability,
     compute_ancestors,
     compute_bridges,

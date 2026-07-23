@@ -12,7 +12,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from prspnsd.graph import Digraph
+    from reachq.graph import Digraph
 
 _MIN_CSR_SIZE = 500
 

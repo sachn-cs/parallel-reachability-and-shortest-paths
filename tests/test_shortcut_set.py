@@ -2,9 +2,9 @@
 
 import pytest
 
-from prspnsd.graph import Digraph
-from prspnsd.reachability import bfs_reachability, parallel_bfs
-from prspnsd.shortcut_set import (
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut_set import (
     build_shortcut_set_for_reachability,
     jls_shortcut_set,
     jls_with_tc_pruning,
@@ -251,12 +251,12 @@ class TestDensityAwareSampling:
     """Tests for the density-aware sampling constant (Phase 2a)."""
 
     def test_density_aware_constant_returns_positive(self):
-        from prspnsd.shortcut_set import density_aware_constant
+        from reachq.shortcut_set import density_aware_constant
         assert density_aware_constant(rho=1.0, k=2.0) > 0
         assert density_aware_constant(rho=10.0, k=2.0) > 0
 
     def test_density_aware_constant_decreases_with_rho(self):
-        from prspnsd.shortcut_set import density_aware_constant
+        from reachq.shortcut_set import density_aware_constant
         # Denser graphs (smaller rho effectively) should get smaller C.
         # Our formula uses rho as proxy so larger rho -> larger C (capped).
         # Verify the formula is monotonic non-decreasing in rho.
@@ -265,7 +265,7 @@ class TestDensityAwareSampling:
         assert c_small <= c_large
 
     def test_density_aware_constant_handles_edge_cases(self):
-        from prspnsd.shortcut_set import density_aware_constant
+        from reachq.shortcut_set import density_aware_constant
         # rho <= 0 -> default
         assert density_aware_constant(rho=0.0, k=2.0) == 10.0
         assert density_aware_constant(rho=-1.0, k=2.0) == 10.0
@@ -278,8 +278,8 @@ class TestParallelPivots:
 
     def test_parallel_workers_matches_sequential_on_small(self):
         """Same shortcut set with parallel_workers=1 vs =4 on a small graph."""
-        from prspnsd.generators import random_dag
-        from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+        from reachq.generators import random_dag
+        from reachq.shortcut_set import build_shortcut_set_for_reachability
         g = random_dag(n=80, edge_probability=0.2, random_seed=42)
         s_seq, b_seq = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42, parallel_workers=1,
@@ -293,9 +293,9 @@ class TestParallelPivots:
         )
 
     def test_parallel_preserves_reachability(self):
-        from prspnsd.generators import random_dag
-        from prspnsd.reachability import bfs_reachability, parallel_bfs
-        from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+        from reachq.generators import random_dag
+        from reachq.reachability import bfs_reachability, parallel_bfs
+        from reachq.shortcut_set import build_shortcut_set_for_reachability
         g = random_dag(n=60, edge_probability=0.2, random_seed=7)
         shortcuts, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=7, parallel_workers=4,
@@ -304,9 +304,9 @@ class TestParallelPivots:
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
 
     def test_pivot_worker_returns_expected_keys(self):
-        from prspnsd.shortcut_set import _pivot_worker, _set_pivot_state
-        from prspnsd.graph import Digraph
-        from prspnsd.numpy_bfs import build_csr_pair
+        from reachq.shortcut_set import _pivot_worker, _set_pivot_state
+        from reachq.graph import Digraph
+        from reachq.numpy_bfs import build_csr_pair
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(1, 2)
@@ -323,9 +323,9 @@ class TestParallelPivots:
         assert 3 in result["des"]
 
     def test_pivot_worker_skips_self_edges(self):
-        from prspnsd.shortcut_set import _pivot_worker, _set_pivot_state
-        from prspnsd.graph import Digraph
-        from prspnsd.numpy_bfs import build_csr_pair
+        from reachq.shortcut_set import _pivot_worker, _set_pivot_state
+        from reachq.graph import Digraph
+        from reachq.numpy_bfs import build_csr_pair
         g = Digraph()
         g.add_edge(0, 1)
         csr = build_csr_pair(g)

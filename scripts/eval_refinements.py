@@ -69,8 +69,8 @@ def _hopbound_actual(graph, source: object, shortcuts, beta: float) -> tuple[int
 
 def run_one(graph, flags: dict[str, bool], seed: int, omega: float,
             max_seconds: int) -> dict[str, object]:
-    from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-    from prspnsd.reachability import bfs_reachability, parallel_bfs
+    from reachq.shortcut_set import build_shortcut_set_for_reachability
+    from reachq.reachability import bfs_reachability, parallel_bfs
     row: dict[str, object] = {
         "n": graph.num_vertices(),
         "m": graph.num_edges(),
@@ -121,7 +121,7 @@ def main() -> int:
                         help="Optional SNAP dataset names")
     args = parser.parse_args()
 
-    from prspnsd.generators import random_dag
+    from reachq.generators import random_dag
     configurations: list[tuple[str, dict[str, bool]]] = [
         # Lemma 7 — TC trigger
         ("baseline_tc_off",
@@ -167,7 +167,7 @@ def main() -> int:
 
     # SNAP datasets, if requested.
     if args.datasets:
-        from prspnsd.generators import load_dataset
+        from reachq.generators import load_dataset
         for name in args.datasets:
             try:
                 g = load_dataset(name)

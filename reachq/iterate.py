@@ -30,11 +30,11 @@ Empirical finding:
 
 from __future__ import annotations
 
-from prspnsd.graph import Digraph
-from prspnsd.logging_config import get_logger
-from prspnsd.shortcut_set import jls_with_tc_pruning
+from reachq.graph import Digraph
+from reachq.logging_config import get_logger
+from reachq.shortcut_set import jls_with_tc_pruning
 
-log = get_logger("prspnsd.iterate")
+log = get_logger("reachq.iterate")
 
 
 def iterative_shortcut_set(
@@ -60,7 +60,7 @@ def iterative_shortcut_set(
     import time
 
     if random_seed is not None:
-        from prspnsd.logging_config import configure
+        from reachq.logging_config import configure
         configure()
 
     # Match the parameter selection of build_shortcut_set_for_reachability.

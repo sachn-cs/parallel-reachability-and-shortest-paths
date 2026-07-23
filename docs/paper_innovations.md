@@ -127,7 +127,7 @@ structure is known.
 
 ## 5. Innovation #4: Bound gap analysis
 
-**Construction families.** `prspnsd/lower_bound.py` provides:
+**Construction families.** `reachq/lower_bound.py` provides:
 
 - `barbell_graph(k)`: two cliques of size `k/2` connected by a bridge.
 - `layered_dag(L, s)`: L layers of size `s`, edges between layers.

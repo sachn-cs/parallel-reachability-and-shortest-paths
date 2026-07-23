@@ -3,7 +3,7 @@
 Idempotent: re-running with files already in data/ skips the download.
 
 Self-contained: defines the dataset table inline so this script works
-even before the prspnsd package is installed.
+even before the reachq package is installed.
 """
 
 from __future__ import annotations
@@ -14,9 +14,9 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from prspnsd.logging_config import get_logger
+from reachq.logging_config import get_logger
 
-log = get_logger("prspnsd.download")
+log = get_logger("reachq.download")
 
 SNAP_BASE = "https://snap.stanford.edu/data"
 SNAP_DATASETS: dict[str, dict[str, str | int]] = {

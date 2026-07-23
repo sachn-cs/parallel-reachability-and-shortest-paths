@@ -3,8 +3,8 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "prspnsd"
-version = "0.4.0"
+name = "reachq"
+version = "0.5.0"
 description = "Faithful Python reproduction of parallel reachability and shortest paths algorithms on non-sparse digraphs"
 readme = "README.md"
 license = {text = "MIT"}
@@ -62,7 +62,7 @@ Changelog = "https://github.com/sachncs/parallel-reachability-and-shortest-paths
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["prspnsd*"]
+include = ["reachq*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -74,7 +74,7 @@ markers = [
 ]
 
 [tool.coverage.run]
-source = ["prspnsd"]
+source = ["reachq"]
 branch = true
 
 [tool.coverage.report]

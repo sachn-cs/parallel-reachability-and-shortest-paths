@@ -7,7 +7,7 @@ computations as used in the hopset construction (Section 6).
 import heapq
 from typing import Callable, Optional
 
-from prspnsd.graph import WeightedDigraph
+from reachq.graph import WeightedDigraph
 
 
 def dijkstra(graph: WeightedDigraph, source: object) -> dict[object, int]:
