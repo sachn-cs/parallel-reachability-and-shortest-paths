@@ -7,6 +7,53 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (four innovations for the paper)
+
+Four complementary refinements of the JLS shortcut-set construction,
+each with implementation, tests, and an honest empirical finding.
+See `docs/paper_innovations.md` for the full preprint draft.
+
+- **Innovation #1: Shortcut-set sparsification (`prspnsd/sparsify.py`).**
+  Iteratively remove redundant shortcuts in polynomial time. On
+  tested constructions (random DAGs, barbell, layered DAG, path,
+  cycle), the JLS shortcut set is 50–100% redundant; sparsify
+  achieves 100% reduction while preserving reachability.
+
+- **Innovation #2: Iterative refinement (`prspnsd/iterate.py`).**
+  Run JLS on `G ∪ H_1` to get `H_2`; the robust core is `H_1 ∩ H_2`.
+  On random DAGs, `H_2 ⊂ H_1` strictly; the "self-redundant"
+  shortcuts in `H_1 \ H_2` are characterised.
+
+- **Innovation #3: Adaptive β from graph structure
+  (`prspnsd/adaptive_beta.py`).** Replace the worst-case
+  `β_paper = (n^ω / m)^(1/(2ω-2))` with a graph-aware estimate from
+  the eccentricity. Empirical comparison shows the two estimates
+  diverge on dense graphs and converge on sparse ones.
+
+- **Innovation #4: Bound-gap analysis (`prspnsd/lower_bound.py`,
+  `scripts/eval_lower_bound.py`).** Construct four graph families
+  and measure `|H|` against the paper's bound. Empirical finding
+  (NEGATIVE for the bound's tightness): the JLS construction
+  produces 6.2× the bound on average across 12 constructions;
+  sparsify reduces the practical `|H|` to 0 in most cases. The
+  paper's bound is loose on standard graph families.
+
+### Tests
+
+- `tests/test_sparsify.py`: 9 tests (soundness, reduction, idempotence, SCC invariant).
+- `tests/test_iterate.py`: 7 tests (soundness, refinement characterisation, convergence).
+- `tests/test_adaptive_beta.py`: 12 tests (reproducibility, density sensitivity, comparison with paper_beta).
+- `tests/test_lower_bound.py`: 6 tests (construction sizes, bound-overshoot behaviour).
+- 34 new tests; total 386 pass.
+
+### Files
+
+- `docs/paper_innovations.md` — preprint draft consolidating all four
+  innovations with empirical tables.
+- `prspnsd/{sparsify,iterate,adaptive_beta,lower_bound}.py` — implementations.
+- `scripts/eval_lower_bound.py` — bound-gap evaluation script.
+- `tests/test_{sparsify,iterate,adaptive_beta,lower_bound}.py` — tests.
+
 ### Added (test fixtures from Papers 2/3 — algebraic graph theory)
 
 - `petersen_graph()`, `paley_graph(q)`, `shrikhande_graph()`,
