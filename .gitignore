@@ -147,5 +147,22 @@ cython_debug/
 # Benchmark results
 .benchmarks/
 
+# Cached SNAP dataset downloads
+data/*.txt
+data/*.txt.gz
+data/*.edges
+data/*.edges.gz
+data/cache/
+
 # Profiling
 *.prof
+
+# ruff cache
+.ruff_cache/
+
+# Benchmark reproduction output (everything under results/, including the
+# auto-generated summary.md; the curated docs/algorithmic_improvements.md
+# is committed).
+results/*.csv
+results/*.json
+results/summary.md
