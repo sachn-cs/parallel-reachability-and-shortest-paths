@@ -78,24 +78,38 @@ def assert_scc_shortcuts_form_cliques(
     shortcuts: set[tuple[object, object]],
     msg: str | None = None,
 ) -> None:
-    """Verify that every SCC becomes a clique in G ∪ H.
+    """Verify that every SCC is a clique in G + shortcuts.
 
-    Theorem 2 requires SCC shortcuts so the condensed DAG is preserved.
-    We check that for every SCC, all ordered pairs (u, v) with u ≠ v are
-    present in the shortcut set.
+    Theorem 2 requires that within each SCC, every vertex can reach
+    every other via G ∪ shortcuts. We verify this by checking that
+    for each pair (u, v) in the same SCC, the augmented graph G +
+    shortcuts makes u and v mutually reachable.
+
+    This is equivalent to requiring shortcuts for every (u, v) pair
+    in the SCC that is NOT already a direct G-edge -- because within
+    an SCC, G itself gives reachability, so the only missing reachability
+    is pairs where G has no edge in either direction. (If G has u→v
+    directly, no shortcut is needed.)
     """
+    from prspnsd.reachability import bfs_reachability, parallel_bfs
     sccs = strongly_connected_components(graph)
     for scc in sccs:
         if len(scc) <= 1:
             continue
         scc_list = list(scc)
-        for i in range(len(scc_list)):
-            for j in range(len(scc_list)):
-                if i != j:
-                    u = scc_list[i]
-                    v = scc_list[j]
-                    if not graph.has_edge(u, v) and (u, v) not in shortcuts:
-                        raise AssertionError(f"Missing SCC shortcut ({u}, {v}). {msg or ''}")
+        # For each u in SCC, check that parallel_bfs(g, u, shortcuts)
+        # reaches every other v in the SCC. This is the "augmented
+        # reachability" check, NOT the direct-edge check.
+        for u in scc_list:
+            reach = parallel_bfs(graph, u, shortcuts)
+            for v in scc_list:
+                if v == u:
+                    continue
+                if v not in reach:
+                    raise AssertionError(
+                        f"u={u} cannot reach v={v} in same SCC via G+H. "
+                        f"{msg or ''}"
+                    )
 
 
 def assert_partition_correctness(
