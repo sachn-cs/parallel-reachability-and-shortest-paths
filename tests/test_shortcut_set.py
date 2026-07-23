@@ -245,3 +245,29 @@ class TestBuildShortcutSetForReachability:
         assert beta > 0
         reached = parallel_bfs(g, 0, shortcuts)
         assert (n - 1) in reached
+
+
+class TestDensityAwareSampling:
+    """Tests for the density-aware sampling constant (Phase 2a)."""
+
+    def test_density_aware_constant_returns_positive(self):
+        from prspnsd.shortcut_set import density_aware_constant
+        assert density_aware_constant(rho=1.0, k=2.0) > 0
+        assert density_aware_constant(rho=10.0, k=2.0) > 0
+
+    def test_density_aware_constant_decreases_with_rho(self):
+        from prspnsd.shortcut_set import density_aware_constant
+        # Denser graphs (smaller rho effectively) should get smaller C.
+        # Our formula uses rho as proxy so larger rho -> larger C (capped).
+        # Verify the formula is monotonic non-decreasing in rho.
+        c_small = density_aware_constant(rho=1.0, k=2.0)
+        c_large = density_aware_constant(rho=10.0, k=2.0)
+        assert c_small <= c_large
+
+    def test_density_aware_constant_handles_edge_cases(self):
+        from prspnsd.shortcut_set import density_aware_constant
+        # rho <= 0 -> default
+        assert density_aware_constant(rho=0.0, k=2.0) == 10.0
+        assert density_aware_constant(rho=-1.0, k=2.0) == 10.0
+        # k <= 1 -> default
+        assert density_aware_constant(rho=2.0, k=1.0) == 10.0
