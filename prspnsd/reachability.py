@@ -5,6 +5,7 @@ computations from Section 2. All algorithms are deterministic.
 """
 
 from collections import deque
+from collections.abc import Iterator
 from typing import Optional
 
 from prspnsd.graph import Digraph
@@ -129,40 +130,48 @@ def parallel_bfs(
 def strongly_connected_components(graph: Digraph) -> list[set[object]]:
     """Compute SCCs using Kosaraju's algorithm. O(n + m) time.
 
+    Uses iterative DFS to avoid stack overflow on large graphs.
     Returns a list of sets, each being an SCC.
     """
     visited: set[object] = set()
     finish_order: list[object] = []
     out = graph.out_edges
 
-    def dfs1(v: object) -> None:
-        visited.add(v)
-        for w in out.get(v, set()):
-            if w not in visited:
-                dfs1(w)
-        finish_order.append(v)
-
     for v in graph.vertices():
-        if v not in visited:
-            dfs1(v)
+        if v in visited:
+            continue
+        stack: list[tuple[object, Iterator[object]]] = [(v, iter(out.get(v, set())))]
+        visited.add(v)
+        while stack:
+            node, children = stack[-1]
+            for child in children:
+                if child not in visited:
+                    visited.add(child)
+                    stack.append((child, iter(out.get(child, set()))))
+                    break
+            else:
+                stack.pop()
+                finish_order.append(node)
 
     rev = graph.reversed()
     rev_out = rev.out_edges
     visited.clear()
     sccs: list[set[object]] = []
 
-    def dfs2(v: object, component: set[object]) -> None:
-        visited.add(v)
-        component.add(v)
-        for w in rev_out.get(v, set()):
-            if w not in visited:
-                dfs2(w, component)
-
     for v in reversed(finish_order):
-        if v not in visited:
-            component: set[object] = set()
-            dfs2(v, component)
-            sccs.append(component)
+        if v in visited:
+            continue
+        component: set[object] = set()
+        component_stack: list[object] = [v]
+        visited.add(v)
+        while component_stack:
+            node = component_stack.pop()
+            component.add(node)
+            for w in rev_out.get(node, set()):
+                if w not in visited:
+                    visited.add(w)
+                    component_stack.append(w)
+        sccs.append(component)
 
     return sccs
 
