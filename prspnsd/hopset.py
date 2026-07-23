@@ -38,6 +38,16 @@ from prspnsd.shortest_paths import (
 )
 
 _OMEGA_DEFAULT = 2.5
+_OMEGA_RUNTIME_HOP: float | None = None
+
+
+def _get_runtime_omega() -> float:
+    """Return runtime omega, cached; same impl as in shortcut_set."""
+    global _OMEGA_RUNTIME_HOP
+    if _OMEGA_RUNTIME_HOP is None:
+        from prspnsd.blas_omega import runtime_omega
+        _OMEGA_RUNTIME_HOP = runtime_omega()
+    return _OMEGA_RUNTIME_HOP
 
 
 def compute_truncated_sssp_structure(
@@ -78,7 +88,7 @@ def _cfr_recursive(
         return {}
 
     log_n = math.log2(n_global) if n_global > 1 else 0.0
-    base_prob = min(1.0, _OMEGA_DEFAULT * (k ** (level + 1)) * log_n / n_global)
+    base_prob = min(1.0, _OMEGA_DEFAULT * (k ** (level + 1)) * log_n / n_global) if _OMEGA_RUNTIME_HOP is None else min(1.0, min(_OMEGA_DEFAULT, _get_runtime_omega()) * (k ** (level + 1)) * log_n / n_global)
 
     vertices = graph.vertices()
 

@@ -144,6 +144,18 @@ def density_aware_constant(rho: float, k: float) -> float:
 # worst-case over omega < 2.371; we use 2.5 as a conservative upper bound
 # so the "tightened TC trigger" doesn't accidentally trigger too eagerly.
 _OMEGA_DEFAULT = 2.5
+# Module-level cache for the runtime omega detector. Populated lazily
+# on first access; threads share the value because it's pure.
+_OMEGA_RUNTIME: float | None = None
+
+
+def _get_runtime_omega() -> float:
+    """Return the runtime omega from blas_omega.runtime_omega(), cached."""
+    global _OMEGA_RUNTIME
+    if _OMEGA_RUNTIME is None:
+        from prspnsd.blas_omega import runtime_omega
+        _OMEGA_RUNTIME = runtime_omega()
+    return _OMEGA_RUNTIME
 
 
 @dataclass
@@ -304,8 +316,11 @@ def jls_with_tc_pruning(
     # for every vertex in R) costs O(|R| * k * log n). Trigger TC only when
     # the former is cheaper.
     if f.tight_tc_trigger and rho > 0:
+        # Use the runtime-detected omega if available; otherwise fall
+        # back to the conservative 2.5 default. Never overestimate.
+        omega_runtime = min(_OMEGA_DEFAULT, _get_runtime_omega())
         tight_cap = (
-            (rho * n * k * log_n) ** (1.0 / _OMEGA_DEFAULT)
+            (rho * n * k * log_n) ** (1.0 / omega_runtime)
             if log_n > 0 else float("inf")
         )
         tc_pruning_threshold = min(tc_pruning_threshold, tight_cap)
@@ -318,8 +333,9 @@ def jls_with_tc_pruning(
         # Use the wrapper's beta estimate: (n^omega/m)^(1/(2omega-2)).
         # Cheap closed-form bound that doesn't require knowing m at this level
         # (we use the global n).
-        if n_global > 0 and 2.0 * _OMEGA_DEFAULT - 2.0 > 0:
-            beta_est = n_global ** (_OMEGA_DEFAULT / (2.0 * _OMEGA_DEFAULT - 2.0))
+        omega_runtime = min(_OMEGA_DEFAULT, _get_runtime_omega())
+        if n_global > 0 and 2.0 * omega_runtime - 2.0 > 0:
+            beta_est = n_global ** (omega_runtime / (2.0 * omega_runtime - 2.0))
             max_hops_for_bfs = int(beta_est) if beta_est < n_global else None
 
     rev: Optional[Digraph] = None
