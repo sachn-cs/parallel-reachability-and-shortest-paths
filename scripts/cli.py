@@ -16,6 +16,7 @@ import sys
 import time
 
 from prspnsd.generators import (
+    SNAP_DATASETS,
     complete_dag,
     cycle_graph,
     dense_graph,
@@ -169,6 +170,18 @@ def cmd_benchmark_shortest_paths(args: argparse.Namespace) -> None:
     )
 
 
+def cmd_benchmark_large(args: argparse.Namespace) -> None:
+    from scripts.benchmark_large import run_snap_benchmarks, run_synthetic_scaling
+
+    if not args.synthetic_only:
+        run_snap_benchmarks(args.datasets, args.omega, args.seed, args.output)
+    if not args.snap_only:
+        run_synthetic_scaling(
+            args.synthetic_sizes, args.edge_density, args.omega, args.epsilon,
+            args.seed, args.output,
+        )
+
+
 def cmd_generate_graph(args: argparse.Namespace) -> None:
     if args.weighted:
         if args.generator == "path":
@@ -263,6 +276,28 @@ def main() -> None:
     p_bs.add_argument("--seed", type=int, default=42)
     p_bs.add_argument("--output", type=str, default=None)
     p_bs.set_defaults(func=cmd_benchmark_shortest_paths)
+
+    # benchmark-large
+    p_bl = subparsers.add_parser(
+        "benchmark-large",
+        help="Run large-graph benchmarks (SNAP + synthetic)",
+    )
+    p_bl.add_argument(
+        "--datasets", nargs="+", default=list(SNAP_DATASETS.keys()),
+        help="SNAP datasets (default: all)",
+    )
+    p_bl.add_argument(
+        "--synthetic-sizes", type=int, nargs="*",
+        default=[1000, 5000, 10000, 50000, 100000],
+    )
+    p_bl.add_argument("--edge-density", type=float, default=0.1)
+    p_bl.add_argument("--omega", type=float, default=3.0)
+    p_bl.add_argument("--epsilon", type=float, default=0.1)
+    p_bl.add_argument("--seed", type=int, default=42)
+    p_bl.add_argument("--output", type=str, default=None)
+    p_bl.add_argument("--snap-only", action="store_true")
+    p_bl.add_argument("--synthetic-only", action="store_true")
+    p_bl.set_defaults(func=cmd_benchmark_large)
 
     # generate-graph
     p_gen = subparsers.add_parser("generate-graph", help="Generate and serialize a graph")
