@@ -215,24 +215,69 @@ class Digraph(Graph):
         """Return in-degree of v."""
         return len(self.in_edges.get(v, set()))
 
+    def to_csr(self) -> tuple[Any, Any, int]:
+        """Convert adjacency to CSR arrays for numpy-based algorithms.
 
-def partition_by_labels(vertices: set[object], labels: dict[object, set[str]]) -> list[set[object]]:
+        Returns:
+            (indptr, indices, n) where indptr and indices are numpy int64
+            arrays of shape (n+1,) and (m,) respectively, and n = |V|.
+            Neighbors of vertex i are indices[indptr[i]:indptr[i+1]].
+        """
+        import numpy as np
+
+        index_map, n = _csr_index_map(self)
+        indptr = np.zeros(n + 1, dtype=np.int64)
+        for v in self.vertex_set:
+            i = index_map[v]
+            indptr[i + 1] = len(self.out_edges.get(v, set()))
+        np.cumsum(indptr, out=indptr)
+        indices = np.empty(indptr[-1], dtype=np.int64)
+        for v in self.vertex_set:
+            i = index_map[v]
+            start = indptr[i]
+            for j, w in enumerate(self.out_edges.get(v, set())):
+                indices[start + j] = index_map[w]
+        return indptr, indices, n
+
+
+def _csr_index_map(graph: Digraph) -> tuple[dict[object, int], int]:
+    """Build vertex→index bijection for CSR conversion."""
+    index_map: dict[object, int] = {}
+    for i, v in enumerate(graph.vertex_set):
+        index_map[v] = i
+    return index_map, graph.num_vertices()
+
+
+def partition_by_labels(
+    vertices: set[object],
+    labels: dict[object, Any],
+) -> list[set[object]]:
     """Partition vertices into equivalence classes by exact label equality.
 
     Corresponds to Step 3 of the JLS shortcut set construction (Section 4.1).
     Two vertices are in the same class if and only if their label sets are
     identical.
 
+    Accepts the historical ``set[hashable]`` labels or the compressed
+    ``tuple[frozenset[int], frozenset[int]]`` form used by the algorithmic
+    refinements. Anything hashable is allowed; mutable inputs are normalised
+    via ``frozenset`` so the partition key is always hashable.
+
     Args:
         vertices: The vertex set to partition.
-        labels: A mapping from each vertex to its label set.
+        labels: A mapping from each vertex to its label value.
 
     Returns:
         A list of disjoint sets whose union equals *vertices*.
     """
-    groups: dict[frozenset, set[object]] = {}
+    groups: dict[tuple, set[object]] = {}
     for v in vertices:
-        key = frozenset(labels.get(v, set()))
+        key = labels.get(v)
+        if key is None:
+            groups.setdefault((), set()).add(v)
+            continue
+        if not isinstance(key, tuple):
+            key = (frozenset(key) if hasattr(key, "__iter__") else key,)
         groups.setdefault(key, set()).add(v)
     return list(groups.values())
 
