@@ -11,6 +11,11 @@ in the paper. This makes the simulation mathematically traceable.
 
 Observed wall-clock time is tracked separately and never conflated with
 theoretical work/depth bounds.
+
+In addition to the simulated model, ``SpanProfiler`` measures *empirical*
+parallel span by timing each sequential phase of the construction on one
+process. This gives a lower bound on true PRAM span: anything faster than
+this on a single process implies the algorithm is already well-parallelised.
 """
 
 from __future__ import annotations
@@ -347,6 +352,93 @@ def record_hopset_construction(
         depth=depth,
         details=details,
     )
+
+
+@dataclass
+class PhaseRecord:
+    """Wall-clock measurement of a single sequential phase."""
+
+    name: str
+    seconds: float
+
+
+@dataclass
+class SpanProfiler:
+    """Measures empirical parallel span by timing sequential phases.
+
+    The construction is run sequentially on a single process. Each
+    "phase" — a coarse unit of work like sampling, partition, or
+    recursion — is timed. The *empirical span* is the sum of phase
+    times (since each phase is sequential in the absence of real
+    parallelism).
+
+    This is NOT a true PRAM measurement; it is a lower bound on the
+    parallel span achievable on one process. Real PRAM span can only
+    be smaller if the phases are parallelisable.
+
+    To compare against the paper's theoretical bounds, set
+    ``theoretical_work`` and ``theoretical_depth`` from the formulas
+    in this module; ``span_to_depth_ratio`` then gives a dimensionless
+    indicator: > 1 means the implementation takes longer than the
+    theoretical depth predicts (expected for Python overhead),
+    < 1 would mean we beat the bound (a sign of measurement error).
+    """
+
+    phases: list[PhaseRecord] = field(default_factory=list)
+    start_time: float | None = field(default=None, repr=False)
+    current_name: str | None = field(default=None, repr=False)
+    current_start: float | None = field(default=None, repr=False)
+    theoretical_work: float = 0.0
+    theoretical_depth: float = 0.0
+
+    def begin_phase(self, name: str) -> None:
+        """Start timing a new phase."""
+        self._close_current()
+        self.current_name = name
+        self.current_start = time.perf_counter()
+
+    def end_phase(self) -> None:
+        """Close the current phase and record its wall-clock time."""
+        self._close_current()
+
+    def _close_current(self) -> None:
+        if self.current_name is None or self.current_start is None:
+            return
+        elapsed = time.perf_counter() - self.current_start
+        self.phases.append(PhaseRecord(self.current_name, elapsed))
+        self.current_name = None
+        self.current_start = None
+
+    def total_span_seconds(self) -> float:
+        """Sum of phase wall-clock times. Lower bound on true PRAM span."""
+        self._close_current()
+        return sum(p.seconds for p in self.phases)
+
+    def summary(self) -> dict[str, float]:
+        """Return a dict with measured span and theoretical bounds.
+
+        Note: ``theoretical_work`` and ``theoretical_depth`` are in
+        asymptotic-operation units, while ``span_seconds`` is wall-clock
+        time. They are NOT directly comparable. Convert with an
+        operations-per-second constant for your hardware if you want
+        a unitless ratio.
+        """
+        self._close_current()
+        result: dict[str, float] = {
+            "span_seconds": self.total_span_seconds(),
+            "theoretical_work": self.theoretical_work,
+            "theoretical_depth": self.theoretical_depth,
+        }
+        for p in self.phases:
+            result[f"phase_{p.name}_seconds"] = p.seconds
+        return result
+
+    def __repr__(self) -> str:
+        span = self.total_span_seconds()
+        return (
+            f"SpanProfiler(span={span:.3f}s, "
+            f"phases={len(self.phases)})"
+        )
 
 
 def theoretical_shortcut_work(n: int, m: int, rho: float, omega: float = 3.0) -> float:
