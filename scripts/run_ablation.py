@@ -1,29 +1,32 @@
 """Ablation: rerun the sampling ladder with each flag disabled.
 
-Produces `results/ablation.csv` so the contribution of every algorithmic
+Produces ``results/ablation.csv`` so the contribution of every algorithmic
 refinement is measurable on a single graph class.
 
-Usage:
-    python scripts/run_ablation.py [--sizes N ...] [--densities P ...]
-                                   [--timeout SECS] [--datasets ...]
+Only timeouts are caught (they're an expected outcome of a benchmark).
+Other exceptions propagate.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import signal
 import sys
 import time
-from collections.abc import Iterator
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Iterator
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+from prspnsd.logging_config import get_logger
+
+log = get_logger("prspnsd.ablation")
 
 
 @contextmanager
 def _time_limit(seconds: int) -> Iterator[None]:
-    import signal
     def handler(signum: int, frame: object) -> None:
         raise TimeoutError(f"exceeded {seconds}s")
     old = signal.signal(signal.SIGALRM, handler)
@@ -35,12 +38,15 @@ def _time_limit(seconds: int) -> Iterator[None]:
         signal.signal(signal.SIGALRM, old)
 
 
+FLAG_NAMES = (
+    "adaptive_sampling", "label_compress", "skip_condense",
+    "hop_bounded_bfs", "degree_ordered_pivots", "tight_tc_trigger",
+    "skip_trivial_part", "enable_tc_pruning",
+)
+
+
 def _all_off_except(name: str) -> dict[str, bool]:
-    return {n: (n == name) for n in (
-        "adaptive_sampling", "label_compress", "skip_condense",
-        "hop_bounded_bfs", "degree_ordered_pivots", "tight_tc_trigger",
-        "skip_trivial_part", "enable_tc_pruning",
-    )}
+    return {n: (n == name) for n in FLAG_NAMES}
 
 
 def main() -> int:
@@ -52,29 +58,26 @@ def main() -> int:
     args = parser.parse_args()
 
     from prspnsd.generators import random_dag, weighted_random_dag
-    from prspnsd.hopset import build_hopset_for_sssp
     from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+    from prspnsd.hopset import build_hopset_for_sssp
 
     rows: list[dict[str, object]] = []
-    flags_all_on = dict.fromkeys(("adaptive_sampling", "label_compress", "skip_condense", "hop_bounded_bfs", "degree_ordered_pivots", "tight_tc_trigger", "skip_trivial_part", "enable_tc_pruning"), True)
-    flags_all_off = dict.fromkeys(flags_all_on, False)
-
+    all_on = {n: True for n in FLAG_NAMES}
+    all_off = {n: False for n in FLAG_NAMES}
     configurations: list[tuple[str, dict[str, bool]]] = [
-        ("all_on", flags_all_on),
-        ("all_off", flags_all_off),
+        ("all_on", all_on),
+        ("all_off", all_off),
+        *((f"only_{name}", _all_off_except(name)) for name in FLAG_NAMES),
     ]
-    for flag in flags_all_on:
-        configurations.append((f"only_{flag}", _all_off_except(flag)))
 
-    print("=== Ablation ===", flush=True)
+    log.info("ablation starting; sizes=%s densities=%s",
+             args.sizes, args.densities)
     for n in args.sizes:
         for density in args.densities:
             g = random_dag(n, edge_probability=density, random_seed=42)
-            wg = weighted_random_dag(
-                n, edge_probability=density, random_seed=42,
-            )
+            wg = weighted_random_dag(n, edge_probability=density, random_seed=42)
             for name, flags in configurations:
-                print(f"n={n} d={density} cfg={name}", flush=True)
+                log.info("n=%d d=%s cfg=%s", n, density, name)
                 row: dict[str, object] = {
                     "config": name, "n": n, "density": density,
                     "m": g.num_edges(),
@@ -95,8 +98,6 @@ def main() -> int:
                     })
                 except TimeoutError:
                     row["reach_error"] = "timeout"
-                except Exception as e:
-                    row["reach_error"] = f"{type(e).__name__}: {e}"
                 try:
                     with _time_limit(args.timeout):
                         t0 = time.perf_counter()
@@ -111,8 +112,6 @@ def main() -> int:
                     })
                 except TimeoutError:
                     row["hop_error"] = "timeout"
-                except Exception as e:
-                    row["hop_error"] = f"{type(e).__name__}: {e}"
                 rows.append(row)
 
     out_path = Path(args.out)
@@ -121,14 +120,14 @@ def main() -> int:
         "config", "n", "density", "m", "flag_count_on",
         "reach_beta", "reach_|H|", "reach_time_s", "reach_error",
         "hop_beta", "hop_|H|", "hop_time_s", "hop_error",
-        *(f"flag_{k}" for k in flags_all_on),
+        *(f"flag_{k}" for k in FLAG_NAMES),
     ]
     with open(out_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=header, extrasaction="ignore")
         w.writeheader()
         for r in rows:
             w.writerow(r)
-    print(f"Wrote {out_path}", flush=True)
+    log.info("wrote %s", out_path)
     return 0
 
 
