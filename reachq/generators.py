@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import random
 
-from prspnsd.graph import Digraph, WeightedDigraph
+from reachq.graph import Digraph, WeightedDigraph
 
 
 def path_graph(n: int) -> Digraph:

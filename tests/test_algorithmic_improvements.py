@@ -11,12 +11,12 @@ from __future__ import annotations
 
 import pytest
 
-from prspnsd import Flags
-from prspnsd.generators import random_dag, weighted_random_dag
-from prspnsd.hopset import build_hopset_for_sssp
-from prspnsd.reachability import bfs_reachability, parallel_bfs
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq import Flags
+from reachq.generators import random_dag, weighted_random_dag
+from reachq.hopset import build_hopset_for_sssp
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
 
 def _all_flag_names() -> list[str]:
@@ -82,7 +82,7 @@ def test_networkx_cross_check_shortcut_set() -> None:
 
     import networkx as nx
 
-    from prspnsd.graph import Digraph
+    from reachq.graph import Digraph
 
     g = Digraph()
     for i in range(50):

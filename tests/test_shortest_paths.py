@@ -1,7 +1,7 @@
 """Tests for shortest path algorithms."""
 
-from prspnsd.graph import WeightedDigraph
-from prspnsd.shortest_paths import (
+from reachq.graph import WeightedDigraph
+from reachq.shortest_paths import (
     astar,
     compute_d_ancestors,
     compute_d_ball,

@@ -27,11 +27,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from prspnsd.generators import random_dag
-from prspnsd.logging_config import get_logger
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+from reachq.generators import random_dag
+from reachq.logging_config import get_logger
+from reachq.shortcut_set import build_shortcut_set_for_reachability
 
-log = get_logger("prspnsd.counterexample")
+log = get_logger("reachq.counterexample")
 
 
 PAPER_TC_FLAGS = {

@@ -35,7 +35,7 @@ When reporting a vulnerability, please include:
 
 This security policy applies to:
 
-- The `prspnsd` Python package
+- The `reachq` Python package
 - The GitHub repository and CI/CD pipeline
 - Documentation and example code
 

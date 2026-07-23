@@ -2,7 +2,7 @@
 
 import pytest
 
-from prspnsd.generators import (
+from reachq.generators import (
     complete_dag,
     cycle_graph,
     dense_graph,
@@ -17,8 +17,8 @@ from prspnsd.generators import (
     weighted_path_graph,
     weighted_random_dag,
 )
-from prspnsd.graph import WeightedDigraph
-from prspnsd.reachability import strongly_connected_components
+from reachq.graph import WeightedDigraph
+from reachq.reachability import strongly_connected_components
 
 
 class TestPathGraph:
@@ -188,7 +188,7 @@ class TestSpectralGraphGenerators:
     """Tests for SRG / Hamming graph generators (from Papers 2/3)."""
 
     def test_petersen_graph_properties(self):
-        from prspnsd.generators import petersen_graph
+        from reachq.generators import petersen_graph
         g = petersen_graph()
         assert g.num_vertices() == 10
         # Petersen is 3-regular, triangle-free, girth 5.
@@ -203,7 +203,7 @@ class TestSpectralGraphGenerators:
                         raise AssertionError(f"triangle {v}-{u}-{w} in Petersen")
 
     def test_paley_graph_properties(self):
-        from prspnsd.generators import paley_graph
+        from reachq.generators import paley_graph
         # Paley(5) is the 5-cycle C5.
         g5 = paley_graph(5)
         assert g5.num_vertices() == 5
@@ -214,14 +214,14 @@ class TestSpectralGraphGenerators:
         assert g13.num_edges() == 39
 
     def test_paley_invalid_inputs(self):
-        from prspnsd.generators import paley_graph
+        from reachq.generators import paley_graph
         with pytest.raises(ValueError, match="1"):
             paley_graph(3)
         with pytest.raises(ValueError, match="prime"):
             paley_graph(9)  # 9 ≡ 1 mod 4 but is not prime
 
     def test_shrikhande_rook_graph_properties(self):
-        from prspnsd.generators import shrikhande_graph
+        from reachq.generators import shrikhande_graph
         g = shrikhande_graph()
         assert g.num_vertices() == 16
         # Rook's graph: 16 * 6 / 2 = 48 edges.
@@ -231,7 +231,7 @@ class TestSpectralGraphGenerators:
         assert degrees == {6}
 
     def test_hamming_graph_properties(self):
-        from prspnsd.generators import hamming_graph
+        from reachq.generators import hamming_graph
         g = hamming_graph(d=2, q=3)  # 9 vertices, degree 4 (one per axis per direction)
         assert g.num_vertices() == 9
         # H(2,3) is 4-regular: each vertex has 2 coords × 2 directions = 4 neighbours.
@@ -242,7 +242,7 @@ class TestSpectralGraphGenerators:
         assert g.num_edges() == 18
 
     def test_hamming_invalid_inputs(self):
-        from prspnsd.generators import hamming_graph
+        from reachq.generators import hamming_graph
         with pytest.raises(ValueError, match="d must be"):
             hamming_graph(d=0, q=2)
         with pytest.raises(ValueError, match="q must be"):
@@ -252,7 +252,7 @@ class TestSpectralGraphGenerators:
         """The feasibility condition k(k - lam - 1) = (n - k - 1) * mu
         holds for all SRGs we generate. Testable directly on Petersen
         and the rook's graph."""
-        from prspnsd.generators import petersen_graph, shrikhande_graph
+        from reachq.generators import petersen_graph, shrikhande_graph
         for label, g, k, lam, mu in [
             ("Petersen", petersen_graph(), 3, 0, 1),
             ("rook's (Shrikhande SRG)", shrikhande_graph(), 6, 2, 2),

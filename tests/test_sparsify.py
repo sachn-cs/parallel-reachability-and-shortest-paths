@@ -1,14 +1,14 @@
-"""Tests for prspnsd.sparsify (Innovation #1: shortcut set sparsification)."""
+"""Tests for reachq.sparsify (Innovation #1: shortcut set sparsification)."""
 
 from __future__ import annotations
 
 import pytest
 
-from prspnsd.generators import petersen_graph, random_dag
-from prspnsd.graph import Digraph
-from prspnsd.reachability import bfs_reachability, parallel_bfs
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.sparsify import sparsify_shortcut_set
+from reachq.generators import petersen_graph, random_dag
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.sparsify import sparsify_shortcut_set
 
 
 class TestSparsifyBasic:
@@ -108,7 +108,7 @@ class TestSparsifyCorrectnessInvariant:
 
     def test_scc_clique_after_sparsify(self):
         """After sparsification, every SCC is still mutually reachable."""
-        from prspnsd.invariants import assert_scc_shortcuts_form_cliques
+        from reachq.invariants import assert_scc_shortcuts_form_cliques
         g = random_dag(80, edge_probability=0.2, random_seed=42)
         # Build a graph with cycles.
         g.add_edge(0, 1)

@@ -8,14 +8,14 @@
 
 This note documents four correctness issues discovered while
 reimplementing the JLS shortcut-set construction in pure Python for
-`prspnsd`. Two were *correctness* bugs (the implementation produced
+`reachq`. Two were *correctness* bugs (the implementation produced
 shortcut sets that violated the algorithm's invariants); two were
 *performance* bugs that made the construction infeasible on
 non-toy graphs. Each is fixed in the current commit history.
 
 ## 1. Transitive closure: dense matrix allocation OOM
 
-**Where.** `prspnsd/transitive_closure.py:transitive_closure_matrix`,
+**Where.** `reachq/transitive_closure.py:transitive_closure_matrix`,
 prior to commit `3437d64`.
 
 **Symptom.** Constructing $\mathrm{TC}(G)$ for graphs with $n \gtrsim 50{,}000$
@@ -44,7 +44,7 @@ asserts $\mathrm{TC}_{\text{sparse}}(G) = \mathrm{TC}_{\text{brute}}(G)$ on
 
 ## 2. CSR-BFS: Python loop defeated numpy speedup
 
-**Where.** `prspnsd/numpy_bfs.py:csr_reachable_forward`, prior to commit
+**Where.** `reachq/numpy_bfs.py:csr_reachable_forward`, prior to commit
 `35f83a8`.
 
 **Symptom.** The CSR numpy BFS was slower than the pure-Python BFS on
@@ -68,8 +68,8 @@ equivalence with the pure-Python BFS on randomly generated graphs.
 
 ## 3. Shortcut set: SCC-representative mis-indexing in trivial-condensation path
 
-**Where.** `prspnsd/shortcut_set.py:438`,
-`prspnsd/hopset.py:311`, prior to commit `8fd9b4f`.
+**Where.** `reachq/shortcut_set.py:438`,
+`reachq/hopset.py:311`, prior to commit `8fd9b4f`.
 
 **Symptom.** Shortcut sets produced for DAG inputs sometimes *added
 reachability*: vertices unreachable in $G$ became reachable in $G \cup
@@ -112,7 +112,7 @@ for every source $s$ in a 50-vertex random DAG.
 
 ## 4. Shortcut set: TC pruning leaked self-loops
 
-**Where.** `prspnsd/shortcut_set.py:255`, prior to commit `8fd9b4f`.
+**Where.** `reachq/shortcut_set.py:255`, prior to commit `8fd9b4f`.
 
 **Symptom.** Some shortcut sets contained self-loop edges $(v, v)$.
 These are technically sound (a self-loop adds no new reachability) but
@@ -152,8 +152,8 @@ artifact.
 ```bash
 git checkout 3437d64~1  # pre-fix transitive_closure
 python -c "
-from prspnsd.generators import random_dag
-from prspnsd.transitive_closure import transitive_closure_matrix
+from reachq.generators import random_dag
+from reachq.transitive_closure import transitive_closure_matrix
 g = random_dag(n=60000, edge_probability=0.05, random_seed=1)
 tc = transitive_closure_matrix(g)
 print(len(tc))
@@ -161,9 +161,9 @@ print(len(tc))
 
 git checkout 8fd9b4f~1  # pre-fix shortcut_set
 python -c "
-from prspnsd.generators import random_dag
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.reachability import bfs_reachability, parallel_bfs
+from reachq.generators import random_dag
+from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.reachability import bfs_reachability, parallel_bfs
 g = random_dag(n=80, edge_probability=0.2, random_seed=7)
 shortcuts, _ = build_shortcut_set_for_reachability(g, random_seed=7)
 src = 1

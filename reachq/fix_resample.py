@@ -22,15 +22,15 @@ from __future__ import annotations
 import random
 from typing import Any
 
-from prspnsd.graph import Digraph
-from prspnsd.logging_config import get_logger
-from prspnsd.reachability import (
+from reachq.graph import Digraph
+from reachq.logging_config import get_logger
+from reachq.reachability import (
     bfs_reachability,
     compute_r_minus,
     compute_r_plus,
 )
 
-log = get_logger("prspnsd.fix_resample")
+log = get_logger("reachq.fix_resample")
 
 
 def fix_resample_shortcut_set(

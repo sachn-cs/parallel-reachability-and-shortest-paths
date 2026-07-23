@@ -39,7 +39,7 @@ python scripts/demo.py
 ### 1. Build a Graph
 
 ```python
-from prspnsd.graph import Digraph
+from reachq.graph import Digraph
 
 g = Digraph()
 for i in range(100):
@@ -51,7 +51,7 @@ for i in range(99):
 ### 2. Construct a Shortcut Set
 
 ```python
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+from reachq.shortcut_set import build_shortcut_set_for_reachability
 
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
 print(f"Constructed {len(shortcuts)} shortcut edges (beta={beta:.2f})")
@@ -60,7 +60,7 @@ print(f"Constructed {len(shortcuts)} shortcut edges (beta={beta:.2f})")
 ### 3. Query Reachability
 
 ```python
-from prspnsd.reachability import parallel_bfs, bfs_reachability
+from reachq.reachability import parallel_bfs, bfs_reachability
 
 source = 0
 reachable = parallel_bfs(g, source, shortcuts)
@@ -81,7 +81,7 @@ print(f"Vertex {source} can reach {len(reachable)} vertices")
 
 ### Common Issues
 
-**ImportError: No module named 'prspnsd'**
+**ImportError: No module named 'reachq'**
 
 Ensure you've installed the package in editable mode:
 ```bash

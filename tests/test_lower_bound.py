@@ -1,8 +1,8 @@
-"""Tests for prspnsd.lower_bound (Innovation #4: bound gap analysis)."""
+"""Tests for reachq.lower_bound (Innovation #4: bound gap analysis)."""
 
 from __future__ import annotations
 
-from prspnsd.lower_bound import (
+from reachq.lower_bound import (
     barbell_graph,
     cycle_graph_dag,
     layered_dag,
@@ -44,7 +44,7 @@ class TestBoundGap:
     """
 
     def test_jls_overshoots_bound_on_long_path(self):
-        from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+        from reachq.shortcut_set import build_shortcut_set_for_reachability
         g = long_path_dag(20)
         H, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42, sparsify_shortcuts=False,
@@ -66,7 +66,7 @@ class TestBoundGap:
         """Sparsify (Innovation #1) reduces the practical |H| below the
         paper's bound, since the JLS-added shortcuts are mostly redundant.
         """
-        from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+        from reachq.shortcut_set import build_shortcut_set_for_reachability
         g = long_path_dag(20)
         H, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42,  # sparsify_shortcuts=True (default)

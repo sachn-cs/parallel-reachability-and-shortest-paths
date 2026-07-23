@@ -50,7 +50,7 @@ from __future__ import annotations
 import random
 from typing import Any
 
-from prspnsd.graph import Digraph
+from reachq.graph import Digraph
 
 
 def barbell_graph(k: int) -> Digraph:

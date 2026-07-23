@@ -4,7 +4,7 @@ import math
 
 import pytest
 
-from prspnsd.work_depth import (
+from reachq.work_depth import (
     WorkDepthAccountant,
     record_bfs,
     record_dijkstra,
@@ -244,7 +244,7 @@ class TestSpanProfiler:
     """Tests for SpanProfiler (empirical parallel span measurement)."""
 
     def test_empty_profiler_reports_zero_span(self):
-        from prspnsd.work_depth import SpanProfiler
+        from reachq.work_depth import SpanProfiler
         p = SpanProfiler()
         assert p.total_span_seconds() == 0.0
         s = p.summary()
@@ -253,7 +253,7 @@ class TestSpanProfiler:
 
     def test_phases_accumulate(self):
         import time as _t
-        from prspnsd.work_depth import SpanProfiler
+        from reachq.work_depth import SpanProfiler
         p = SpanProfiler()
         p.begin_phase("a")
         _t.sleep(0.01)
@@ -268,7 +268,7 @@ class TestSpanProfiler:
         assert {ph.name for ph in p.phases} == {"a", "b"}
 
     def test_summary_includes_all_phases(self):
-        from prspnsd.work_depth import SpanProfiler
+        from reachq.work_depth import SpanProfiler
         p = SpanProfiler()
         p.begin_phase("first")
         p.end_phase()
@@ -279,7 +279,7 @@ class TestSpanProfiler:
         assert "phase_second_seconds" in s
 
     def test_repr_includes_span(self):
-        from prspnsd.work_depth import SpanProfiler
+        from reachq.work_depth import SpanProfiler
         p = SpanProfiler()
         r = repr(p)
         assert "SpanProfiler" in r

@@ -2,9 +2,9 @@
 
 import pytest
 
-from prspnsd.generators import path_graph, weighted_path_graph
-from prspnsd.graph import Digraph, WeightedDigraph
-from prspnsd.serialization import (
+from reachq.generators import path_graph, weighted_path_graph
+from reachq.graph import Digraph, WeightedDigraph
+from reachq.serialization import (
     digraph_from_dict,
     digraph_from_json,
     digraph_to_dict,

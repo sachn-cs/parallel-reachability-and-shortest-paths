@@ -23,7 +23,7 @@ Bug fixes vs earlier versions:
 
 Parallel pivot processing (Phase 2b):
   The per-pivot loop can be dispatched in parallel via
-  ``ParallelContext`` (see ``prspnsd/parallel.py``). Pivots are
+  ``ParallelContext`` (see ``reachq/parallel.py``). Pivots are
   embarrassingly parallel: each computes (r_plus, r_minus, label
   contributions) on read-only shared CSR state. Per-pivot results are
   merged into the main-thread shortcut set and label dicts after
@@ -37,19 +37,19 @@ import random
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from prspnsd.graph import Digraph, contract_sccs, partition_by_labels
-from prspnsd.logging_config import get_logger
-from prspnsd.numpy_bfs import (
+from reachq.graph import Digraph, contract_sccs, partition_by_labels
+from reachq.logging_config import get_logger
+from reachq.numpy_bfs import (
     build_csr_pair,
     csr_reachable_backward,
     csr_reachable_forward,
     should_use_csr,
 )
-from prspnsd.parallel import ParallelContext, SEQUENTIAL
-from prspnsd.reachability import compute_r_minus, compute_r_plus
-from prspnsd.transitive_closure import transitive_closure_on_subset
+from reachq.parallel import ParallelContext, SEQUENTIAL
+from reachq.reachability import compute_r_minus, compute_r_plus
+from reachq.transitive_closure import transitive_closure_on_subset
 
-log = get_logger("prspnsd.shortcut_set")
+log = get_logger("reachq.shortcut_set")
 
 _SAMPLING_CONSTANT = 10
 # Density-aware override: when the wrapper passes a C value derived
@@ -156,7 +156,7 @@ def _get_runtime_omega() -> float:
     """Return the runtime omega from blas_omega.runtime_omega(), cached."""
     global _OMEGA_RUNTIME
     if _OMEGA_RUNTIME is None:
-        from prspnsd.blas_omega import runtime_omega
+        from reachq.blas_omega import runtime_omega
         _OMEGA_RUNTIME = runtime_omega()
     return _OMEGA_RUNTIME
 
@@ -600,7 +600,7 @@ def build_shortcut_set_for_reachability(
     # shortcut set -- every remaining shortcut is essential for at least
     # one source-target reachability query.
     if sparsify_shortcuts and shortcuts:
-        from prspnsd.sparsify import sparsify_shortcut_set
+        from reachq.sparsify import sparsify_shortcut_set
         before = len(shortcuts)
         shortcuts = sparsify_shortcut_set(graph, shortcuts)
         log.info(

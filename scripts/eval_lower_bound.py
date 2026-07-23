@@ -21,16 +21,16 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from prspnsd.lower_bound import (
+from reachq.lower_bound import (
     barbell_graph,
     cycle_graph_dag,
     layered_dag,
     long_path_dag,
 )
-from prspnsd.logging_config import get_logger
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+from reachq.logging_config import get_logger
+from reachq.shortcut_set import build_shortcut_set_for_reachability
 
-log = get_logger("prspnsd.lower_bound_eval")
+log = get_logger("reachq.lower_bound_eval")
 
 
 def measure(name, g, omega: float = 3.0, seed: int = 42) -> dict[str, object]:

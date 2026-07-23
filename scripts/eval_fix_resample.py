@@ -23,19 +23,19 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from prspnsd.fix_resample import fix_resample_shortcut_set, fix_resample_reachable
-from prspnsd.generators import (
+from reachq.fix_resample import fix_resample_shortcut_set, fix_resample_reachable
+from reachq.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
     random_dag,
     shrikhande_graph,
 )
-from prspnsd.logging_config import get_logger
-from prspnsd.reachability import bfs_reachability
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+from reachq.logging_config import get_logger
+from reachq.reachability import bfs_reachability
+from reachq.shortcut_set import build_shortcut_set_for_reachability
 
-log = get_logger("prspnsd.fix_resample_eval")
+log = get_logger("reachq.fix_resample_eval")
 
 
 def jls_with_random_seed(g, seed):

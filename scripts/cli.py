@@ -15,7 +15,7 @@ import math
 import sys
 import time
 
-from prspnsd.generators import (
+from reachq.generators import (
     SNAP_DATASETS,
     complete_dag,
     cycle_graph,
@@ -28,18 +28,18 @@ from prspnsd.generators import (
     weighted_path_graph,
     weighted_random_dag,
 )
-from prspnsd.graph import Digraph, WeightedDigraph
-from prspnsd.hopset import build_hopset_for_sssp
-from prspnsd.reachability import bfs_reachability, parallel_bfs
-from prspnsd.serialization import (
+from reachq.graph import Digraph, WeightedDigraph
+from reachq.hopset import build_hopset_for_sssp
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.serialization import (
     digraph_from_json,
     digraph_to_json,
     weighted_digraph_from_json,
     weighted_digraph_to_json,
 )
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
-from prspnsd.work_depth import (
+from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.work_depth import (
     WorkDepthAccountant,
     theoretical_hopset_depth,
     theoretical_hopset_work,
@@ -231,7 +231,7 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        prog="prspnsd",
+        prog="reachq",
         description="Parallel Reachability and Shortest Paths on Non-Sparse Digraphs",
     )
     parser.add_argument("--verbose", action="store_true", help="Verbose output")

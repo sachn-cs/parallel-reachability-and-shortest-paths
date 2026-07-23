@@ -2,7 +2,7 @@
 
 import pytest
 
-from prspnsd.graph import Digraph, WeightedDigraph, contract_sccs, partition_by_labels
+from reachq.graph import Digraph, WeightedDigraph, contract_sccs, partition_by_labels
 
 
 class TestDigraph:

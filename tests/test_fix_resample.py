@@ -4,14 +4,14 @@ from __future__ import annotations
 
 import pytest
 
-from prspnsd.fix_resample import fix_resample_reachable, fix_resample_shortcut_set
-from prspnsd.generators import (
+from reachq.fix_resample import fix_resample_reachable, fix_resample_shortcut_set
+from reachq.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
     random_dag,
 )
-from prspnsd.reachability import bfs_reachability
+from reachq.reachability import bfs_reachability
 
 
 class TestFixResampleBasic:
@@ -41,7 +41,7 @@ class TestFixResampleBasic:
                 assert fix_resample_reachable(g, v, shortcuts) == bfs_reachability(g, v)
 
     def test_empty_graph(self):
-        from prspnsd.graph import Digraph
+        from reachq.graph import Digraph
         g = Digraph()
         shortcuts = fix_resample_shortcut_set(g)
         assert shortcuts == set()

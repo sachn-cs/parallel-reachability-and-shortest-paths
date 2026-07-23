@@ -38,9 +38,9 @@ pip install -r requirements.txt
 ### Reachability
 
 ```python
-from prspnsd.graph import Digraph
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
-from prspnsd.reachability import parallel_bfs, bfs_reachability
+from reachq.graph import Digraph
+from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.reachability import parallel_bfs, bfs_reachability
 
 g = Digraph()
 g.add_edge(0, 1)
@@ -54,9 +54,9 @@ assert reachable == bfs_reachability(g, 0)
 ### Shortest Paths
 
 ```python
-from prspnsd.graph import WeightedDigraph
-from prspnsd.hopset import build_hopset_for_sssp
-from prspnsd.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.graph import WeightedDigraph
+from reachq.hopset import build_hopset_for_sssp
+from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
 g = WeightedDigraph()
 g.add_edge(0, 1, 1)
@@ -70,7 +70,7 @@ approx = shortest_path_hopbound(g, hopset, 0, max_hops=100)
 ### Graph Generation
 
 ```python
-from prspnsd.generators import random_dag, dense_graph, cycle_graph
+from reachq.generators import random_dag, dense_graph, cycle_graph
 
 # Random DAG with 50 vertices and edge probability 0.2
 g1 = random_dag(n=50, edge_probability=0.2, random_seed=1)
@@ -85,8 +85,8 @@ g3 = cycle_graph(10)
 ### Serialization
 
 ```python
-from prspnsd.generators import path_graph
-from prspnsd.serialization import digraph_to_json, digraph_from_json
+from reachq.generators import path_graph
+from reachq.serialization import digraph_to_json, digraph_from_json
 
 g = path_graph(10)
 text = digraph_to_json(g)
@@ -98,8 +98,8 @@ assert set(g.edges()) == set(h.edges())
 ### Work/Depth Instrumentation
 
 ```python
-from prspnsd.work_depth import WorkDepthAccountant, record_bfs
-from prspnsd.generators import path_graph
+from reachq.work_depth import WorkDepthAccountant, record_bfs
+from reachq.generators import path_graph
 
 graph = path_graph(100)
 wd = WorkDepthAccountant()
@@ -114,8 +114,8 @@ print(wd.summary())
 ### Invariant Checking
 
 ```python
-from prspnsd.invariants import assert_reachability_preserved
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability
+from reachq.invariants import assert_reachability_preserved
+from reachq.shortcut_set import build_shortcut_set_for_reachability
 
 shortcuts, _ = build_shortcut_set_for_reachability(g, random_seed=42)
 assert_reachability_preserved(g, shortcuts)

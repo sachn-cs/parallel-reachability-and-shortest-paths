@@ -1,7 +1,7 @@
 """Centralised logging configuration.
 
 Call ``configure()`` once at the entry point of a CLI / script. Module
-loggers (``logging.getLogger(__name__)``) inside ``prspnsd`` pick up the
+loggers (``logging.getLogger(__name__)``) inside ``reachq`` pick up the
 handler automatically because we attach to the root logger.
 
 Honour the ``PRSPNSD_LOG`` environment variable: ``DEBUG``, ``INFO``

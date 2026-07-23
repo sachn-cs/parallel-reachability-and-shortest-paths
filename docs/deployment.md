@@ -8,7 +8,7 @@ This document covers how to deploy and distribute PRSPNSD.
 
 ```bash
 # Install from PyPI (when published)
-pip install prspnsd
+pip install reachq
 
 # Install from source
 git clone https://github.com/sachncs/parallel-reachability-and-shortest-paths.git
@@ -67,7 +67,7 @@ twine check dist/*
 
 3. Test the installation:
    ```bash
-   pip install --index-url https://test.pypi.org/simple/ prspnsd
+   pip install --index-url https://test.pypi.org/simple/ reachq
    ```
 
 4. Upload to PyPI:
@@ -124,8 +124,8 @@ CMD ["python", "scripts/demo.py"]
 ### Build and Run
 
 ```bash
-docker build -t prspnsd .
-docker run prspnsd
+docker build -t reachq .
+docker run reachq
 ```
 
 ## Performance Considerations
@@ -161,7 +161,7 @@ logging.basicConfig(level=logging.DEBUG)
 Built-in profiling support via `work_depth.py`:
 
 ```python
-from prspnsd.work_depth import WorkDepthAccountant
+from reachq.work_depth import WorkDepthAccountant
 
 wd = WorkDepthAccountant()
 wd.start_timer()

@@ -1,9 +1,9 @@
-"""Tests for prspnsd.closed_form (paper contribution: tight bound on
+"""Tests for reachq.closed_form (paper contribution: tight bound on
 JLS essential shortcut set)."""
 
 from __future__ import annotations
 
-from prspnsd.closed_form import (
+from reachq.closed_form import (
     binary_tree_dag,
     layered_dag_shortcut_set,
     lower_bound_path,
@@ -28,7 +28,7 @@ class TestCycleOptimality:
     def test_cycle_optimal_H_is_empty(self):
         """The n-cycle: every vertex reaches every other via the
         cycle, so optimal H is empty."""
-        from prspnsd.closed_form import cycle_shortcut_set
+        from reachq.closed_form import cycle_shortcut_set
         for n in [10, 50, 100]:
             assert cycle_shortcut_set(n) == set()
 

@@ -1,8 +1,8 @@
-"""Tests for prspnsd.blas_omega (runtime omega detection)."""
+"""Tests for reachq.blas_omega (runtime omega detection)."""
 
 from __future__ import annotations
 
-from prspnsd.blas_omega import (
+from reachq.blas_omega import (
     BLAS_OMEGA_TABLE,
     detect_blas_vendor,
     omega_table,

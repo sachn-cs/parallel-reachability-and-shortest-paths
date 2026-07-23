@@ -427,7 +427,7 @@ def contract_sccs(graph: Digraph) -> tuple[list[set[object]], dict[object, int]]
         A tuple ``(sccs, scc_map)`` where *sccs* is a list of vertex sets
         (one per SCC) and *scc_map* maps each vertex to its SCC index.
     """
-    from prspnsd.reachability import strongly_connected_components
+    from reachq.reachability import strongly_connected_components
 
     sccs = strongly_connected_components(graph)
     scc_map: dict[object, int] = {}

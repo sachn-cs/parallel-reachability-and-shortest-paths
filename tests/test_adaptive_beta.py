@@ -1,9 +1,9 @@
-"""Tests for prspnsd.adaptive_beta (Innovation #3)."""
+"""Tests for reachq.adaptive_beta (Innovation #3)."""
 
 from __future__ import annotations
 
-from prspnsd.adaptive_beta import adaptive_beta, paper_beta
-from prspnsd.generators import (
+from reachq.adaptive_beta import adaptive_beta, paper_beta
+from reachq.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
@@ -18,7 +18,7 @@ class TestAdaptiveBeta:
         assert beta >= 1.0
 
     def test_returns_zero_on_empty_graph(self):
-        from prspnsd.graph import Digraph
+        from reachq.graph import Digraph
         beta = adaptive_beta(Digraph(), n_samples=5)
         assert beta == 0.0
 

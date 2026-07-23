@@ -4,19 +4,19 @@ from __future__ import annotations
 
 import numpy as np
 
-from prspnsd.generators import (
+from reachq.generators import (
     cycle_graph,
     path_graph,
     random_dag,
 )
-from prspnsd.graph import Digraph
-from prspnsd.numpy_bfs import (
+from reachq.graph import Digraph
+from reachq.numpy_bfs import (
     build_csr_pair,
     csr_reachable_backward,
     csr_reachable_forward,
     should_use_csr,
 )
-from prspnsd.reachability import bfs_reachability, reverse_bfs_reachability
+from reachq.reachability import bfs_reachability, reverse_bfs_reachability
 
 
 def test_to_csr_returns_arrays() -> None:  # noqa: D103

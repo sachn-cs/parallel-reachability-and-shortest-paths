@@ -1,6 +1,6 @@
 # Fix/Resample variant (Paper 1, experimental)
 
-This note describes `prspnsd/fix_resample.py`, an experimental variant
+This note describes `reachq/fix_resample.py`, an experimental variant
 of the JLS shortcut-set construction inspired by Assadi–Yazdanyar's
 *Fully Dynamic Algorithms for Coloring Triangle-Free Graphs*
 (arXiv:2604.20648).
