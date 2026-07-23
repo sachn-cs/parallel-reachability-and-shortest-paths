@@ -22,6 +22,8 @@ It also contains three research contributions layered on top:
 1. **[`docs/paper_refinements.md`](docs/paper_refinements.md)** — Two lemmas formalising algorithmic refinements of the JLS construction, with proofs and empirical tables.
 2. **[`docs/notes_correctness.md`](docs/notes_correctness.md)** — A corrigendum documenting four bugs found and fixed in the reference implementation.
 3. **[`docs/algorithmic_improvements.md`](docs/algorithmic_improvements.md)** — Engineering notes on seven refinements (the two formalised above, plus five engineering wins).
+4. **[`docs/spectral_fixtures.md`](docs/spectral_fixtures.md)** — Test fixtures from Papers 2/3 (SRG, Hamming, Paley, Petersen) with honest scope notes.
+5. **[`docs/fix_resample.md`](docs/fix_resample.md)** — Experimental Fix/Resample variant from Paper 1, including the empirical trade-off (smaller `|H|`, looser hopbound) vs JLS.
 
 ---
 
@@ -141,6 +143,7 @@ from prspnsd.transitive_closure import (
 from prspnsd.generators import (
     random_dag, weighted_random_dag, layered_dag, dense_graph,
     graph_with_sccs, path_graph, cycle_graph, grid_graph,
+    petersen_graph, paley_graph, shrikhande_graph, hamming_graph,
 )
 from prspnsd.serialization import (
     digraph_to_json, digraph_from_json,
@@ -298,6 +301,24 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 - [x] Fast matrix multiplication support (ω < 3) — runtime omega detection (`prspnsd/blas_omega.py`)
 - [x] PRAM span measurement — `SpanProfiler` for sequential phase timing
 - [x] True PRAM parallelism integration — `ParallelContext` with process-based dispatch
+
+### Done (v0.8.0 — Papers 1, 2, 3 ideas)
+- [x] SRG + Hamming graph test fixtures (Papers 2/3) — `petersen_graph`,
+  `paley_graph`, `shrikhande_graph`, `hamming_graph` in
+  `prspnsd/generators.py`.
+- [x] Spectrum helpers + cross-check script (Paper 2) — `prspnsd/spectrum.py`,
+  `scripts/spectral_check.py`. Verifies generator spectra match published
+  values; documents `|H|/n` correlation with density rather than spectrum.
+- [x] Fix/Resample experimental variant (Paper 1) —
+  `prspnsd/fix_resample.py`, `scripts/eval_fix_resample.py`. Empirical
+  finding across 9/9 fixtures: Fix/Resample produces smaller `|H|`
+  (16% of JLS on average) but with looser hopbound. Trade-off
+  documented in `docs/fix_resample.md`.
+- [x] Honest documentation of each paper's contribution — `docs/spectral_fixtures.md`,
+  `docs/fix_resample.md`. The user explicitly asked for honest
+  framing: Paper 1's algorithm targets the dynamic setting (we're
+  static), and Papers 2/3 contribute test inputs rather than
+  algorithmic novelty.
 
 ### In progress (v0.7.x)
 - [ ] Networkx cross-check in CI for every PR

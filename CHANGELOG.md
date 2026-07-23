@@ -7,87 +7,72 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Added (research contributions)
+### Added (test fixtures from Papers 2/3 — algebraic graph theory)
 
-- **`docs/paper_refinements.md`** — preprint draft, now with strengthened
-  Corollary 2.3 covering ALL density regimes (was sparse-only):
-  - Lemma 2.1: TC-pruning soundness independent of trigger size.
-  - Lemma 2.2: size contribution bounded by $|R(G,p)| \cdot k \log n$ under
-    the work-comparison trigger.
-  - Corollary 2.3 (strengthened): Theorem-2 size bound preserved in
-    every regime because removing TC firings removes valid shortcuts
-    only.
-  - Lemma 3.1: hop-bounded pivot BFS preserves the $\beta$-hopbound
-    guarantee.
-  - Lemma 3.2: per-pivot BFS work bounded by $O(\min(n, n_d) + m_d)$.
-- **`docs/lit_survey.md`** — literature survey outline for TC-pruning
-  cost analysis. Documents the search plan and what to record per
-  paper; the actual retrieval is offline work outside this session.
-- **`scripts/counterexample_search.py`** + `tests/test_counterexample_search.py`:
-  the empirical study that found **no counterexample** to Corollary 2.3
-  across 24 random DAGs (n in {10, 20, 50, 80}, density in {0.1, 0.3},
-  5 seeds each). |H|_paper = |H|_tight in every case.
+- `petersen_graph()`, `paley_graph(q)`, `shrikhande_graph()`,
+  `hamming_graph(d, q)` in `prspnsd/generators.py`. Canonical graphs
+  from the algebraic graph theory literature with known structural
+  properties. The rook's graph (K₄ □ K₄) substitutes for the proper
+  Shrikhande Cayley construction since both share parameters
+  (16, 6, 2, 2). The Clebsch graph is documented as omitted rather
+  than shipped broken (the correct construction requires Cayley
+  tables on Z₂⁵ / {x ~ complement(x)}).
+- `Digraph.add_undirected_edge(u, v)`: adds both directions, counts
+  one edge. Required for the symmetric generators.
+- `prspnsd/spectrum.py`: `spectrum(g)` and `spectral_gap(g)` helpers
+  for the cross-check script.
+- `docs/spectral_fixtures.md`: explains the test fixtures and what's
+  deliberately not here.
 
-### Added (engineering)
+### Added (Fix/Resample variant — Paper 1)
 
-- `prspnsd.work_depth.SpanProfiler` — empirical parallel span measurement
-  distinct from the asymptotic WorkDepthAccountant. Records per-phase
-  wall-clock times; the *measured* span is a lower bound on true PRAM
-  span. Used by `scripts/measure_span.py`.
-- `prspnsd.parallel.ParallelContext` — `sequential` / `threads(n)` /
-  `processes(n)` strategies with `imap_unordered` dispatch. Wired into
-  `jls_with_tc_pruning` so pivots can run in parallel via a module-level
-  `_PIVOT_STATE` dict. New `parallel_workers` parameter and `parallel`
-  flag (opt-in; defaults False because threading changes scheduling).
-  Empirical speedup: 1.8–2.9× on n=500 across densities (4 workers).
-- `prspnsd.shortcut_set.density_aware_constant` — replaces the fixed
-  `_SAMPLING_CONSTANT = 10` with a rho-dependent formula when
-  `adaptive_sampling` is on. Sparse graphs keep C=10; dense graphs get
-  smaller C (down to C=1).
-- `prspnsd.blas_omega` — runtime omega detection via `numpy.show_config()`
-  with a vendor → omega lookup table (OpenBLAS/Accelerate/MKL/BLIS →
-  2.5; netlib → 3.0). Used to tighten the Lemma 2.2 trigger bound
-  conservatively.
+- `prspnsd/fix_resample.py`: experimental Fix/Resample variant
+  inspired by Assadi–Yazdanyar's dynamic coloring algorithm.
+  Static analogue only — the dynamic-update bounds from Paper 1 do
+  not apply to our codebase. Honest framing as an experimental
+  baseline.
+- `scripts/eval_fix_resample.py`: empirical comparison vs JLS.
+  Empirical finding across 9/9 fixtures: Fix/Resample produces
+  smaller `|H|` (16% of JLS on average) but with a looser hopbound
+  (~3 vs JLS's ~1). Trade-off documented in `docs/fix_resample.md`.
+- `docs/fix_resample.md`: scope, mechanism, empirical result, and the
+  trade-off interpretation.
 
-### Added (scripts)
+### Added (spectral cross-check)
 
-- `scripts/measure_span.py` — runs the construction under SpanProfiler.
-- `scripts/eval_parallelism.py` — sequential/threads speedup comparison.
-- `scripts/counterexample_search.py` — Lemma 2.2 / Corollary 2.3 search.
-- `tests/test_properties.py` — hypothesis-driven property tests
-  (reachability preserved, hopbound observed, no self-loops,
-  |H| <= n² sanity, reproducibility). Defaults to 20 examples; raise
-  via `PRSPNSD_HYPOTHESIS=N`.
+- `scripts/spectral_check.py`: runs each named fixture through the JLS
+  shortcut-set construction and reports `|H|`, `β`, spectral gap. The
+  result confirms that the construction's `|H|` depends on density ρ
+  rather than directly on the spectrum.
+
+### Bug fixes
+
+- `petersen_graph()`: corrected inner cycle order to pentagram
+  `(5,7),(7,9),(9,6),(6,8),(8,5)` matching NetworkX. Previously
+  produced a non-isomorphic 3-regular graph.
+- `hamming_graph()`: fixed `_int_to_base_q` / `_base_q_to_int`
+  inconsistency (different digit orderings). Hamming graphs now
+  produce the correct eigenvalues.
+- `paley_graph()`: documentation and tests now reflect the actual
+  eigenvalues `(-1 ± √q)/2` rather than the integer placeholder.
 
 ### Tests
 
-- `tests/test_properties.py`: 4 hypothesis-given invariants + 5 seeded
-  reproducibility tests.
-- `tests/test_work_depth.py`: 4 new SpanProfiler tests.
-- `tests/test_shortcut_set.py`: 3 density_aware_constant tests + 4
-  parallel-pivot tests (sequential == parallel, reachability preserved,
-  pivot_worker contract, no self-loops).
-- `tests/test_blas_omega.py`: 5 detector tests.
+- `tests/test_generators.py`: 8 new tests for SRG / Hamming
+  generators (degree, edge count, feasibility, error paths).
+- `tests/test_spectrum.py`: 6 tests verifying generator spectra
+  match published values.
+- `tests/test_fix_resample.py`: 8 tests (soundness on 4 fixtures,
+  reproducibility, edge cases, threshold control).
+- Total: 352 tests pass (was 346).
 
 ### Changed
 
-- All scripts use `logging.getLogger` and write to stderr.
-- Library code in `prspnsd/` has zero `except Exception` blocks except the
-  documented scipy fallback in `transitive_closure.py`.
-- Tightened TC trigger now uses `min(_OMEGA_DEFAULT, runtime_omega())`
-  to never overestimate the achievable omega.
-
-### Roadmap updates
-
-- Done: hypothesis tests, span profiler, density-aware sampling, parallel
-  pivots, BLAS omega detection, parallelism comparison, counterexample
-  search, Lemma 2.2 dense proof (strengthened).
-- Done (this release): runtime omega detection, parallel pivot
-  processing (threads + processes via ParallelContext).
+- README roadmap now lists test-fixture work as Done in v0.8.0.
 
 ---
 
-## [0.6.0] - 2026-07-23
+## [0.7.0] - 2026-07-23
 
 ### Added
 
