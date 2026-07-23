@@ -158,4 +158,3 @@ jobs:
 
       - name: Build docs with MkDocs
         run: mkdocs build --strict
-        continue-on-error: true
