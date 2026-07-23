@@ -7,6 +7,66 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added (research contributions)
+
+- **`docs/paper_refinements.md`** — preprint draft formalising two algorithmic
+  refinements of the JLS construction:
+  - Lemma 2.1: TC-pruning soundness independent of trigger size.
+  - Lemma 2.2: size contribution bounded by $|R(G,p)| \cdot k \log n$ under
+    the work-comparison trigger.
+  - Corollary 2.3: Theorem-2 size bound preserved in the sparse regime
+    ($m \le n\rho$).
+  - Lemma 3.1: hop-bounded pivot BFS preserves the $\beta$-hopbound
+    guarantee.
+  - Lemma 3.2: per-pivot BFS work bounded by $O(\min(n, n_d) + m_d)$.
+- **`docs/notes_correctness.md`** — corrigendum on four correctness and
+  engineering bugs found in the reference implementation, with
+  reproducible steps and the fix commit hashes.
+- **`tests/test_paper_lemmas.py`** — 22 empirical tests supporting the
+  lemmas, including 50-seed invariance tests for Lemma 2.2.
+- **`scripts/eval_refinements.py`** — generates the empirical tables for
+  the paper draft.
+
+### Added (engineering)
+
+- `prspnsd.logging_config`: centralised logging setup with `PRSPNSD_LOG`
+  environment variable. Scripts use `logging.getLogger()` instead of
+  `print`.
+- `scripts/eval_refinements.py`: per-cell ablation for the paper tables.
+- `tests/test_paper_lemmas.py`: empirical lemma validation.
+
+### Changed
+
+- All scripts (`reproduce_results.py`, `run_ablation.py`,
+  `download_datasets.py`) now use `logging.getLogger` and write to
+  stderr by default. The previous `print(..., flush=True)` pattern was
+  a debugging hack that didn't compose with `--quiet` or `-v`.
+- Narrowed `try/except` blocks in scripts: only timeouts and SIGINT are
+  caught (real error boundaries for benchmarks). Library code in
+  `prspnsd/` has zero `except Exception` blocks except the documented
+  scipy fallback in `transitive_closure.py`.
+- Removed `__pycache__` references from `scripts/cli.py` import.
+- `scripts/reproduce_results.py` suppresses `numpy.show_config()` stdout
+  chatter during BLAS detection.
+- `prspnsd.logging_config.CONFIGURED` is the public module-level flag
+  (no underscore-prefix private naming).
+
+### Removed
+
+- `print(..., flush=True)` calls throughout `scripts/`. Replaced with
+  `log.info(...)`, `log.warning(...)`, etc.
+
+### Roadmap
+
+See the **Roadmap** section of `README.md` for the full list of done /
+in-progress / planned / deferred work, including the open research
+questions (formalising Lemma 2.2 for dense graphs, auto-tuned sampling
+constant, Cython port for web-Google scale).
+
+---
+
+## [0.6.0] - 2026-07-23
+
 ### Added
 
 - `scripts/download_datasets.py`: idempotent SNAP dataset downloader with sha256 verification.
