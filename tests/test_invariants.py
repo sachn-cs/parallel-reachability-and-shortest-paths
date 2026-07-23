@@ -13,7 +13,7 @@ from prspnsd.invariants import (
     assert_shortcut_set_size_bound,
     check_equivalence_classes,
 )
-from prspnsd.shortcut_set import build_shortcut_set_for_reachability, jls_shortcut_set
+from prspnsd.shortcut_set import build_shortcut_set_for_reachability, jls_with_tc_pruning
 
 
 class TestReachabilityPreserved:
@@ -21,7 +21,10 @@ class TestReachabilityPreserved:
 
     def test_path_with_shortcuts(self):
         g = path_graph(10)
-        shortcuts = jls_shortcut_set(g, k=2.0, max_level=3, n_global=10, random_seed=1)
+        shortcuts = jls_with_tc_pruning(
+            g, k=2.0, rho=2.0, max_level=3, n_global=10, random_seed=1,
+            flags={"tight_tc_trigger": False},  # tiny r_ball case
+        )
         assert_reachability_preserved(g, shortcuts)
 
     def test_cycle_with_shortcuts(self):
