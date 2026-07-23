@@ -66,6 +66,15 @@ def sparsify_shortcut_set(
     Returns the minimal (with respect to iterated local-redundancy)
     sound shortcut set. May be smaller than the input by 30-90% on
     typical inputs.
+
+    Examples:
+        >>> from reachq.graph import Digraph
+        >>> g = Digraph()
+        >>> g.add_edge(0, 1)
+        >>> g.add_edge(1, 2)
+        >>> # (0, 2) is redundant because 0 reaches 2 via 0->1->2.
+        >>> sorted(sparsify_shortcut_set(g, {(0, 2)}))
+        []
     """
     H: set[tuple[Any, Any]] = set(shortcuts)
     log.info("sparsify: starting with |H|=%d", len(H))
