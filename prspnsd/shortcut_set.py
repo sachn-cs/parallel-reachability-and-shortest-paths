@@ -40,6 +40,34 @@ from prspnsd.reachability import compute_r_minus, compute_r_plus
 from prspnsd.transitive_closure import transitive_closure_on_subset
 
 _SAMPLING_CONSTANT = 10
+# Density-aware override: when the wrapper passes a C value derived
+# from graph density (rho), it lands here. See density_aware_constant()
+# for the formula and rationale.
+_DENSITY_AWARE_CONSTANT: float | None = None
+
+
+def density_aware_constant(rho: float, k: float) -> float:
+    """Return a sampling constant C chosen by graph density.
+
+    Rationale: the paper's analysis is worst-case over all (n, m);
+    C=10 is conservative for sparse graphs (we can sample more
+    aggressively) and wasteful for dense graphs (we should sample less).
+
+    Simple formula: scale the constant inversely with rho so that the
+    expected number of pivots at level 0 (n_global * p_0) is held to a
+    constant fraction of n_global:
+
+        p_0 = C * k * log n / n
+        E[#pivots] = C * k * log n
+
+    For the paper's worst case (rho small, C=10) this gives ~10*k*log n
+    pivots, which is more than needed. We scale C by min(1, max(0.1, rho))
+    so dense graphs get smaller C and sparse graphs keep the default.
+    """
+    if rho <= 0 or k <= 1:
+        return 10.0
+    scale = min(1.0, max(0.1, rho / max(1.0, k)))
+    return 10.0 * scale
 # Default omega for the TC work comparison. The paper's analysis is
 # worst-case over omega < 2.371; we use 2.5 as a conservative upper bound
 # so the "tightened TC trigger" doesn't accidentally trigger too eagerly.
@@ -168,7 +196,8 @@ def jls_with_tc_pruning(
         return set()
 
     log_n = math.log2(n_global) if n_global > 1 else 0.0
-    base_prob = min(1.0, _SAMPLING_CONSTANT * (k ** (level + 1)) * log_n / n_global)
+    sampling_constant = _DENSITY_AWARE_CONSTANT if _DENSITY_AWARE_CONSTANT is not None else _SAMPLING_CONSTANT
+    base_prob = min(1.0, sampling_constant * (k ** (level + 1)) * log_n / n_global)
 
     # Improvement 6: skip recursion if sampling produces zero pivots.
     vertices = graph.vertices()
@@ -416,6 +445,16 @@ def build_shortcut_set_for_reachability(
     rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
     rho = min(rho, math.sqrt(n))
     max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
+
+    # Density-aware sampling: tighter constant for dense graphs where
+    # the paper's C=10 wastes time on already-redundant pivots. The
+    # choice is plumbed through the existing Flags by exposing the
+    # constant via _DENSITY_AWARE_CONSTANT before the recursion.
+    if f.adaptive_sampling:
+        global _DENSITY_AWARE_CONSTANT
+        _DENSITY_AWARE_CONSTANT = density_aware_constant(rho, k)
+    else:
+        _DENSITY_AWARE_CONSTANT = None
 
     dag_shortcuts = jls_with_tc_pruning(
         dag, k, rho, max_level, dag.num_vertices(), level=0,
