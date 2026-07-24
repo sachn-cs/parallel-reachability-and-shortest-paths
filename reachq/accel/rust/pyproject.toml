@@ -1,0 +1,13 @@
+[build-system]
+requires = ["maturin>=1.0"]
+build-backend = "maturin"
+
+[project]
+name = "reachq_rust_kernels"
+version = "0.1.0"
+description = "Rust acceleration kernels for reachq via PyO3"
+license = {text = "MIT"}
+
+[tool.maturin]
+module-name = "reachq.accel.rust._reachq_rust"
+features = ["pyo3/extension-module"]
