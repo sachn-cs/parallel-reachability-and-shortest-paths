@@ -34,7 +34,7 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Any, Optional
+from typing import Any, Iterable, Optional
 
 from reachq.core.graph import Digraph, contract_sccs, partition_by_labels
 from reachq.core.config import RefinementConfig, get_logger
@@ -203,7 +203,7 @@ LabelValue = Any
 
 
 def _sample_pivots_weighted(
-    vertices: list[Any],
+    vertices: Iterable[Any],
     out_degrees: dict[Any, int],
     prob: float,
     rng: random.Random,
@@ -235,7 +235,7 @@ def _sample_pivots_weighted(
 
 
 def _sample_pivots_uniform(
-    vertices: list[Any],
+    vertices: Iterable[Any],
     prob: float,
     rng: random.Random,
 ) -> list[Any]:
@@ -599,7 +599,7 @@ def build_shortcut_set_for_reachability(
             if trivial:
                 shortcuts.add((u_idx, v_idx))
             else:
-                shortcuts.add((scc_rep[u_idx], scc_rep[v_idx]))
+                shortcuts.add((scc_rep[int(u_idx)], scc_rep[int(v_idx)]))
 
         if sparsify_shortcuts and shortcuts:
             from reachq.research.sparsify import sparsify_shortcut_set

@@ -108,7 +108,7 @@ def bfs_limited(
     return visited
 
 
-def any_vertex(graph: Digraph):
+def any_vertex(graph: Digraph) -> object:
     """Return an arbitrary vertex (for iteration convenience)."""
     for v in graph.vertices():
         return v

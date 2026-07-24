@@ -97,4 +97,4 @@ def paper_beta(graph: Digraph, omega: float = 3.0) -> float:
     m = graph.num_edges()
     if m == 0:
         return float("inf")
-    return (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
+    return float((n**omega / m) ** (1.0 / (2.0 * omega - 2.0)))

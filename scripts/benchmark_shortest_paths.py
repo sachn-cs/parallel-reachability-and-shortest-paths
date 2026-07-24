@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import csv
 import time
+from typing import Any
 
 from reachq.core.generators import weighted_dense_graph
 from reachq.core.graph import WeightedDigraph
@@ -62,7 +63,7 @@ def benchmark_suite(
     output_csv: str | None,
 ) -> None:
     """Run benchmarks across sizes and epsilon values."""
-    rows: list[dict[str, object]] = []
+    rows: list[dict[str, Any]] = []
     for n in sizes:
         for epsilon in epsilons:
             # Use a moderately dense weighted graph

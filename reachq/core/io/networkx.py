@@ -8,13 +8,13 @@ NetworkX DiGraphs.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
     from reachq.core.graph import Digraph
 
 
-def to_networkx(graph: Digraph) -> object:
+def to_networkx(graph: Digraph) -> Any:
     """Convert a reachq Digraph to a NetworkX DiGraph."""
     try:
         import networkx as nx
@@ -32,10 +32,10 @@ def to_networkx(graph: Digraph) -> object:
     return g
 
 
-def from_networkx(nx_graph: object) -> Digraph:
+def from_networkx(nx_graph: Any) -> Digraph:
     """Convert a NetworkX graph to a reachq Digraph."""
     try:
-        import networkx as nx
+        import networkx  # noqa: F401
     except ImportError as e:
         raise ImportError(
             "networkx is required for NetworkX interop. "
