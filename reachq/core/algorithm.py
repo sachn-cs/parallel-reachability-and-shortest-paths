@@ -67,6 +67,11 @@ _DENSITY_AWARE_CONSTANT: float | None = None
 _PIVOT_STATE: dict[str, Any] = {}
 
 
+def _init_pivot_worker(state: dict[str, Any]) -> None:
+    """Process-mode initializer: copy state into the worker's module globals."""
+    _PIVOT_STATE.update(state)
+
+
 def _set_pivot_state(
     csr_data: Any, rev: Any, graph: Any, max_hops: Optional[int]
 ) -> None:
