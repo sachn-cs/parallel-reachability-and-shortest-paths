@@ -160,7 +160,7 @@ class TestWeightedRandomDag:
         g1 = weighted_random_dag(10, 0.3, weight_range=(1, 5), random_seed=7)
         g2 = weighted_random_dag(10, 0.3, weight_range=(1, 5), random_seed=7)
         assert set(g1.edges()) == set(g2.edges())
-        for u, v, w in g1.edges():  # noqa: B007
+        for u, v, w in g1.edges():
             assert 1 <= w <= 5
 
 

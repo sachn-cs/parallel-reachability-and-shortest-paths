@@ -47,13 +47,21 @@ class TestStarOptimality:
 
 
 class TestLayeredDAGOptimality:
-    def test_layered_dag_optimal_H_is_empty(self):
-        """The layered DAG with complete bipartite between layers: each
-        vertex reaches all later-layer vertices via the bipartite
-        edges. Optimal H is empty.
+    def test_layered_dag_optimal_H_is_within_layer_cliques(self):
+        """The layered DAG shortcut set adds one (j1, j2) pair per
+        (j1, j2) within each layer where j1 != j2.
+
+        For a layered DAG with ``layers`` layers of size ``layer_size``,
+        the shortcut set has ``layers * layer_size * (layer_size - 1)``
+        pairs, all of which connect two vertices in the same layer.
         """
         for layers, layer_size in [(5, 10), (10, 10)]:
-            assert layered_dag_shortcut_set(layers, layer_size) == set()
+            H = layered_dag_shortcut_set(layers, layer_size)
+            assert len(H) == layers * layer_size * (layer_size - 1)
+            for u, v in H:
+                u_layer, _ = divmod(u, layer_size)
+                v_layer, _ = divmod(v, layer_size)
+                assert u_layer == v_layer
 
 
 class TestPaperBoundGap:
@@ -78,8 +86,10 @@ class TestPaperBoundGap:
             n = layers * layer_size
             bound = paper_bound_const(n)
             optimal = len(layered_dag_shortcut_set(layers, layer_size))
-            assert optimal == 0
-            assert bound > 0
+            # The within-layer shortcut set is much smaller than the
+            # paper's worst-case bound O(n^2) for dense graphs.
+            assert optimal == layers * layer_size * (layer_size - 1)
+            assert bound > optimal
 
 
 class TestTreeGenerator:

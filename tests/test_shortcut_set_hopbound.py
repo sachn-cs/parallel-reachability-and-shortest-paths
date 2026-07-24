@@ -13,7 +13,7 @@ from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 
-def _max_hops(g, s, H, beta):
+def max_hops(g, s, H, beta):
     """Return the max BFS depth from s via G + H, limited to beta."""
     visited = {s: 0}
     q = deque([s])
@@ -52,7 +52,7 @@ class TestHopboundPreserved:
             sparsify_shortcuts=False,
         )
         for s in g.vertices():
-            d = _max_hops(g, s, shortcuts, int(beta) + 1)
+            d = max_hops(g, s, shortcuts, int(beta) + 1)
             assert (
                 d <= int(beta) + 1
             ), f"hopbound violated from {s}: max hop = {d}, beta = {beta}"
@@ -71,7 +71,7 @@ class TestHopboundPreserved:
             sparsify_shortcuts=False,
         )
         for s in g.vertices():
-            d = _max_hops(g, s, shortcuts, int(beta) + 1)
+            d = max_hops(g, s, shortcuts, int(beta) + 1)
             assert d <= int(beta) + 1
 
     def test_hopbound_on_graph_with_scc(self):
@@ -91,7 +91,7 @@ class TestHopboundPreserved:
             sparsify_shortcuts=False,
         )
         for s in g.vertices():
-            d = _max_hops(g, s, shortcuts, int(beta) + 1)
+            d = max_hops(g, s, shortcuts, int(beta) + 1)
             assert d <= int(beta) + 1
 
     def test_soundness_implies_hopbound(self):
