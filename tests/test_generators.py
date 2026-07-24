@@ -206,14 +206,15 @@ class TestSpectralGraphGenerators:
     def test_paley_graph_properties(self):
         from reachq.generators import paley_graph
 
-        # Paley(5) is the 5-cycle C5.
+        # Paley(5) is the 5-cycle C5: 5 undirected edges, 10 directed.
         g5 = paley_graph(5)
         assert g5.num_vertices() == 5
-        assert g5.num_edges() == 5
-        # Paley(13) is srg(13, 6, 2, 3): 13*6/2 = 39 edges.
+        assert g5.num_edges() == 10
+        # Paley(13) is srg(13, 6, 2, 3): 13*6/2 = 39 undirected pairs,
+        # 78 directed edges.
         g13 = paley_graph(13)
         assert g13.num_vertices() == 13
-        assert g13.num_edges() == 39
+        assert g13.num_edges() == 78
 
     def test_paley_invalid_inputs(self):
         from reachq.generators import paley_graph
@@ -228,8 +229,9 @@ class TestSpectralGraphGenerators:
 
         g = shrikhande_graph()
         assert g.num_vertices() == 16
-        # Rook's graph: 16 * 6 / 2 = 48 edges.
-        assert g.num_edges() == 48
+        # Rook's graph (substituted for Shrikhande): 16 * 6 / 2 = 48 undirected
+        # pairs, 96 directed edges.
+        assert g.num_edges() == 96
         # 6-regular.
         degrees = {len(g.out_edges.get(v, set())) for v in g.vertices()}
         assert degrees == {6}
@@ -242,9 +244,8 @@ class TestSpectralGraphGenerators:
         # H(2,3) is 4-regular: each vertex has 2 coords × 2 directions = 4 neighbours.
         degrees = {len(g.out_edges.get(v, set())) for v in g.vertices()}
         assert degrees == {4}
-        # H(d, q) edge count: d * q^d * (q-1) / 2.
-        # H(2,3): 2 * 9 * 2 / 2 = 18.
-        assert g.num_edges() == 18
+        # H(d, q): q^d vertices of degree d*(q-1); directed edges = n*deg = 36 for H(2,3).
+        assert g.num_edges() == 36
 
     def test_hamming_invalid_inputs(self):
         from reachq.generators import hamming_graph

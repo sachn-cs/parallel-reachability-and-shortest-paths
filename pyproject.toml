@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reachq"
-version = "0.5.0"
+version = "1.0.0"
 description = "Pure-Python reimplementation of the JLS shortcut-set and CFR hopset constructions, with seven toggleable algorithmic refinements and four documented correctness fixes."
 readme = "README.md"
 license = {text = "MIT"}
@@ -43,6 +43,9 @@ dependencies = [
     "numpy>=1.21.0",
     "scipy>=1.10.0",
 ]
+
+[project.scripts]
+reachq = "scripts.cli:cli_main"
 
 [project.optional-dependencies]
 dev = [

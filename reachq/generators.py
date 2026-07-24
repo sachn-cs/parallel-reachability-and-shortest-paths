@@ -464,9 +464,10 @@ def _is_prime(n: int) -> bool:
 def hamming_graph(d: int, q: int) -> Digraph:
     """The Hamming graph H(d, q).
 
-    |V| = q^d, |E| = d * q^(d-1) * (q-1) / 2 (undirected). Vertex
-    labels are tuples (x_1, ..., x_d) -- but since Digraph labels are
-    integers, we use the natural mapping (x_1, ..., x_d) -> sum x_i * q^(i-1).
+    |V| = q^d, degree = d * (q-1), |E| = d * q^d * (q-1) / 2 (undirected pairs)
+    = d * q^d * (q-1) (directed edges). Vertex labels are tuples
+    (x_1, ..., x_d) -- but since Digraph labels are integers, we use
+    the natural mapping (x_1, ..., x_d) -> sum x_i * q^(i-1).
     """
     if d < 1:
         raise ValueError(f"hamming_graph: d must be >= 1, got {d}")

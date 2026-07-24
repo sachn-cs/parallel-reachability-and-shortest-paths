@@ -26,9 +26,12 @@ from reachq.generators import (
 )
 from reachq.graph import Digraph, WeightedDigraph
 from reachq.hopset import build_hopset_for_sssp
+from reachq.logging_config import get_logger
 from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.shortcut_set import build_shortcut_set_for_reachability
 from reachq.shortest_paths import dijkstra, shortest_path_hopbound
+
+log = get_logger("reachq.benchmark_large")
 
 
 class TimeoutError(Exception):  # noqa: A001
@@ -212,7 +215,7 @@ def run_snap_benchmarks(
     try:
         if workers <= 1 or len(datasets) <= 1:
             for name in datasets:
-                print(f"--- {name} ({SNAP_DATASETS[name]['type']}) ---", flush=True)
+                log.info("--- %s (%s) ---", name, SNAP_DATASETS[name]['type'])
                 try:
                     row = _run_one_snap(name, omega, seed, check_correctness)
                 except Exception as e:
@@ -221,9 +224,9 @@ def run_snap_benchmarks(
                         "kind": "snap-reachability",
                         "error": f"load failed: {e}",
                     }
-                    print(f"  LOAD FAILED: {e}", flush=True)
+                    log.warning("  load failed: %s", e)
                 else:
-                    print(_format_row(row), flush=True)
+                    log.info("%s", _format_row(row))
                 if writer:
                     writer.write(row)
             return
@@ -242,7 +245,7 @@ def run_snap_benchmarks(
             }
             while async_results:
                 async_result, name = next(iter(async_results.items()))
-                print(f"--- {name} ({SNAP_DATASETS[name]['type']}) ---", flush=True)
+                log.info("--- %s (%s) ---", name, SNAP_DATASETS[name]['type'])
                 try:
                     row = async_result.get(timeout=timeout)
                 except multiprocessing.TimeoutError:
@@ -255,11 +258,8 @@ def run_snap_benchmarks(
                             "kind": "snap-reachability",
                             "error": f"exceeded {timeout}s timeout",
                         }
-                        print(
-                            f"--- {pending_name} ({SNAP_DATASETS[pending_name]['type']}) ---",
-                            flush=True,
-                        )
-                        print(f"  TIMEOUT after {timeout}s", flush=True)
+                        log.info("--- %s (%s) ---", pending_name, SNAP_DATASETS[pending_name]['type'])
+                        log.warning("  timeout after %ds", timeout)
                         if writer:
                             writer.write(row)
                     async_results.clear()
@@ -270,9 +270,9 @@ def run_snap_benchmarks(
                         "kind": "snap-reachability",
                         "error": f"worker failed: {e}",
                     }
-                    print(f"  FAILED: {e}", flush=True)
+                    log.warning("  failed: %s", e)
                 else:
-                    print(_format_row(row), flush=True)
+                    log.info("%s", _format_row(row))
                 if writer:
                     writer.write(row)
                 del async_results[async_result]
@@ -300,7 +300,7 @@ def run_synthetic_scaling(
     try:
         for n in sizes:
             m = int(edge_density * n * (n - 1) // 2)
-            print(f"--- synthetic n={n} m={m} ---", flush=True)
+            log.info("--- synthetic n=%d m=%d ---", n, m)
 
             graph = random_dag(n, edge_probability=edge_density, random_seed=seed)
             row = benchmark_reachability(
@@ -312,7 +312,7 @@ def run_synthetic_scaling(
             )
             row["source"] = f"random_dag_{n}"
             row["kind"] = "synthetic-reachability"
-            print(_format_row(row), flush=True)
+            log.info("%s", _format_row(row))
             if writer:
                 writer.write(row)
 
@@ -331,7 +331,7 @@ def run_synthetic_scaling(
             )
             wrow["source"] = f"random_dag_{n}"
             wrow["kind"] = "synthetic-shortest-paths"
-            print(_format_row(wrow), flush=True)
+            log.info("%s", _format_row(wrow))
             if writer:
                 writer.write(wrow)
     finally:
@@ -386,7 +386,7 @@ def main() -> None:
     check_correctness = not args.skip_correctness
 
     if not args.synthetic_only:
-        print(f"=== SNAP Datasets (workers={args.workers}) ===", flush=True)
+        log.info("=== SNAP Datasets (workers=%d) ===", args.workers)
         try:
             run_snap_benchmarks(
                 args.datasets,
@@ -398,11 +398,11 @@ def main() -> None:
                 args.workers,
             )
         except KeyboardInterrupt:
-            print("\nInterrupted. Partial results preserved in CSV.", flush=True)
+            log.warning("interrupted; partial results preserved in CSV")
             return
 
     if not args.snap_only:
-        print("\n=== Synthetic Scaling ===", flush=True)
+        log.info("=== Synthetic Scaling ===")
         try:
             run_synthetic_scaling(
                 args.synthetic_sizes,
@@ -415,7 +415,7 @@ def main() -> None:
                 args.timeout,
             )
         except KeyboardInterrupt:
-            print("\nInterrupted. Partial results preserved in CSV.", flush=True)
+            log.warning("interrupted; partial results preserved in CSV")
             return
 
 

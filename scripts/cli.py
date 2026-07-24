@@ -39,6 +39,7 @@ from reachq.serialization import (
 )
 from reachq.shortcut_set import build_shortcut_set_for_reachability
 from reachq.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.logging_config import get_logger
 from reachq.work_depth import (
     WorkDepthAccountant,
     theoretical_hopset_depth,
@@ -46,6 +47,8 @@ from reachq.work_depth import (
     theoretical_shortcut_depth,
     theoretical_shortcut_work,
 )
+
+log = get_logger("reachq.cli")
 
 
 def load_digraph(path: str) -> Digraph:
@@ -77,23 +80,22 @@ def cmd_reachability(args: argparse.Namespace) -> None:
     original = bfs_reachability(graph, source)
     augmented = parallel_bfs(graph, source, shortcuts)
 
-    print(f"Graph: n={graph.num_vertices()}, m={graph.num_edges()}")
-    print(f"Shortcut set size: {len(shortcuts)}")
-    print(f"Target hopbound beta: {beta:.2f}")
-    print(f"Construction time: {elapsed:.3f}s")
-    print(f"Reachable from {source}: {len(original)} vertices")
-    print(f"Reachability preserved: {original == augmented}")
+    log.info("graph: n=%d m=%d", graph.num_vertices(), graph.num_edges())
+    log.info("shortcut set size: %d", len(shortcuts))
+    log.info("target hopbound beta: %.2f", beta)
+    log.info("construction time: %.3fs", elapsed)
+    log.info("reachable from %s: %d vertices", source, len(original))
+    log.info("reachability preserved: %s", original == augmented)
     if args.verbose:
         n = graph.num_vertices()
         m = graph.num_edges()
-        # Compute theoretical bounds from the paper
         rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
         tw = theoretical_shortcut_work(n, m, rho, omega=args.omega)
         td = theoretical_shortcut_depth(n, rho)
-        print(f"Theoretical shortcut work: {tw:.2e}")
-        print(f"Theoretical shortcut depth: {td:.2e}")
-        print(f"Simulated work: {accountant.work:.2e}")
-        print(f"Simulated depth: {accountant.depth:.2e}")
+        log.info("theoretical shortcut work: %.2e", tw)
+        log.info("theoretical shortcut depth: %.2e", td)
+        log.info("simulated work: %.2e", accountant.work)
+        log.info("simulated depth: %.2e", accountant.depth)
 
 
 def cmd_shortest_paths(args: argparse.Namespace) -> None:
@@ -132,23 +134,23 @@ def cmd_shortest_paths(args: argparse.Namespace) -> None:
         ratio = hop_d / orig_d if orig_d > 0 else 0.0
         max_ratio = max(max_ratio, ratio)
 
-    print(f"Graph: n={graph.num_vertices()}, m={graph.num_edges()}")
-    print(f"Hopset size: {len(hopset)}")
-    print(f"Target hopbound beta: {beta:.2f}")
-    print(f"Epsilon: {args.epsilon}")
-    print(f"Construction time: {elapsed:.3f}s")
-    print(f"Distance mismatches: {mismatches}")
-    print(f"Max approximation ratio: {max_ratio:.4f}")
+    log.info("graph: n=%d m=%d", graph.num_vertices(), graph.num_edges())
+    log.info("hopset size: %d", len(hopset))
+    log.info("target hopbound beta: %.2f", beta)
+    log.info("epsilon: %.4f", args.epsilon)
+    log.info("construction time: %.3fs", elapsed)
+    log.info("distance mismatches: %d", mismatches)
+    log.info("max approximation ratio: %.4f", max_ratio)
     if args.verbose:
         n = graph.num_vertices()
         m = graph.num_edges()
         rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
         tw = theoretical_hopset_work(n, m, rho, epsilon=args.epsilon)
         td = theoretical_hopset_depth(n, m, rho)
-        print(f"Theoretical hopset work: {tw:.2e}")
-        print(f"Theoretical hopset depth: {td:.2e}")
-        print(f"Simulated work: {accountant.work:.2e}")
-        print(f"Simulated depth: {accountant.depth:.2e}")
+        log.info("theoretical hopset work: %.2e", tw)
+        log.info("theoretical hopset depth: %.2e", td)
+        log.info("simulated work: %.2e", accountant.work)
+        log.info("simulated depth: %.2e", accountant.depth)
 
 
 def cmd_benchmark_reachability(args: argparse.Namespace) -> None:
@@ -202,7 +204,7 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
             edge_count = min(args.n * (args.n - 1), args.m)
             graph = weighted_dense_graph(args.n, edge_count, random_seed=args.seed)
         else:
-            print(f"Unknown weighted generator: {args.generator}")
+            log.error("unknown weighted generator: %s", args.generator)
             sys.exit(1)
         text = weighted_digraph_to_json(graph)
     else:
@@ -229,16 +231,16 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
                 random_seed=args.seed,
             )
         else:
-            print(f"Unknown generator: {args.generator}")
+            log.error("unknown generator: %s", args.generator)
             sys.exit(1)
         text = digraph_to_json(graph)
 
     if args.output:
         with open(args.output, "w") as f:
             f.write(text)
-        print(f"Graph written to {args.output}")
+        log.info("graph written to %s", args.output)
     else:
-        print(text)
+        sys.stdout.write(text + "\n")
 
 
 def main() -> None:
@@ -371,5 +373,9 @@ def main() -> None:
     args.func(args)
 
 
-if __name__ == "__main__":
+def cli_main() -> None:
     main()
+
+
+if __name__ == "__main__":
+    cli_main()

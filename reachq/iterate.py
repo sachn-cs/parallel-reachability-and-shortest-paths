@@ -26,6 +26,10 @@ Empirical finding:
 
   On random DAGs, the iteration converges in 1-2 steps (H_{k+1} ⊆ H_k
   and |H_{k+1}| < |H_k| for the first step, then stable).
+
+When the intersection becomes empty, the function returns the empty
+set rather than the last iteration's H, matching the contract that
+the result is the *robust core* (shortcuts present in every iteration).
 """
 
 from __future__ import annotations
@@ -102,6 +106,7 @@ def iterative_shortcut_set(
 
     history: list[set[tuple[object, object]]] = []
     H: set[tuple[object, object]] = set()
+    core: set[tuple[object, object]] = set()
     for k_iter in range(max_iterations):
         t0 = time.perf_counter()
         H_new = _build(H)
@@ -114,18 +119,18 @@ def iterative_shortcut_set(
             elapsed,
         )
         if k_iter == 0:
-            core = H_new
+            core = set(H_new)
         else:
             core &= H_new
         if not core:
-            log.info(
-                "iterative: intersection became empty at iter=%d; "
-                "returning last-iteration H_{k+1} for non-empty result",
+            log.warning(
+                "iterative: robust core is empty at iter=%d (no shortcut "
+                "appears in every iteration); returning the empty set",
                 k_iter,
             )
-            return H_new
+            return set()
         H = H_new
-        if H_new == history[0]:
+        if k_iter > 0 and H_new == history[0]:
             log.info("iterative: converged at iter=%d (H stable)", k_iter)
             break
     log.info(

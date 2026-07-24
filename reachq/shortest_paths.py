@@ -191,3 +191,16 @@ def shortest_path_tree(
                 parent[v] = u
                 heapq.heappush(heap, (nd, v))
     return parent
+
+
+def shortest_path(
+    graph: WeightedDigraph, source: object, target: object
+) -> float:
+    """Return the shortest distance from source to target.
+
+    Returns ``float("inf")`` if target is unreachable from source.
+    Equivalent to ``dijkstra(graph, source).get(target, float("inf"))``
+    but avoids the full SSSP when only one target is needed.
+    """
+    distances = dijkstra(graph, source)
+    return distances.get(target, float("inf"))

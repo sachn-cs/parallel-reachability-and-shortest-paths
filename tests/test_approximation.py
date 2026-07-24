@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import time
 
-import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
@@ -84,7 +83,7 @@ def test_greedy_polynomial_runtime():
 
 def test_greedy_does_not_exceed_max_iterations():
     g = random_dag(n=50, edge_probability=0.2, random_seed=42)
-    H = greedy_shortcut_set(g, beta=3, max_iterations=10)
+    greedy_shortcut_set(g, beta=3, max_iterations=10)
     # Just verify it completes without error.
 
 

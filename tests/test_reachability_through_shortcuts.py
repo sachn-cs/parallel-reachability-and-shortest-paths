@@ -14,8 +14,10 @@ from reachq.reachability import bfs_reachability, parallel_bfs
 
 def test_empty_graph():
     g = Digraph()
-    assert parallel_bfs(g, 0, set()) == set()
-    assert parallel_bfs(g, 0, {(0, 1)}) == set()
+    # Source is not in graph; parallel_bfs returns only {source}.
+    # Shortcuts to non-existent vertices are silently ignored.
+    assert parallel_bfs(g, 0, set()) == {0}
+    assert parallel_bfs(g, 0, {(0, 1)}) == {0}
 
 
 def test_single_vertex_no_shortcuts():
@@ -45,6 +47,18 @@ def test_two_connected_vertices():
     g.add_vertex(0)
     g.add_vertex(1)
     g.add_edge(0, 1)
+    # Directed reachability: from 0 we can reach 1, but not vice versa.
+    assert parallel_bfs(g, 0, set()) == {0, 1}
+    assert parallel_bfs(g, 1, set()) == {1}
+
+
+def test_two_connected_vertices_with_back_edge():
+    g = Digraph()
+    g.add_vertex(0)
+    g.add_vertex(1)
+    g.add_edge(0, 1)
+    g.add_edge(1, 0)
+    # Now both directions exist; mutual reachability.
     assert parallel_bfs(g, 0, set()) == {0, 1}
     assert parallel_bfs(g, 1, set()) == {0, 1}
 
@@ -55,8 +69,9 @@ def test_only_shortcuts_no_edges():
     g.add_vertex(1)
     g.add_vertex(2)
     shortcuts = {(0, 1), (1, 2), (0, 2)}
+    # Directed: shortcuts flow forward from each source.
     assert parallel_bfs(g, 0, shortcuts) == {0, 1, 2}
-    assert parallel_bfs(g, 2, shortcuts) == {0, 1, 2}
+    assert parallel_bfs(g, 2, shortcuts) == {2}
 
 
 def test_shortcut_to_nonexistent_target():

@@ -75,7 +75,7 @@ reproducibility / extension in the latter.
 ## Decision for v0.7.0 release
 
 Without internet access from this session, the paper draft
-(`docs/paper_refinements.md`) currently cites only [JLS19] and
+(`docs/PAPER.md`) currently cites only [JLS19] and
 [Ashvinkumar et al. 2026]. The literature section will be filled
 in before any conference submission.
 

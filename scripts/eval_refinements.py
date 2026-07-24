@@ -23,6 +23,10 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from reachq.logging_config import get_logger
+
+log = get_logger("reachq.eval_refinements")
+
 
 def _time_limit_budget(seconds: int) -> Iterator[None]:
     import signal
@@ -208,7 +212,7 @@ def main() -> int:
             for seed in args.seeds:
                 g = random_dag(n, edge_probability=density, random_seed=seed)
                 for name, flags in configurations:
-                    print(f"n={n} d={density} seed={seed} cfg={name}", flush=True)
+                    log.info("n=%d d=%s seed=%d cfg=%s", n, density, seed, name)
                     row = run_one(g, flags, seed, omega=3.0, max_seconds=args.timeout)
                     row["config"] = name
                     row["density"] = density
@@ -232,7 +236,7 @@ def main() -> int:
                 )
                 continue
             for cfg_name, flags in configurations:
-                print(f"snap={name} cfg={cfg_name}", flush=True)
+                log.info("snap=%s cfg=%s", name, cfg_name)
                 row = run_one(g, flags, seed=42, omega=3.0, max_seconds=args.timeout)
                 row["config"] = cfg_name
                 row["density"] = ""
@@ -274,7 +278,7 @@ def main() -> int:
         w.writeheader()
         for r in rows:
             w.writerow(r)
-    print(f"Wrote {out}", flush=True)
+    log.info("wrote %s", out)
     return 0
 
 

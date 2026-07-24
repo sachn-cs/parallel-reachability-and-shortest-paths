@@ -300,14 +300,30 @@ def build_hopset_for_sssp(
     epsilon: float = 0.1,
     random_seed: Optional[int] = None,
     flags: Optional[dict[str, bool]] = None,
+    parallel_workers: int = 1,
 ) -> tuple[dict[tuple[object, object], int], float]:
     """High-level wrapper: build a (beta, epsilon)-hopset matching Theorem 4.
 
     Automatically selects parameters based on graph density.
 
+    Args:
+        parallel_workers: Accepted for API symmetry with
+            ``build_shortcut_set_for_reachability``; the hopset
+            construction runs sequentially because the per-pivot
+            workload is a Dijkstra call (GIL-bound in Python). Pass any
+            value; it is currently ignored.
+
     Returns:
         (hopset, beta) where beta is the target hopbound.
     """
+    if parallel_workers != 1:
+        import logging
+
+        logging.getLogger("reachq.hopset").info(
+            "build_hopset_for_sssp: parallel_workers=%d ignored "
+            "(hopset construction is sequential)",
+            parallel_workers,
+        )
     f = Flags.from_dict(flags)
     n = graph.num_vertices()
     m = graph.num_edges()
