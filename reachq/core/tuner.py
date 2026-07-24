@@ -1,7 +1,10 @@
 """Auto-tuner for RefinementConfig.
 
 Selects optimal refinement settings based on graph properties
-(density, size, structure). Future work: bandit-based online tuning.
+(density, size, structure). The current implementation uses a
+density-based heuristic; future work in this module could
+incorporate bandit-based online tuning that observes past run
+performance and adjusts the heuristic accordingly.
 """
 
 from __future__ import annotations
