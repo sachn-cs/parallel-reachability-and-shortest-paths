@@ -1,12 +1,11 @@
-"""Centralised logging configuration.
+"""Centralised logging configuration and algorithmic refinement config.
 
 Call ``configure_logging()`` once at the entry point of a CLI / script. Module
 loggers (``logging.getLogger(__name__)``) inside ``reachq`` pick up the
 handler automatically because we attach to the root logger.
 
-Honour the ``REACHQ_LOG`` environment variable: ``DEBUG``, ``INFO``
-(default), ``WARNING``, ``ERROR``. Or pass an explicit level to
-``configure``.
+``RefinementConfig`` is a frozen dataclass that replaces the old ``Flags``
+class. It controls which algorithmic refinements are active.
 """
 
 from __future__ import annotations
@@ -14,8 +13,45 @@ from __future__ import annotations
 import logging
 import os
 import sys
+from dataclasses import dataclass, field
 
 CONFIGURED: bool = False
+
+
+@dataclass(frozen=True, slots=True)
+class RefinementConfig:
+    """Per-call toggle for algorithmic refinements. Default: all on.
+
+    Replaces the old ``Flags`` class. Frozen and immutable — construct a
+    new instance to change settings.
+
+    Examples:
+        >>> RefinementConfig()
+        RefinementConfig(...)
+        >>> RefinementConfig(enable_tc_pruning=False)
+        RefinementConfig(...)
+    """
+
+    adaptive_sampling: bool = True
+    label_compress: bool = True
+    skip_condense: bool = True
+    hop_bounded_bfs: bool = True
+    degree_ordered_pivots: bool = True
+    tight_tc_trigger: bool = True
+    skip_trivial_part: bool = True
+    enable_tc_pruning: bool = True
+    parallel: bool = False
+
+    @classmethod
+    def from_dict(cls, d: dict[str, bool] | None = None) -> RefinementConfig:
+        """Construct from a partial dict. Missing keys default to True."""
+        if not d:
+            return cls()
+        valid = {f.name for f in cls.__dataclass_fields__.values()}  # type: ignore[attr-defined]
+        bad = set(d) - valid
+        if bad:
+            raise ValueError(f"Unknown refinements: {sorted(bad)}; valid: {sorted(valid)}")
+        return cls(**{k: v for k, v in d.items() if k in valid})
 
 
 def configure_logging(level: int | str | None = None) -> None:

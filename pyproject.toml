@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reachq"
-version = "2.0.0"
+version = "3.0.0"
 description = "Parallel reachability and shortest-path algorithms for sparse digraphs, with near-linear work and sub-square-root depth."
 readme = "README.md"
 license = {text = "MIT"}

@@ -29,7 +29,7 @@ import random
 from typing import Any, Optional
 
 from reachq.core.graph import WeightedDigraph, contract_sccs, partition_by_labels
-from reachq.core.algorithm import Flags
+from reachq.core.config import RefinementConfig
 from reachq.core.shortest_paths import (
     compute_d_ancestors,
     compute_d_ball,
@@ -76,7 +76,7 @@ def _cfr_recursive(
     n_global: int,
     level: int,
     rng: random.Random,
-    flags: Flags,
+    flags: RefinementConfig,
     *,
     prunning: bool,
 ) -> dict[tuple[object, object], int]:
@@ -237,7 +237,7 @@ def cfr_hopset(
     recursive body via :func:`_cfr_recursive` so the only difference is the
     pruning flag.
     """
-    f = Flags.from_dict(flags)
+    f = RefinementConfig.from_dict(flags)
     if k <= 1:
         raise ValueError("k must be > 1")
     if epsilon <= 0:
@@ -271,7 +271,7 @@ def cfr_with_truncsssp_pruning(
     flags: Optional[dict[str, bool]] = None,
 ) -> dict[tuple[object, object], int]:
     """Construct the CFR hopset with TruncSSSP-Pruning (Section 6.3, Theorem 4)."""
-    f = Flags.from_dict(flags)
+    f = RefinementConfig.from_dict(flags)
     if k <= 1:
         raise ValueError("k must be > 1")
     if epsilon <= 0:
@@ -324,7 +324,7 @@ def build_hopset_for_sssp(
             "(hopset construction is sequential)",
             parallel_workers,
         )
-    f = Flags.from_dict(flags)
+    f = RefinementConfig.from_dict(flags)
     n = graph.num_vertices()
     m = graph.num_edges()
 
