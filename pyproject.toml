@@ -59,6 +59,10 @@ research = [
     "networkx>=3.0",
 ]
 
+[project.entry-points."reachq.backends"]
+threads = "reachq.core.backends.threads:threads"
+processes = "reachq.core.backends.processes:processes"
+
 [project.urls]
 Homepage = "https://github.com/sachncs/parallel-reachability-and-shortest-paths"
 Documentation = "https://github.com/sachncs/parallel-reachability-and-shortest-paths/tree/main/docs"
