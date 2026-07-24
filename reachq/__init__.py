@@ -20,7 +20,7 @@ The public API is in this `__init__.py`. The algorithms module
 (``reachq.core.algorithm``) is the most important; ``reachq.core.reachability``
 holds the BFS implementation; ``reachq.core.graph`` is the Digraph base
 class. The `flags` parameter on the public functions is a
-``reachq.core.algorithm.Flags`` dataclass of boolean toggles; the
+``RefinementConfig`` dataclass of boolean toggles; the
 `parallel_workers` parameter is the thread pool size; and
 ``reachq.core.config.get_logger(name)`` gives you a per-module
 logger.
@@ -42,7 +42,7 @@ Near-linear Work and Sub-square-root Depth"
 by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak (2026).
 """
 
-__version__ = "2.0.0"
+__version__ = "3.0.0"
 
 from reachq.core import invariants
 from reachq.core.generators import (
@@ -88,11 +88,12 @@ from reachq.core.io.json import (
     weighted_dump,
 )
 from reachq.core.algorithm import (
-    Flags,
     build_shortcut_set_for_reachability,
     jls_shortcut_set,
     jls_with_tc_pruning,
 )
+from reachq.core.config import RefinementConfig
+Flags = RefinementConfig
 from reachq.core.shortest_paths import (
     astar,
     compute_d_ancestors,
@@ -114,6 +115,7 @@ from reachq.core.work_depth import WorkDepthAccountant
 __all__ = [
     "Digraph",
     "Flags",
+    "RefinementConfig",
     "WeightedDigraph",
     "WorkDepthAccountant",
     "astar",

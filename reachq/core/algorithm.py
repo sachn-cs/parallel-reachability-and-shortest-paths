@@ -34,11 +34,10 @@ from __future__ import annotations
 
 import math
 import random
-from dataclasses import dataclass
 from typing import Any, Optional
 
 from reachq.core.graph import Digraph, contract_sccs, partition_by_labels
-from reachq.core.config import get_logger
+from reachq.core.config import RefinementConfig, get_logger
 from reachq.core.bfs import (
     csr_reachable_backward,
     csr_reachable_forward,
@@ -50,6 +49,9 @@ from reachq.core.reachability import compute_r_minus, compute_r_plus
 from reachq.core.prune import apply_tc_pruning, compute_tc_pruning_threshold
 
 log = get_logger("reachq.core.algorithm")
+
+# Backward-compatible alias.
+Flags = RefinementConfig
 
 _SAMPLING_CONSTANT = 10
 # Density-aware override: when the wrapper passes a C value derived
@@ -187,50 +189,11 @@ def _get_runtime_omega() -> float:
     return _OMEGA_RUNTIME
 
 
-@dataclass
-class Flags:
-    """Per-call toggle for algorithmic refinements. Default: all on.
-
-    Pass a dict from the public APIs (``build_shortcut_set_for_reachability``,
-    ``jls_with_tc_pruning``) under the ``flags`` keyword. Anything not in the
-    dict defaults to True so callers only set what they care about.
-    """
-
-    adaptive_sampling: bool = True
-    label_compress: bool = True
-    skip_condense: bool = True
-    hop_bounded_bfs: bool = True
-    degree_ordered_pivots: bool = True
-    tight_tc_trigger: bool = True
-    skip_trivial_part: bool = True
-    enable_tc_pruning: bool = True
-    parallel: bool = False
-
-    @classmethod
-    def from_dict(cls, d: Optional[dict[str, bool]]) -> Flags:
-        if not d:
-            return cls()
-        valid = set(cls.__dataclass_fields__)  # type: ignore[attr-defined]
-        bad = set(d) - valid
-        if bad:
-            raise ValueError(f"Unknown flags: {sorted(bad)}; valid: {sorted(valid)}")
-        return cls(**{k: v for k, v in d.items() if k in valid})
-
-
 # --- Label type alias --------------------------------------------------------
 # With label compression on, each vertex's label is a 2-tuple of frozensets
 # of pivot IDs (ancestors, descendants). Without compression, a single
 # frozenset of arbitrary hashable tokens is accepted by partition_by_labels.
 LabelValue = Any
-
-
-@dataclass
-class _PivotResult:
-    """Bundle of per-pivot reachability. Keeps the hot loop allocation-light."""
-
-    pivot: Any
-    ancestors: set[Any]
-    descendants: set[Any]
 
 
 def _sample_pivots_weighted(
@@ -304,7 +267,7 @@ def jls_with_tc_pruning(
     Returns:
         A set of shortcut edges H ⊆ V × V.
     """
-    f = Flags.from_dict(flags)
+    f = RefinementConfig.from_dict(flags)
     if k <= 1:
         raise ValueError("k must be > 1")
     if rho <= 0:
@@ -561,7 +524,7 @@ def build_shortcut_set_for_reachability(
     Returns:
         (shortcut_set, beta) where beta is the target hopbound.
     """
-    f = Flags.from_dict(flags)
+    f = RefinementConfig.from_dict(flags)
     n = graph.num_vertices()
     m = graph.num_edges()
 
