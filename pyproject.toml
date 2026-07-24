@@ -44,7 +44,7 @@ dependencies = [
 ]
 
 [project.scripts]
-reachq = "reachq.cli.main:main"
+reachq = "reachq.cli.main:cli_main"
 
 [project.optional-dependencies]
 dev = [
