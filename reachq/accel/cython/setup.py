@@ -18,7 +18,13 @@ from __future__ import annotations
 
 import os
 
+import numpy as np
 from setuptools import Extension, setup
+
+
+def _numpy_include() -> list[str]:
+    """Return numpy include path."""
+    return [np.get_include()]
 
 
 def _pyx_files() -> list[str]:
@@ -30,16 +36,19 @@ def _pyx_files() -> list[str]:
     ]
 
 
+def _module_name_from_path(path: str) -> str:
+    base = os.path.splitext(os.path.basename(path))[0]
+    # Files named bfs.pyx -> _cy_bfs; dijkstra.pyx -> _cy_dijkstra.
+    return f"_cy_{base}"
+
+
 setup(
     name="reachq_cython_kernels",
     ext_modules=[
         Extension(
-            # Module name derived from the .pyx filename: bfs.pyx ->
-            # _cy_bfs, dijkstra.pyx -> _cy_dijkstra.
-            name=os.path.splitext(os.path.basename(path))[0]
-            if path.endswith(".pyx")
-            else path,
+            name=_module_name_from_path(path),
             sources=[path],
+            include_dirs=_numpy_include(),
             extra_compile_args=["-O3", "-march=native"],
             extra_link_args=["-O3"],
             language="c",

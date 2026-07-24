@@ -23,7 +23,7 @@ implementation in :mod:`reachq.core.bfs`.
 
 cimport cython
 from libc.stdlib cimport malloc, free
-from libc.string cimport memset
+from libc.string cimport memcpy
 
 import numpy as np
 cimport numpy as cnp
@@ -52,36 +52,50 @@ def cy_bfs_forward(
     thread pool.
     """
     cdef cnp.ndarray[uchar, ndim=1, cast=True] reached = np.zeros(n, dtype=np.uint8)
-    cdef cnp.ndarray[long long, ndim=1] frontier = np.empty(n, dtype=np.int64)
-    cdef cnp.ndarray[long long, ndim=1] next_frontier = np.empty(n, dtype=np.int64)
-
-    cdef long long u, v, i, start, end, frontier_size, next_size, depth
-    cdef bint in_queue
 
     if source < 0 or source >= n:
-        return reached
+        return reached.astype(bool)
     reached[source] = 1
-    frontier[0] = source
-    frontier_size = 1
-    depth = 0
 
-    with nogil:
-        while frontier_size > 0 and depth < max_depth:
-            next_size = 0
-            for i in range(frontier_size):
-                u = frontier[i]
-                start = indptr[u]
-                end = indptr[u + 1]
-                for j in range(start, end):
-                    v = indices[j]
-                    if reached[v] == 0:
-                        reached[v] = 1
-                        next_frontier[next_size] = v
-                        next_size += 1
-            # Swap frontiers.
-            frontier[:next_size] = next_frontier[:next_size]
-            frontier_size = next_size
-            depth += 1
+    # Allocate raw C arrays (no GIL required) and copy initial frontier.
+    cdef long long *frontier = <long long *> malloc(sizeof(long long) * n)
+    cdef long long *next_frontier = <long long *> malloc(sizeof(long long) * n)
+    if frontier == NULL or next_frontier == NULL:
+        if frontier != NULL:
+            free(frontier)
+        if next_frontier != NULL:
+            free(next_frontier)
+        return reached.astype(bool)
+
+    cdef long long frontier_size = 1
+    frontier[0] = source
+    cdef long long next_size = 0
+    cdef long long depth = 0
+    cdef long long u, v, i, j, start, end
+
+    try:
+        with nogil:
+            while frontier_size > 0 and depth < max_depth:
+                next_size = 0
+                for i in range(frontier_size):
+                    u = frontier[i]
+                    start = indptr[u]
+                    end = indptr[u + 1]
+                    for j in range(start, end):
+                        v = indices[j]
+                        if reached[v] == 0:
+                            reached[v] = 1
+                            next_frontier[next_size] = v
+                            next_size += 1
+                # Copy next_frontier[0:next_size] into frontier[0:next_size]
+                # using memcpy (safe under nogil).
+                memcpy(frontier, next_frontier, sizeof(long long) * next_size)
+                frontier_size = next_size
+                depth += 1
+    finally:
+        free(frontier)
+        free(next_frontier)
+
     return reached.astype(bool)
 
 
@@ -101,32 +115,45 @@ def cy_bfs_backward(
     computing ``R-(G, pivot)`` in the JLS construction.
     """
     cdef cnp.ndarray[uchar, ndim=1, cast=True] reached = np.zeros(n, dtype=np.uint8)
-    cdef cnp.ndarray[long long, ndim=1] frontier = np.empty(n, dtype=np.int64)
-    cdef cnp.ndarray[long long, ndim=1] next_frontier = np.empty(n, dtype=np.int64)
-
-    cdef long long u, v, i, start, end, frontier_size, next_size, depth
 
     if source < 0 or source >= n:
-        return reached
+        return reached.astype(bool)
     reached[source] = 1
-    frontier[0] = source
-    frontier_size = 1
-    depth = 0
 
-    with nogil:
-        while frontier_size > 0 and depth < max_depth:
-            next_size = 0
-            for i in range(frontier_size):
-                u = frontier[i]
-                start = indptr[u]
-                end = indptr[u + 1]
-                for j in range(start, end):
-                    v = indices[j]
-                    if reached[v] == 0:
-                        reached[v] = 1
-                        next_frontier[next_size] = v
-                        next_size += 1
-            frontier[:next_size] = next_frontier[:next_size]
-            frontier_size = next_size
-            depth += 1
+    cdef long long *frontier = <long long *> malloc(sizeof(long long) * n)
+    cdef long long *next_frontier = <long long *> malloc(sizeof(long long) * n)
+    if frontier == NULL or next_frontier == NULL:
+        if frontier != NULL:
+            free(frontier)
+        if next_frontier != NULL:
+            free(next_frontier)
+        return reached.astype(bool)
+
+    cdef long long frontier_size = 1
+    frontier[0] = source
+    cdef long long next_size = 0
+    cdef long long depth = 0
+    cdef long long u, v, i, j, start, end
+
+    try:
+        with nogil:
+            while frontier_size > 0 and depth < max_depth:
+                next_size = 0
+                for i in range(frontier_size):
+                    u = frontier[i]
+                    start = indptr[u]
+                    end = indptr[u + 1]
+                    for j in range(start, end):
+                        v = indices[j]
+                        if reached[v] == 0:
+                            reached[v] = 1
+                            next_frontier[next_size] = v
+                            next_size += 1
+                memcpy(frontier, next_frontier, sizeof(long long) * next_size)
+                frontier_size = next_size
+                depth += 1
+    finally:
+        free(frontier)
+        free(next_frontier)
+
     return reached.astype(bool)
