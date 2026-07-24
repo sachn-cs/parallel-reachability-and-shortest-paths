@@ -5,6 +5,8 @@ Requires ray. Install with ``pip install reachq[accel]``.
 
 from __future__ import annotations
 
+from typing import Any, Iterable
+
 
 class RayBackend:
     """Distributed backend using Ray."""
@@ -13,19 +15,19 @@ class RayBackend:
     n_workers = 0
 
     def __init__(self, n_workers: int = 0) -> None:
-        try:
-            import ray  # noqa: F401
-        except ImportError as e:
+        from importlib.util import find_spec
+
+        if find_spec("ray") is None:
             raise ImportError(
                 "ray is required for distributed execution. "
                 "Install with: pip install ray"
-            ) from e
+            )
         self.n_workers = n_workers
 
-    def imap_unordered(self, func, items):  # type: ignore[no-untyped-def]
+    def imap_unordered(self, func: Any, items: Iterable[Any]) -> list[Any]:
         """Dispatch items via Ray remote calls."""
         import ray
 
         remote_func = ray.remote(func)
         refs = [remote_func.remote(item) for item in items]
-        return ray.get(refs)
+        return list(ray.get(refs))

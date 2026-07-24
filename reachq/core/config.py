@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, fields
 
 CONFIGURED: bool = False
 
@@ -47,7 +47,7 @@ class RefinementConfig:
         """Construct from a partial dict. Missing keys default to True."""
         if not d:
             return cls()
-        valid = {f.name for f in cls.__dataclass_fields__.values()}  # type: ignore[attr-defined]
+        valid = {f.name for f in fields(cls)}
         bad = set(d) - valid
         if bad:
             raise ValueError(f"Unknown refinements: {sorted(bad)}; valid: {sorted(valid)}")

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import numpy as np
 
-_MIN_CSR_SIZE = 500
+MIN_CSR_SIZE = 500
 
 
 def csr_reachable_forward(
@@ -95,4 +95,4 @@ def csr_bfs_layered(
 
 def should_use_csr(graph_num_vertices: int) -> bool:
     """Decide whether CSR numpy BFS is worth the conversion overhead."""
-    return graph_num_vertices >= _MIN_CSR_SIZE
+    return graph_num_vertices >= MIN_CSR_SIZE

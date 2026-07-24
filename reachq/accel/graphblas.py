@@ -5,6 +5,8 @@ Requires pygraphblas. Install with ``pip install reachq[accel]``.
 
 from __future__ import annotations
 
+from typing import Any, Iterable
+
 
 class GraphBLASBackend:
     """Backend using GraphBLAS sparse matrix operations."""
@@ -13,14 +15,14 @@ class GraphBLASBackend:
     n_workers = 1
 
     def __init__(self) -> None:
-        try:
-            import pygraphblas  # noqa: F401
-        except ImportError as e:
+        from importlib.util import find_spec
+
+        if find_spec("pygraphblas") is None:
             raise ImportError(
                 "pygraphblas is required for GraphBLAS backend. "
                 "Install with: pip install pygraphblas"
-            ) from e
+            )
 
-    def imap_unordered(self, func, items):  # type: ignore[no-untyped-def]
+    def imap_unordered(self, func: Any, items: Iterable[Any]) -> list[Any]:
         """Sequential dispatch (GraphBLAS operates on matrices, not items)."""
         return [func(item) for item in items]

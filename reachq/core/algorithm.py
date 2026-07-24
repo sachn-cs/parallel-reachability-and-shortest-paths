@@ -54,42 +54,42 @@ log = get_logger("reachq.core.algorithm")
 # Backward-compatible alias.
 Flags = RefinementConfig
 
-_SAMPLING_CONSTANT = 10
+SAMPLING_CONSTANT = 10
 # Density-aware override: when the wrapper passes a C value derived
 # from graph density (rho), it lands here. See density_aware_constant()
 # for the formula and rationale.
-_DENSITY_AWARE_CONSTANT: float | None = None
+DENSITY_AWARE_CONSTANT: float | None = None
 
 # Module-level pivot-processing state for parallel pivot dispatch.
 # Workers read these globals; the main thread fills them before dispatch.
 # Using module globals (not closures) keeps workers picklable for the
 # process variant and free of closure overhead for the thread variant.
-_PIVOT_STATE: dict[str, Any] = {}
+PIVOT_STATE: dict[str, Any] = {}
 
 
-def _init_pivot_worker(state: dict[str, Any]) -> None:
+def init_pivot_worker(state: dict[str, Any]) -> None:
     """Process-mode initializer: copy state into the worker's module globals."""
-    _PIVOT_STATE.update(state)
+    PIVOT_STATE.update(state)
 
 
-def _set_pivot_state(
+def set_pivot_state(
     csr_data: Any, rev: Any, graph: Any, max_hops: Optional[int]
 ) -> None:
     """Install the per-recursion-level pivot state for parallel workers."""
-    _PIVOT_STATE["csr_data"] = csr_data
-    _PIVOT_STATE["rev"] = rev
-    _PIVOT_STATE["graph"] = graph
-    _PIVOT_STATE["max_hops"] = max_hops
+    PIVOT_STATE["csr_data"] = csr_data
+    PIVOT_STATE["rev"] = rev
+    PIVOT_STATE["graph"] = graph
+    PIVOT_STATE["max_hops"] = max_hops
 
 
-def _pivot_worker(pivot: Any) -> dict[str, Any]:
+def pivot_worker(pivot: Any) -> dict[str, Any]:
     """Process one pivot: BFS, label accumulation, shortcut set.
 
-    Reads shared state from _PIVOT_STATE. Returns per-pivot results to
+    Reads shared state from PIVOT_STATE. Returns per-pivot results to
     be merged by the main thread.
     """
-    csr_data = _PIVOT_STATE.get("csr_data")
-    max_hops = _PIVOT_STATE.get("max_hops")
+    csr_data = PIVOT_STATE.get("csr_data")
+    max_hops = PIVOT_STATE.get("max_hops")
     shortcuts: set[tuple[Any, Any]] = set()
     anc: list[Any] = []
     des: list[Any] = []
@@ -115,11 +115,11 @@ def _pivot_worker(pivot: Any) -> dict[str, Any]:
         r_minus = {idx_to_v[int(i)] for i in r_minus_arr}
     else:
         # Non-CSR path: walk graph.in_edges for r_minus, out_edges for r_plus.
-        graph = _PIVOT_STATE["graph"]
+        graph = PIVOT_STATE["graph"]
         r_minus = (
             compute_r_minus(graph, pivot)
             if max_hops is None
-            else _bfs_hop_limited(
+            else bfs_hop_limited(
                 graph,
                 pivot,
                 max_hops,
@@ -129,7 +129,7 @@ def _pivot_worker(pivot: Any) -> dict[str, Any]:
         r_plus = (
             compute_r_plus(graph, pivot)
             if max_hops is None
-            else _bfs_hop_limited(
+            else bfs_hop_limited(
                 graph,
                 pivot,
                 max_hops,
@@ -179,20 +179,20 @@ def density_aware_constant(rho: float, k: float) -> float:
 # Default omega for the TC work comparison. The paper's analysis is
 # worst-case over omega < 2.371; we use 2.5 as a conservative upper bound
 # so the "tightened TC trigger" doesn't accidentally trigger too eagerly.
-_OMEGA_DEFAULT = 2.5
+OMEGA_DEFAULT = 2.5
 # Module-level cache for the runtime omega detector. Populated lazily
 # on first access; threads share the value because it's pure.
-_OMEGA_RUNTIME: float | None = None
+OMEGA_RUNTIME: float | None = None
 
 
-def _get_runtime_omega() -> float:
+def get_runtime_omega() -> float:
     """Return the runtime omega from blas_omega.runtime_omega(), cached."""
-    global _OMEGA_RUNTIME
-    if _OMEGA_RUNTIME is None:
+    global OMEGA_RUNTIME
+    if OMEGA_RUNTIME is None:
         from reachq.research.blas_omega import runtime_omega
 
-        _OMEGA_RUNTIME = runtime_omega()
-    return _OMEGA_RUNTIME
+        OMEGA_RUNTIME = runtime_omega()
+    return OMEGA_RUNTIME
 
 
 # --- Label type alias --------------------------------------------------------
@@ -202,7 +202,7 @@ def _get_runtime_omega() -> float:
 LabelValue = Any
 
 
-def _sample_pivots_weighted(
+def sample_pivots_weighted(
     vertices: Iterable[Any],
     out_degrees: dict[Any, int],
     prob: float,
@@ -234,7 +234,7 @@ def _sample_pivots_weighted(
     return [v for v, w in raw if rng.random() < w * scale]
 
 
-def _sample_pivots_uniform(
+def sample_pivots_uniform(
     vertices: Iterable[Any],
     prob: float,
     rng: random.Random,
@@ -288,9 +288,9 @@ def jls_with_tc_pruning(
 
     log_n = math.log2(n_global) if n_global > 1 else 0.0
     sampling_constant = (
-        _DENSITY_AWARE_CONSTANT
-        if _DENSITY_AWARE_CONSTANT is not None
-        else _SAMPLING_CONSTANT
+        DENSITY_AWARE_CONSTANT
+        if DENSITY_AWARE_CONSTANT is not None
+        else SAMPLING_CONSTANT
     )
     base_prob = min(1.0, sampling_constant * (k ** (level + 1)) * log_n / n_global)
 
@@ -299,7 +299,7 @@ def jls_with_tc_pruning(
 
     if f.degree_ordered_pivots:
         out_degrees = {v: graph.degree_out(v) for v in vertices}
-        pivots = _sample_pivots_weighted(
+        pivots = sample_pivots_weighted(
             vertices,
             out_degrees,
             base_prob,
@@ -309,7 +309,7 @@ def jls_with_tc_pruning(
         # Stable order by ascending out-degree for early termination benefit.
         pivots.sort(key=lambda v: out_degrees.get(v, 0))
     else:
-        pivots = _sample_pivots_uniform(vertices, base_prob, rng)
+        pivots = sample_pivots_uniform(vertices, base_prob, rng)
 
     shortcuts: set[tuple[object, object]] = set()
     labels: dict[object, Any] = {v: set() for v in vertices}
@@ -318,11 +318,11 @@ def jls_with_tc_pruning(
         des_labels: dict[object, list[object]] = {v: [] for v in vertices}
 
     tc_pruning_threshold = compute_tc_pruning_threshold(
-        k, log_n, rho, n, _OMEGA_DEFAULT if f.tight_tc_trigger else float("inf")
+        k, log_n, rho, n, OMEGA_DEFAULT if f.tight_tc_trigger else float("inf")
     )
     # Improvement 7: tighter threshold when TC work exceeds sampling work.
     if f.tight_tc_trigger and rho > 0:
-        omega_runtime = min(_OMEGA_DEFAULT, _get_runtime_omega())
+        omega_runtime = min(OMEGA_DEFAULT, get_runtime_omega())
         tc_pruning_threshold = compute_tc_pruning_threshold(k, log_n, rho, n, omega_runtime)
 
     # Improvement 4: hop-bounded pivot BFS for the CSR path.
@@ -333,7 +333,7 @@ def jls_with_tc_pruning(
         # Use the wrapper's beta estimate: (n^omega/m)^(1/(2omega-2)).
         # Cheap closed-form bound that doesn't require knowing m at this level
         # (we use the global n).
-        omega_runtime = min(_OMEGA_DEFAULT, _get_runtime_omega())
+        omega_runtime = min(OMEGA_DEFAULT, get_runtime_omega())
         if n_global > 0 and 2.0 * omega_runtime - 2.0 > 0:
             beta_est = n_global ** (omega_runtime / (2.0 * omega_runtime - 2.0))
             max_hops_for_bfs = int(beta_est) if beta_est < n_global else None
@@ -344,14 +344,14 @@ def jls_with_tc_pruning(
         rev = graph.reversed()
 
     # Install shared state for parallel pivot workers.
-    _set_pivot_state(csr_data, rev, graph, max_hops_for_bfs)
+    set_pivot_state(csr_data, rev, graph, max_hops_for_bfs)
 
     parallel: ParallelContext = (
         ParallelContext("threads", parallel_workers)
         if parallel_workers > 1
         else SEQUENTIAL
     )
-    pivot_results = parallel.imap_unordered(_pivot_worker, pivots)
+    pivot_results = parallel.imap_unordered(pivot_worker, pivots)
 
     for result in pivot_results:
         pivot = result["pivot"]
@@ -423,7 +423,7 @@ def jls_with_tc_pruning(
     return shortcuts
 
 
-def _bfs_hop_limited(
+def bfs_hop_limited(
     graph: Digraph,
     source: object,
     max_hops: int,
@@ -449,7 +449,7 @@ def _bfs_hop_limited(
     return visited
 
 
-def _apply_pivot(
+def apply_pivot(
     pivot: object,
     r_minus: set[object],
     r_plus: set[object],
@@ -562,10 +562,10 @@ def build_shortcut_set_for_reachability(
         max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
 
         if f.adaptive_sampling:
-            global _DENSITY_AWARE_CONSTANT
-            _DENSITY_AWARE_CONSTANT = density_aware_constant(rho, k)
+            global DENSITY_AWARE_CONSTANT
+            DENSITY_AWARE_CONSTANT = density_aware_constant(rho, k)
         else:
-            _DENSITY_AWARE_CONSTANT = None
+            DENSITY_AWARE_CONSTANT = None
 
         dag_shortcuts = jls_with_tc_pruning(
             dag,

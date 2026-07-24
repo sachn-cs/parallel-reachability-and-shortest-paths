@@ -38,7 +38,7 @@ from reachq.core.config import get_logger
 log = get_logger("reachq.adaptive_beta")
 
 
-def _bfs_depth(graph: Digraph, source: Any) -> int:
+def bfs_depth(graph: Digraph, source: Any) -> int:
     """Return the eccentricity of `source` in `graph` (max BFS distance)."""
     if source not in graph.out_edges:
         return 0
@@ -78,7 +78,7 @@ def adaptive_beta(
     sample = rng.sample(vertices, min(n_samples, len(vertices)))
     max_depth = 0
     for v in sample:
-        d = _bfs_depth(graph, v)
+        d = bfs_depth(graph, v)
         if d > max_depth:
             max_depth = d
     beta = safety_factor * max(1, max_depth)

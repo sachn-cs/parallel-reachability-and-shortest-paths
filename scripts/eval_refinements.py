@@ -28,7 +28,7 @@ from reachq.core.config import get_logger
 log = get_logger("reachq.eval_refinements")
 
 
-def _time_limit_budget(seconds: int) -> Iterator[None]:
+def time_limit_budget(seconds: int) -> Iterator[None]:
     import signal
 
     def handler(signum: int, frame: object) -> None:
@@ -43,12 +43,12 @@ def _time_limit_budget(seconds: int) -> Iterator[None]:
         signal.signal(signal.SIGALRM, old)
 
 
-def _hopbound_actual(graph, source: object, shortcuts, beta: float) -> tuple[int, int]:
+def hopbound_actual(graph, source: object, shortcuts, beta: float) -> tuple[int, int]:
     """Run parallel BFS with shortcuts, return (max hops observed, violations).
 
     Returns (max_observed, count_over_beta).
     """
-    dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore
+    dist: dict[object, float] = {v: float("inf") for v in graph.vertices()}
     dist[source] = 0
     q: deque = deque([source])
     out = graph.out_edges
@@ -112,7 +112,7 @@ def run_one(
         row["reachability_correct"] = reachable_correct
         # Beta-hopbound observed.
         src = next(iter(graph.vertices()))
-        max_obs, violations = _hopbound_actual(graph, src, shortcuts, beta)
+        max_obs, violations = hopbound_actual(graph, src, shortcuts, beta)
         row["max_hops_observed"] = max_obs
         row["hopbound_violations"] = violations
     except TimeoutError as e:

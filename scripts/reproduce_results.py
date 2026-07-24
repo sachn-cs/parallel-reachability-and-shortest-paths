@@ -36,7 +36,7 @@ log = get_logger("reachq.reproduce")
 
 
 @contextmanager
-def _time_limit(seconds: int) -> Iterator[None]:
+def time_limit(seconds: int) -> Iterator[None]:
     """Raise TimeoutError after *seconds* (POSIX-only)."""
 
     def handler(signum: int, frame: object) -> None:
@@ -66,7 +66,7 @@ def detect_hardware() -> dict[str, str]:
         import numpy as np
 
         info["numpy"] = np.__version__
-        info["numpy_blas"] = _detect_blas(np)
+        info["numpy_blas"] = detect_blas(np)
     except Exception as e:
         log.warning("numpy detection failed: %s", e)
     try:
@@ -106,14 +106,17 @@ def detect_hardware() -> dict[str, str]:
     return info
 
 
-def _detect_blas(np_mod: object) -> str:
+def detect_blas(np_mod: object) -> str:
     """Detect the BLAS backend. Suppresses numpy's chatty stdout."""
     import contextlib
     import io
 
+    show_config = getattr(np_mod, "show_config", None)
+    if show_config is None:
+        return "(unknown)"
     with contextlib.redirect_stdout(io.StringIO()):
         try:
-            cfg = np_mod.show_config()  # type: ignore[attr-defined]
+            cfg = show_config()
         except Exception:
             return "(unknown)"
     for line in str(cfg).splitlines():
@@ -123,7 +126,7 @@ def _detect_blas(np_mod: object) -> str:
     return "(unknown)"
 
 
-def _write_csv(path: Path, rows: list[dict[str, object]], header: list[str]) -> None:
+def write_csv(path: Path, rows: list[dict[str, object]], header: list[str]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with open(path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=header, extrasaction="ignore")
@@ -169,7 +172,7 @@ def run_sampling(
                 **{f"flag_{k}": v for k, v in flags.items()},
             }
             try:
-                with _time_limit(timeout):
+                with time_limit(timeout):
                     t0 = time.perf_counter()
                     shortcuts, beta = build_shortcut_set_for_reachability(
                         g,
@@ -209,7 +212,7 @@ def run_sampling(
                 **{f"flag_{k}": v for k, v in flags.items()},
             }
             try:
-                with _time_limit(timeout):
+                with time_limit(timeout):
                     t0 = time.perf_counter()
                     hopset, beta = build_hopset_for_sssp(
                         wg,
@@ -259,7 +262,7 @@ def run_sampling(
         "error",
         *(f"flag_{k}" for k in flags),
     ]
-    _write_csv(_csv_path(out_dir, "scaling"), rows, header)
+    write_csv(csv_path(out_dir, "scaling"), rows, header)
     return rows
 
 
@@ -304,7 +307,7 @@ def run_snap(
             **{f"flag_{k}": v for k, v in flags.items()},
         }
         try:
-            with _time_limit(timeout):
+            with time_limit(timeout):
                 t0 = time.perf_counter()
                 shortcuts, beta = build_shortcut_set_for_reachability(
                     g,
@@ -344,11 +347,11 @@ def run_snap(
         "error",
         *(f"flag_{k}" for k in flags),
     ]
-    _write_csv(_csv_path(out_dir, "snap"), rows, header)
+    write_csv(csv_path(out_dir, "snap"), rows, header)
     return rows
 
 
-def _csv_path(out_dir: Path, kind: str) -> Path:
+def csv_path(out_dir: Path, kind: str) -> Path:
     return out_dir / f"{kind}.csv"
 
 

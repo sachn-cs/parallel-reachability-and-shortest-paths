@@ -45,7 +45,7 @@ from reachq.core.config import get_logger
 log = get_logger("reachq.sparsify_hop")
 
 
-def _bfs_limited(
+def bfs_limited(
     graph: Digraph,
     source: Any,
     max_depth: int,
@@ -105,7 +105,7 @@ def sparsify_hop_bounded(
         for u, v in list(H):
             H_minus = H - {(u, v)}
             # Check: v reachable from u in ≤ β hops in G + H_minus.
-            dist = _bfs_limited(graph, u, beta, H_minus)
+            dist = bfs_limited(graph, u, beta, H_minus)
             if v in dist and dist[v] <= beta:
                 H = H_minus
                 changed = True
@@ -136,7 +136,7 @@ def verify_hopbound_preserved(
     Returns True iff the β-hopbound is preserved.
     """
     for s in graph.vertices():
-        dist = _bfs_limited(graph, s, beta, shortcuts)
+        dist = bfs_limited(graph, s, beta, shortcuts)
         for v in graph.vertices():
             if not bfs_full(graph, s, v):
                 continue  # v not reachable from s in G -- skip

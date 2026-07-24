@@ -7,7 +7,7 @@ is ~2.37. Different BLAS vendors implement different algorithms
 under the hood.
 
 Returns a conservative runtime estimate of omega. Used by
-``shortcut_set._OMEGA_DEFAULT`` to tighten the TC trigger bound.
+``shortcut_set.OMEGA_DEFAULT`` to tighten the TC trigger bound.
 
 Honest caveat: this function does NOT measure actual omega by
 benchmarking. It identifies the BLAS vendor and returns a literature

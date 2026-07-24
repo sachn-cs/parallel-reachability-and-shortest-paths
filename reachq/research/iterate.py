@@ -87,7 +87,7 @@ def iterative_shortcut_set(
     if max_iterations == 0:
         return set()
 
-    def _build(H: set[tuple[object, object]]) -> set[tuple[object, object]]:
+    def build(H: set[tuple[object, object]]) -> set[tuple[object, object]]:
         augmented = Digraph()
         for v in graph.vertices():
             augmented.add_vertex(v)
@@ -109,7 +109,7 @@ def iterative_shortcut_set(
     core: set[tuple[object, object]] = set()
     for k_iter in range(max_iterations):
         t0 = time.perf_counter()
-        H_new = _build(H)
+        H_new = build(H)
         elapsed = time.perf_counter() - t0
         history.append(H_new)
         log.info(
