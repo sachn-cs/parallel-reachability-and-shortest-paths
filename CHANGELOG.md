@@ -7,6 +7,51 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.0.0] - 2026-07-24
+
+### Added
+
+- **Compiled acceleration kernels.** The Cython (`.pyx`),
+  Rust (`src/lib.rs`), and Numba-JIT kernels are now all
+  compilable and runnable from this environment. `cy_bfs_forward`,
+  `cy_bfs_backward`, `cy_dijkstra`, `rust_bfs_forward`,
+  `rust_dijkstra`, `njit_bfs_forward`, and `njit_dijkstra` all
+  return identical results across backends (verified by
+  `tests/test_accel_fallbacks.py::test_consistency_across_backends`).
+  Pure-Python fallbacks remain for users without a C compiler /
+  Rust toolchain / Numba.
+
+- **Numba prewarm helper.** `reachq.accel.numba.prewarm()` triggers
+  Numba JIT compilation up-front at application startup with
+  representative input shapes, so the first real call has no
+  JIT-compilation latency. Defaults to size 256 vertices, 4
+  average degree, completing in under 1 second.
+
+- **Polylog fully-dynamic transitive closure.**
+  `reachq.research.polylog_dynamic_tc.PolylogDynamicTC` implements
+  the Demetrescu-Italiano fully-dynamic transitive closure algorithm
+  (FOCS 2000) using a bitset matrix. O(n) amortised per insert,
+  O(n^2) worst case per delete. Achieves the same correctness
+  guarantees as the naive `DynamicTransitiveClosure` but with
+  significantly better amortised complexity. Documented honestly
+  as not matching Sankowski's O(n^1.575) worst case.
+
+- **Comprehensive literature survey.** `docs/lit_survey.md` now
+  cites 32 references across all subareas (shortcut-set, hopset,
+  dynamic TC, parallel graph algorithms, fast matrix multiplication,
+  reachability sketches, hypergraph algorithms, temporal graphs,
+  parallel BFS, graph generators). Each entry annotates its
+  relevance to specific reachq modules.
+
+### Fixed
+
+- Cython `bfs.pyx` no longer used Python slicing inside `nogil`
+  blocks (was a compile error on first compilation attempt).
+  Replaced with explicit `memcpy` of raw C arrays.
+- Rust extension's PyO3 function names now match what the Python
+  wrapper expects (`rust_bfs_forward`, `rust_dijkstra`) via
+  `#[pyfunction(name = "...")]`.
+
 ## [6.0.0] - 2026-07-24
 
 ### Added

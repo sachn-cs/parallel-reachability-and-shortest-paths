@@ -160,6 +160,16 @@ data/cache/
 # ruff cache
 .ruff_cache/
 
+# Cython-generated C files and build artefacts
+reachq/accel/cython/_cy_*.c
+reachq/accel/cython/*.c
+!reachq/accel/cython/*.pyx
+reachq/accel/cython/build/
+
+# Rust build artefacts and lock file
+reachq/accel/rust/target/
+reachq/accel/rust/Cargo.lock
+
 # Benchmark reproduction output (everything under results/, including the
 # auto-generated summary.md; the curated docs/algorithmic_improvements.md
 # is committed).
