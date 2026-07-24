@@ -2,8 +2,8 @@
 //!
 //! Provides two operations on integer-indexed CSR adjacency:
 //!
-//! - [`bfs_forward`]: frontier-based BFS with bound checks elided.
-//! - [`dijkstra`]: binary-heap shortest-path with relaxed edges.
+//! - [`rust_bfs_forward`]: frontier-based BFS with bound checks elided.
+//! - [`rust_dijkstra`]: binary-heap shortest-path with relaxed edges.
 //!
 //! Both functions release the GIL during the hot loop, enabling
 //! genuine thread-pool parallelism on multi-core machines.
@@ -18,8 +18,8 @@ use pyo3::prelude::*;
 /// Returns a numpy boolean array of length `n` where `reached[v]`
 /// is True iff `v` is reachable from `source` in at most `max_depth`
 /// hops. `reached[source]` is always True.
-#[pyfunction]
-fn bfs_forward<'py>(
+#[pyfunction(name = "rust_bfs_forward")]
+fn rust_bfs_forward<'py>(
     py: Python<'py>,
     indptr: PyReadonlyArray1<'py, i64>,
     indices: PyReadonlyArray1<'py, i64>,
@@ -62,8 +62,8 @@ fn bfs_forward<'py>(
 /// Returns a numpy float64 array of length `n` where `dist[v]` is
 /// the shortest-path distance from `source` to `v` (or `inf` if
 /// unreachable).
-#[pyfunction]
-fn dijkstra<'py>(
+#[pyfunction(name = "rust_dijkstra")]
+fn rust_dijkstra<'py>(
     py: Python<'py>,
     indptr: PyReadonlyArray1<'py, i64>,
     indices: PyReadonlyArray1<'py, i64>,
@@ -107,14 +107,16 @@ struct OrderedFloat(f64);
 impl Eq for OrderedFloat {}
 impl Ord for OrderedFloat {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
-        self.0.partial_cmp(&other.0).unwrap_or(std::cmp::Ordering::Equal)
+        self.0
+            .partial_cmp(&other.0)
+            .unwrap_or(std::cmp::Ordering::Equal)
     }
 }
 
 /// Python module declaration.
 #[pymodule]
 fn _reachq_rust(_py: Python, m: &Bound<'_, PyModule>) -> PyResult<()> {
-    m.add_function(wrap_pyfunction!(bfs_forward, m)?)?;
-    m.add_function(wrap_pyfunction!(dijkstra, m)?)?;
+    m.add_function(wrap_pyfunction!(rust_bfs_forward, m)?)?;
+    m.add_function(wrap_pyfunction!(rust_dijkstra, m)?)?;
     Ok(())
 }

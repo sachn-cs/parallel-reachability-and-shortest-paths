@@ -28,6 +28,8 @@ performance.
 
 from __future__ import annotations
 
+from typing import Any
+
 import numpy as np
 
 from reachq.core.bfs import csr_reachable_forward
@@ -35,15 +37,29 @@ from reachq.core.shortest_paths import dijkstra
 
 
 _ext_available = False
+_rust_bfs_forward_ext: Any = None
+_rust_dijkstra_ext: Any = None
 try:
     from reachq.accel.rust._reachq_rust import (  # type: ignore[import-not-found]
-        rust_bfs_forward as _rust_bfs_forward_ext,
-        rust_dijkstra as _rust_dijkstra_ext,
+        rust_bfs_forward as _bfs_impl,
+        rust_dijkstra as _dijkstra_impl,
     )
-
+    _rust_bfs_forward_ext = _bfs_impl
+    _rust_dijkstra_ext = _dijkstra_impl
     _ext_available = True
 except ImportError:
-    _ext_available = False
+    # Maturin may install the .so at a different path. Try the
+    # top-level module installed via maturin develop.
+    try:
+        from _reachq_rust._reachq_rust import (  # type: ignore[import-not-found]
+            rust_bfs_forward as _bfs_impl,
+            rust_dijkstra as _dijkstra_impl,
+        )
+        _rust_bfs_forward_ext = _bfs_impl
+        _rust_dijkstra_ext = _dijkstra_impl
+        _ext_available = True
+    except ImportError:
+        _ext_available = False
 
 
 def rust_bfs_forward(
