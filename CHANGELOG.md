@@ -7,6 +7,33 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-07-24
+
+### Changed (BREAKING)
+
+- **Drop Python 3.9 support.** Minimum version is now 3.10.
+- **Restructure into subpackages.** The flat `reachq/` layout is now
+  `reachq/core/`, `reachq/research/`, `reachq/cli/`, `reachq/proto/`,
+  `reachq/accel/`. Old import paths no longer work.
+- **Rename `logging_config` to `core.config`.** `configure()` renamed
+  to `configure_logging()`.
+- **Rename `serialization` to `core.io.json`.** `digraph_to_json` →
+  `dump`, `digraph_from_json` → `load`.
+
+### Added
+
+- `reachq/core/` — core algorithms, graph primitives, BFS, CSR,
+  reachability, shortest paths, transitive closure, shortcut-set
+  construction, hopset construction, invariants, work-depth accounting.
+- `reachq/core/backends/` — thread and process pool backends.
+- `reachq/core/io/` — serialisation backends (JSON).
+- `reachq/cli/` — command-line interface.
+- `reachq/proto/` — protocol definitions for extension points.
+- `reachq/accel/` — acceleration backends (Cython, Rust, Numba, Ray,
+  Dask, GraphBLAS).
+- `Makefile` — test, lint, typecheck, bench, docs, clean targets.
+- `tox.ini` — test matrix for py310–py313.
+
 ## [1.0.0] - 2026-07-24
 
 ### Added (four core research algorithms, all verified)
