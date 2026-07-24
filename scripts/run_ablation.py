@@ -26,7 +26,7 @@ log = get_logger("reachq.ablation")
 
 
 @contextmanager
-def _time_limit(seconds: int) -> Iterator[None]:
+def time_limit(seconds: int) -> Iterator[None]:
     def handler(signum: int, frame: object) -> None:
         raise TimeoutError(f"exceeded {seconds}s")
 
@@ -51,7 +51,7 @@ FLAG_NAMES = (
 )
 
 
-def _all_off_except(name: str) -> dict[str, bool]:
+def all_off_except(name: str) -> dict[str, bool]:
     return {n: (n == name) for n in FLAG_NAMES}
 
 
@@ -73,7 +73,7 @@ def main() -> int:
     configurations: list[tuple[str, dict[str, bool]]] = [
         ("all_on", all_on),
         ("all_off", all_off),
-        *((f"only_{name}", _all_off_except(name)) for name in FLAG_NAMES),
+        *((f"only_{name}", all_off_except(name)) for name in FLAG_NAMES),
     ]
 
     log.info("ablation starting; sizes=%s densities=%s", args.sizes, args.densities)
@@ -92,7 +92,7 @@ def main() -> int:
                     **{f"flag_{k}": v for k, v in flags.items()},
                 }
                 try:
-                    with _time_limit(args.timeout):
+                    with time_limit(args.timeout):
                         t0 = time.perf_counter()
                         shortcuts, beta = build_shortcut_set_for_reachability(
                             g,
@@ -111,7 +111,7 @@ def main() -> int:
                 except TimeoutError:
                     row["reach_error"] = "timeout"
                 try:
-                    with _time_limit(args.timeout):
+                    with time_limit(args.timeout):
                         t0 = time.perf_counter()
                         hopset, beta = build_hopset_for_sssp(
                             wg,

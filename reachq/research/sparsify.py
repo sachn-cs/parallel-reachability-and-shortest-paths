@@ -33,7 +33,7 @@ from reachq.core.config import get_logger
 log = get_logger("reachq.sparsify")
 
 
-def _build_shortcut_index(
+def build_shortcut_index(
     shortcuts: set[tuple[Any, Any]],
 ) -> dict[Any, list[Any]]:
     """Build an index of shortcuts grouped by source vertex."""
@@ -43,7 +43,7 @@ def _build_shortcut_index(
     return index
 
 
-def _reachable_via(
+def reachable_via(
     graph: Digraph, source: Any, shortcut_index: dict[Any, list[Any]]
 ) -> set[Any]:
     """Return all vertices reachable from source via G + shortcuts."""
@@ -95,8 +95,8 @@ def sparsify_shortcut_set(
         changed = False
         for u, v in list(H):
             H_minus = H - {(u, v)}
-            index_minus = _build_shortcut_index(H_minus)
-            reachable = _reachable_via(graph, u, index_minus)
+            index_minus = build_shortcut_index(H_minus)
+            reachable = reachable_via(graph, u, index_minus)
             if v in reachable:
                 H = H_minus
                 changed = True

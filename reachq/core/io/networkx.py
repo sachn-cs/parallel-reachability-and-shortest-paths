@@ -34,13 +34,13 @@ def to_networkx(graph: Digraph) -> Any:
 
 def from_networkx(nx_graph: Any) -> Digraph:
     """Convert a NetworkX graph to a reachq Digraph."""
-    try:
-        import networkx  # noqa: F401
-    except ImportError as e:
+    from importlib.util import find_spec
+
+    if find_spec("networkx") is None:
         raise ImportError(
             "networkx is required for NetworkX interop. "
             "Install with: pip install reachq[research]"
-        ) from e
+        )
 
     from reachq.core.graph import Digraph
 

@@ -38,18 +38,18 @@ from reachq.core.shortest_paths import (
     dijkstra,
 )
 
-_OMEGA_DEFAULT = 2.5
-_OMEGA_RUNTIME_HOP: float | None = None
+OMEGA_DEFAULT = 2.5
+OMEGA_RUNTIME_HOP: float | None = None
 
 
-def _get_runtime_omega() -> float:
+def get_runtime_omega() -> float:
     """Return runtime omega, cached; same impl as in shortcut_set."""
-    global _OMEGA_RUNTIME_HOP
-    if _OMEGA_RUNTIME_HOP is None:
+    global OMEGA_RUNTIME_HOP
+    if OMEGA_RUNTIME_HOP is None:
         from reachq.research.blas_omega import runtime_omega
 
-        _OMEGA_RUNTIME_HOP = runtime_omega()
-    return _OMEGA_RUNTIME_HOP
+        OMEGA_RUNTIME_HOP = runtime_omega()
+    return OMEGA_RUNTIME_HOP
 
 
 def compute_truncated_sssp_structure(
@@ -68,7 +68,7 @@ def compute_truncated_sssp_structure(
     return edges
 
 
-def _cfr_recursive(
+def cfr_recursive(
     graph: WeightedDigraph,
     k: float,
     epsilon: float,
@@ -91,11 +91,11 @@ def _cfr_recursive(
 
     log_n = math.log2(n_global) if n_global > 1 else 0.0
     base_prob = (
-        min(1.0, _OMEGA_DEFAULT * (k ** (level + 1)) * log_n / n_global)
-        if _OMEGA_RUNTIME_HOP is None
+        min(1.0, OMEGA_DEFAULT * (k ** (level + 1)) * log_n / n_global)
+        if OMEGA_RUNTIME_HOP is None
         else min(
             1.0,
-            min(_OMEGA_DEFAULT, _get_runtime_omega())
+            min(OMEGA_DEFAULT, get_runtime_omega())
             * (k ** (level + 1))
             * log_n
             / n_global,
@@ -109,7 +109,7 @@ def _cfr_recursive(
         pivots = [
             v
             for v in vertices
-            if _bernoulli_weighted(
+            if bernoulli_weighted(
                 base_prob,
                 out_degrees.get(v, 0),
                 rng,
@@ -194,7 +194,7 @@ def _cfr_recursive(
         sub = graph.induced_subgraph(part)
         # Advance the RNG so the recursion sees a different stream.
         rng.randint(0, 2**31 - 1)
-        sub_hopset = _cfr_recursive(
+        sub_hopset = cfr_recursive(
             sub,
             k,
             epsilon,
@@ -214,7 +214,7 @@ def _cfr_recursive(
     return hopset
 
 
-def _bernoulli_weighted(prob: float, out_deg: int, rng: random.Random) -> bool:
+def bernoulli_weighted(prob: float, out_deg: int, rng: random.Random) -> bool:
     """Improvement 5 (degree-aware pivot weighting): accept with prob / (1 + deg)."""
     if prob >= 1.0:
         return True
@@ -235,7 +235,7 @@ def cfr_hopset(
 
     Equivalent to the public CFR baseline, used here as a comparison point
     against :func:`cfr_with_truncsssp_pruning`. Both now share an internal
-    recursive body via :func:`_cfr_recursive` so the only difference is the
+    recursive body via :func:`cfr_recursive` so the only difference is the
     pruning flag.
     """
     f = RefinementConfig.from_dict(flags)
@@ -246,7 +246,7 @@ def cfr_hopset(
     if max_level < 0:
         raise ValueError("max_level must be non-negative")
     rng = random.Random(random_seed)
-    return _cfr_recursive(
+    return cfr_recursive(
         graph,
         k,
         epsilon,
@@ -282,7 +282,7 @@ def cfr_with_truncsssp_pruning(
     if max_level < 0:
         raise ValueError("max_level must be non-negative")
     rng = random.Random(random_seed)
-    return _cfr_recursive(
+    return cfr_recursive(
         graph,
         k,
         epsilon,

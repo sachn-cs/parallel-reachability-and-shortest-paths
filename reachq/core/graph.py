@@ -244,7 +244,7 @@ class Digraph(Graph):
         """
         import numpy as np
 
-        index_map, n = _csr_index_map(self)
+        index_map, n = csr_index_map(self)
         indptr = np.zeros(n + 1, dtype=np.int64)
         for v in self.vertex_set:
             i = index_map[v]
@@ -259,7 +259,7 @@ class Digraph(Graph):
         return indptr, indices, n
 
 
-def _csr_index_map(graph: Digraph) -> tuple[dict[object, int], int]:
+def csr_index_map(graph: Digraph) -> tuple[dict[object, int], int]:
     """Build vertex→index bijection for CSR conversion."""
     index_map: dict[object, int] = {}
     for i, v in enumerate(graph.vertex_set):

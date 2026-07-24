@@ -5,6 +5,8 @@ Requires dask. Install with ``pip install reachq[accel]``.
 
 from __future__ import annotations
 
+from typing import Any, Iterable
+
 
 class DaskBackend:
     """Distributed backend using Dask."""
@@ -13,18 +15,19 @@ class DaskBackend:
     n_workers = 0
 
     def __init__(self, n_workers: int = 0) -> None:
-        try:
-            import dask  # noqa: F401
-        except ImportError as e:
+        from importlib.util import find_spec
+
+        if find_spec("dask") is None:
             raise ImportError(
                 "dask is required for distributed execution. "
                 "Install with: pip install dask"
-            ) from e
+            )
         self.n_workers = n_workers
 
-    def imap_unordered(self, func, items):  # type: ignore[no-untyped-def]
+    def imap_unordered(self, func: Any, items: Iterable[Any]) -> list[Any]:
         """Dispatch items via Dask delayed."""
         import dask
 
         futures = [dask.delayed(func)(item) for item in items]
-        return dask.compute(*futures)
+        results = dask.compute(*futures)
+        return list(results)

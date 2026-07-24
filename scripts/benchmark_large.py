@@ -34,18 +34,16 @@ from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
 log = get_logger("reachq.benchmark_large")
 
 
-class TimeoutError(Exception):  # noqa: A001
+class TimeoutExceeded(Exception):
     """Raised when construction exceeds the configured timeout."""
-
-    pass
 
 
 @contextlib.contextmanager
 def time_limit(seconds: int) -> Iterator[None]:
-    """Raise TimeoutError after *seconds* seconds."""
+    """Raise TimeoutExceeded after *seconds* seconds."""
 
     def handler(signum: int, frame: object) -> None:
-        raise TimeoutError(f"Construction exceeded {seconds}s timeout")
+        raise TimeoutExceeded(f"Construction exceeded {seconds}s timeout")
 
     old_handler = signal.signal(signal.SIGALRM, handler)
     signal.alarm(seconds)
@@ -90,7 +88,7 @@ def benchmark_reachability(
             original = bfs_reachability(graph, source)
             augmented = parallel_bfs(graph, source, shortcuts)
             result["correct"] = original == augmented
-    except TimeoutError as e:
+    except TimeoutExceeded as e:
         result["error"] = str(e)
 
     return result
@@ -136,13 +134,13 @@ def benchmark_shortest_paths(
                 and approx.get(v, float("inf")) > (1 + epsilon) * original[v] + 1e-9
             )
             result["mismatches"] = mismatches
-    except TimeoutError as e:
+    except TimeoutExceeded as e:
         result["error"] = str(e)
 
     return result
 
 
-def _format_row(row: dict[str, object]) -> str:
+def format_row(row: dict[str, object]) -> str:
     """Format a result row for stdout."""
     if "error" in row:
         return f"  TIMEOUT: {row['error']}"
@@ -165,7 +163,8 @@ class CsvWriter:
     def __init__(self, path: str) -> None:
         self.path = path
         self.header: list[str] | None = None
-        self.fh = open(path, "a", newline="", buffering=1)  # noqa: SIM115
+        self._stack = contextlib.ExitStack()
+        self.fh = self._stack.enter_context(open(path, "a", newline="", buffering=1))
 
     def write(self, row: dict[str, object]) -> None:
         """Append a row to the CSV, writing the header on first use."""
@@ -181,10 +180,10 @@ class CsvWriter:
 
     def close(self) -> None:
         """Close the underlying file handle."""
-        self.fh.close()
+        self._stack.close()
 
 
-def _run_one_snap(
+def run_one_snap(
     name: str, omega: float, seed: int, check_correctness: bool
 ) -> dict[str, object]:
     """Worker entry point: load and benchmark a single SNAP dataset."""
@@ -217,7 +216,7 @@ def run_snap_benchmarks(
             for name in datasets:
                 log.info("--- %s (%s) ---", name, SNAP_DATASETS[name]['type'])
                 try:
-                    row = _run_one_snap(name, omega, seed, check_correctness)
+                    row = run_one_snap(name, omega, seed, check_correctness)
                 except Exception as e:
                     row = {
                         "source": name,
@@ -226,7 +225,7 @@ def run_snap_benchmarks(
                     }
                     log.warning("  load failed: %s", e)
                 else:
-                    log.info("%s", _format_row(row))
+                    log.info("%s", format_row(row))
                 if writer:
                     writer.write(row)
             return
@@ -238,7 +237,7 @@ def run_snap_benchmarks(
         try:
             async_results = {
                 pool.apply_async(
-                    _run_one_snap,
+                    run_one_snap,
                     (name, omega, seed, check_correctness),
                 ): name
                 for name in datasets
@@ -272,7 +271,7 @@ def run_snap_benchmarks(
                     }
                     log.warning("  failed: %s", e)
                 else:
-                    log.info("%s", _format_row(row))
+                    log.info("%s", format_row(row))
                 if writer:
                     writer.write(row)
                 del async_results[async_result]
@@ -312,7 +311,7 @@ def run_synthetic_scaling(
             )
             row["source"] = f"random_dag_{n}"
             row["kind"] = "synthetic-reachability"
-            log.info("%s", _format_row(row))
+            log.info("%s", format_row(row))
             if writer:
                 writer.write(row)
 
@@ -331,7 +330,7 @@ def run_synthetic_scaling(
             )
             wrow["source"] = f"random_dag_{n}"
             wrow["kind"] = "synthetic-shortest-paths"
-            log.info("%s", _format_row(wrow))
+            log.info("%s", format_row(wrow))
             if writer:
                 writer.write(wrow)
     finally:

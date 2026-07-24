@@ -51,46 +51,46 @@ class StreamingShortcutSet:
         max_pivots: int = 256,
         seed: int | None = None,
     ) -> None:
-        self._graph = graph
-        self._beta = beta
-        self._max_pivots = max_pivots
-        self._rng = __import__("random").Random(seed)
-        self._pivots: set[Any] = set()
-        self._shortcuts: set[tuple[Any, Any]] = set()
+        self.__graph = graph
+        self.__beta = beta
+        self.__max_pivots = max_pivots
+        self.__rng = __import__("random").Random(seed)
+        self.__pivots: set[Any] = set()
+        self.__shortcuts: set[tuple[Any, Any]] = set()
 
     def insert_edge(self, u: Any, v: Any) -> None:
         """Insert edge u -> v into the graph. Update pivots and shortcuts
         incrementally.
         """
-        self._graph.add_edge(u, v)
+        self.__graph.add_edge(u, v)
         # Identify affected pivots: those whose r_ball may change.
         # In the worst case, all pivots are affected.
-        affected = set(self._pivots)
+        affected = set(self.__pivots)
         # If a new pivot candidate appears, add it.
-        if len(self._pivots) < self._max_pivots and v not in self._pivots:
-            if self._rng.random() < 0.1:  # sample at fixed rate
+        if len(self.__pivots) < self.__max_pivots and v not in self.__pivots:
+            if self.__rng.random() < 0.1:  # sample at fixed rate
                 affected.add(v)
         # Update affected pivots' reachability.
         for p in list(affected):
-            new_r_plus = self._bfs(p, max_depth=self._beta)
-            new_r_minus = self._bfs(p, max_depth=self._beta, reverse=True)
+            new_r_plus = self.__bfs(p, max_depth=self.__beta)
+            new_r_minus = self.__bfs(p, max_depth=self.__beta, reverse=True)
             for w in new_r_plus:
                 if w != p:
-                    self._shortcuts.add((p, w))
+                    self.__shortcuts.add((p, w))
             for w in new_r_minus:
                 if w != p:
-                    self._shortcuts.add((w, p))
+                    self.__shortcuts.add((w, p))
         # Add u and v as potential pivots.
-        if u not in self._pivots and self._rng.random() < 0.05:
-            self._pivots.add(u)
-        if v not in self._pivots and self._rng.random() < 0.05:
-            self._pivots.add(v)
+        if u not in self.__pivots and self.__rng.random() < 0.05:
+            self.__pivots.add(u)
+        if v not in self.__pivots and self.__rng.random() < 0.05:
+            self.__pivots.add(v)
 
     def get_shortcuts(self) -> set[tuple[Any, Any]]:
         """Return the current shortcut set."""
-        return set(self._shortcuts)
+        return set(self.__shortcuts)
 
-    def _bfs(
+    def __bfs(
         self,
         source: Any,
         max_depth: int,
@@ -100,9 +100,9 @@ class StreamingShortcutSet:
         visited = {source}
         q = deque([(source, 0)])
         out = (
-            self._graph.in_edges
+            self.__graph.in_edges
             if reverse
-            else self._graph.out_edges
+            else self.__graph.out_edges
         )
         while q:
             u, d = q.popleft()
@@ -116,7 +116,7 @@ class StreamingShortcutSet:
 
     def __repr__(self) -> str:
         return (
-            f"StreamingShortcutSet(beta={self._beta}, "
-            f"|pivots|={len(self._pivots)}, "
-            f"|shortcuts|={len(self._shortcuts)})"
+            f"StreamingShortcutSet(beta={self.__beta}, "
+            f"|pivots|={len(self.__pivots)}, "
+            f"|shortcuts|={len(self.__shortcuts)})"
         )

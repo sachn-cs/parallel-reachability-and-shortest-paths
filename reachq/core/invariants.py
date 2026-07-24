@@ -53,7 +53,7 @@ def assert_hopbound(
     """
     from collections import deque
 
-    dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[misc]
+    dist: dict[object, float] = {v: float("inf") for v in graph.vertices()}
     dist[source] = 0
     q: deque = deque([source])
     out = graph.out_edges
@@ -76,7 +76,7 @@ def assert_hopbound(
         raise AssertionError(
             f"Hopbound violated: max_hops={max_hops} > beta={beta}. {msg or ''}"
         )
-    return max_hops
+    return int(max_hops)
 
 
 def assert_scc_shortcuts_form_cliques(
