@@ -7,6 +7,71 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [6.0.0] - 2026-07-24
+
+### Added
+
+- **Production-grade acceleration layer.** Cython kernels
+  (`reachq/accel/cython/{bfs,dijkstra}.pyx`) for CSR BFS and
+  binary-heap Dijkstra, with Python fallbacks. Rust kernels
+  (`reachq/accel/rust/src/lib.rs`) and Numba-JIT kernels
+  (`reachq/accel/numba/__init__.py`) for the same operations.
+  All three compile/build paths are documented; the public
+  Python API falls back to pure-Python when the compiled
+  extension is unavailable.
+
+- **`reachq/research/attributed.py`** — BFS over graphs with
+  vertex and edge attribute predicates. New `attributed_bfs`,
+  `attributed_reachable_pairs`, `vertex_attribute_index`.
+
+- **`reachq/research/dynamic_tc.py`** — Naive O(n²)-per-update
+  fully-dynamic transitive closure. `DynamicTransitiveClosure`
+  class with `insert_edge`, `delete_edge`, `reaches`,
+  `reachable_from`, `reach_set`. `incremental_tc` helper for
+  constructing from a sequence of insertions.
+
+- **`reachq/research/hyper.py`** — Directed hypergraph with
+  `DirectedHypergraph`, `hyper_reachable`,
+  `hypergraph_from_digraph`, `hyper_to_digraph`. Hyperedges
+  are `(frozenset, frozenset)` pairs.
+
+- **`reachq/research/sketch.py`** — HyperLogLog reachability
+  cardinality sketches. `HyperLogLogSketch` class with `add`,
+  `cardinality`, `merge`. `sketch_reachability_estimate` and
+  `sketch_reachability_streaming` for graph integration.
+
+- **`reachq/research/temporal.py`** — Temporal graph with
+  timestamped edges. `TemporalDigraph`, `temporal_bfs`,
+  `earliest_arrival`, `from_temporal_edges`.
+
+- **`reachq/core/predictor.py`** heuristics now actually use the
+  graph. `predict_omega` detects the BLAS vendor and returns the
+  literature omega. `predict_epsilon` uses a `1/sqrt(n)`
+  density-aware heuristic clamped to [0.01, 0.5]. `predict_rho`
+  computes the density ratio from n and m.
+
+### Changed (BREAKING)
+
+- **`shrikhande_cayley()` no longer raises `NotImplementedError`.**
+  Was previously a stub; now returns the actual 6-regular Shrikhande
+  graph on Z_4 x Z_4 with the symmetric generator set
+  ``S ∪ (-S) = {(1,0), (0,1), (1,1), (3,0), (0,3), (3,3)}``.
+
+- **`layered_dag_shortcut_set()` semantics changed.** Was a stub
+  returning the empty set; now returns within-layer clique
+  shortcuts of size ``layers * layer_size * (layer_size - 1)``
+  per the function's docstring promise. The
+  `verify_bipartite_layered_soundness` helper is new for the
+  bipartite-only case where the empty set is correct.
+
+### Documentation
+
+- **`docs/lit_survey.md`** — Survey of TC-pruning cost-analysis
+  prior art with citations for JLS19, Ashvinkumar et al. 2026,
+  Blelloch-Gu-Shun, Fineman-Blelloch, Williams-Williams,
+  Coppersmith-Winograd, Williams 2024, Cohen 1997,
+  Flajolet et al. 2007, Demetrescu-Italiano.
+
 ## [5.0.0] - 2026-07-24
 
 ### Changed (BREAKING)
