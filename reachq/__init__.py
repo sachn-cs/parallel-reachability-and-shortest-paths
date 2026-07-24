@@ -93,7 +93,6 @@ from reachq.core.algorithm import (
     jls_with_tc_pruning,
 )
 from reachq.core.config import RefinementConfig
-Flags = RefinementConfig
 from reachq.core.shortest_paths import (
     astar,
     compute_d_ancestors,
@@ -111,6 +110,8 @@ from reachq.core.tc import (
     transitive_closure_on_subset,
 )
 from reachq.core.work_depth import WorkDepthAccountant
+
+Flags = RefinementConfig
 
 __all__ = [
     "Digraph",

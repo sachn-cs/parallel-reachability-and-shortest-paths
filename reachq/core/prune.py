@@ -9,8 +9,6 @@ subset is small relative to the matrix multiplication exponent omega.
 
 from __future__ import annotations
 
-import math
-from typing import Any
 
 from reachq.core.graph import Digraph
 from reachq.core.tc import transitive_closure_on_subset

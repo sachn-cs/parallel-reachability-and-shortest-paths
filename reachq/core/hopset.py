@@ -30,6 +30,7 @@ from typing import Any, Optional
 
 from reachq.core.graph import WeightedDigraph, contract_sccs, partition_by_labels
 from reachq.core.config import RefinementConfig
+from reachq.core.trace import trace
 from reachq.core.shortest_paths import (
     compute_d_ancestors,
     compute_d_ball,
@@ -316,82 +317,82 @@ def build_hopset_for_sssp(
     Returns:
         (hopset, beta) where beta is the target hopbound.
     """
-    if parallel_workers != 1:
-        import logging
+    with trace("build_hopset", n=graph.num_vertices(), m=graph.num_edges()):
+        if parallel_workers != 1:
+            import logging
 
-        logging.getLogger("reachq.hopset").info(
-            "build_hopset_for_sssp: parallel_workers=%d ignored "
-            "(hopset construction is sequential)",
-            parallel_workers,
-        )
-    f = RefinementConfig.from_dict(flags)
-    n = graph.num_vertices()
-    m = graph.num_edges()
+            logging.getLogger("reachq.hopset").info(
+                "build_hopset_for_sssp: parallel_workers=%d ignored "
+                "(hopset construction is sequential)",
+                parallel_workers,
+            )
+        f = RefinementConfig.from_dict(flags)
+        n = graph.num_vertices()
+        m = graph.num_edges()
 
-    if n == 0:
-        return {}, 0.0
+        if n == 0:
+            return {}, 0.0
 
-    sccs, scc_map = contract_sccs(graph.to_unweighted())
+        sccs, scc_map = contract_sccs(graph.to_unweighted())
 
-    # Improvement 3: trivial condensation fast path.
-    trivial = f.skip_condense and all(len(scc) == 1 for scc in sccs)
-    if trivial:
-        dag = graph
-        scc_rep = [next(iter(scc)) for scc in sccs]
-    else:
-        dag = WeightedDigraph()
-        for idx in range(len(sccs)):
-            dag.add_vertex(idx)
-        for u, v, w in graph.edges():
-            if scc_map[u] != scc_map[v]:
-                dag.add_edge(scc_map[u], scc_map[v], w)
-        scc_rep = [next(iter(scc)) for scc in sccs]
-
-    beta = (n**3 / m) ** 0.25 if m > 0 else float("inf")
-
-    k = max(2.0, math.log2(n))
-    rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
-    rho = min(rho, math.sqrt(n))
-    max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
-
-    dag_hopset = cfr_with_truncsssp_pruning(
-        dag,
-        k,
-        epsilon,
-        rho,
-        max_level,
-        dag.num_vertices(),
-        level=0,
-        random_seed=random_seed,
-        flags=flags,
-    )
-
-    hopset: dict[tuple[object, object], int] = {}
-
-    # SCC intra-clique shortcuts — skip trivial SCCs.
-    if not trivial:
-        for scc in sccs:
-            scc_list = list(scc)
-            if len(scc_list) <= 1:
-                continue
-            sub = graph.induced_subgraph(scc)
-            for u in scc_list:
-                dists = dijkstra(sub, u)
-                for v, d in dists.items():
-                    if u != v:
-                        key = (u, v)
-                        prev = hopset.get(key)
-                        if prev is None or d < prev:
-                            hopset[key] = d
-
-    for u_idx, v_idx, w in ((u, v, dag_hopset[(u, v)]) for u, v in dag_hopset):
+        # Improvement 3: trivial condensation fast path.
+        trivial = f.skip_condense and all(len(scc) == 1 for scc in sccs)
         if trivial:
-            # DAG vertices are original vertices; no translation.
-            key = (u_idx, v_idx)
+            dag = graph
+            scc_rep = [next(iter(scc)) for scc in sccs]
         else:
-            key = (scc_rep[u_idx], scc_rep[v_idx])
-        prev = hopset.get(key)
-        if prev is None or w < prev:
-            hopset[key] = w
+            dag = WeightedDigraph()
+            for idx in range(len(sccs)):
+                dag.add_vertex(idx)
+            for u, v, w in graph.edges():
+                if scc_map[u] != scc_map[v]:
+                    dag.add_edge(scc_map[u], scc_map[v], w)
+            scc_rep = [next(iter(scc)) for scc in sccs]
 
-    return hopset, beta
+        beta = (n**3 / m) ** 0.25 if m > 0 else float("inf")
+
+        k = max(2.0, math.log2(n))
+        rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
+        rho = min(rho, math.sqrt(n))
+        max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
+
+        dag_hopset = cfr_with_truncsssp_pruning(
+            dag,
+            k,
+            epsilon,
+            rho,
+            max_level,
+            dag.num_vertices(),
+            level=0,
+            random_seed=random_seed,
+            flags=flags,
+        )
+
+        hopset: dict[tuple[object, object], int] = {}
+
+        # SCC intra-clique shortcuts — skip trivial SCCs.
+        if not trivial:
+            for scc in sccs:
+                scc_list = list(scc)
+                if len(scc_list) <= 1:
+                    continue
+                sub = graph.induced_subgraph(scc)
+                for u in scc_list:
+                    dists = dijkstra(sub, u)
+                    for v, d in dists.items():
+                        if u != v:
+                            key = (u, v)
+                            prev = hopset.get(key)
+                            if prev is None or d < prev:
+                                hopset[key] = d
+
+        for u_idx, v_idx, w in ((u, v, dag_hopset[(u, v)]) for u, v in dag_hopset):
+            if trivial:
+                key = (u_idx, v_idx)
+            else:
+                key = (scc_rep[u_idx], scc_rep[v_idx])
+            prev = hopset.get(key)
+            if prev is None or w < prev:
+                hopset[key] = w
+
+        return hopset, beta

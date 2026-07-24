@@ -47,6 +47,7 @@ from reachq.core.csr import build_csr_pair
 from reachq.core.backends import SEQUENTIAL, ParallelContext
 from reachq.core.reachability import compute_r_minus, compute_r_plus
 from reachq.core.prune import apply_tc_pruning, compute_tc_pruning_threshold
+from reachq.core.trace import trace
 
 log = get_logger("reachq.core.algorithm")
 
@@ -524,106 +525,88 @@ def build_shortcut_set_for_reachability(
     Returns:
         (shortcut_set, beta) where beta is the target hopbound.
     """
-    f = RefinementConfig.from_dict(flags)
-    n = graph.num_vertices()
-    m = graph.num_edges()
+    with trace("build_shortcut_set", n=graph.num_vertices(), m=graph.num_edges()):
+        f = RefinementConfig.from_dict(flags)
+        n = graph.num_vertices()
+        m = graph.num_edges()
 
-    if n == 0:
-        return set(), 0.0
+        if n == 0:
+            return set(), 0.0
 
-    sccs, scc_map = contract_sccs(graph)
+        sccs, scc_map = contract_sccs(graph)
 
-    # Improvement 3: trivial condensation fast path.
-    trivial = f.skip_condense and all(len(scc) == 1 for scc in sccs)
-    if trivial:
-        dag = graph
-        scc_rep = [next(iter(scc)) for scc in sccs]
-    else:
-        dag = Digraph()
-        for idx in range(len(sccs)):
-            dag.add_vertex(idx)
-        for u, v in graph.edges():
-            if scc_map[u] != scc_map[v]:
-                dag.add_edge(scc_map[u], scc_map[v])
-        scc_rep = [next(iter(scc)) for scc in sccs]
-
-    beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0)) if m > 0 else float("inf")
-
-    k = max(2.0, math.log2(n))
-    rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
-    rho = min(rho, math.sqrt(n))
-    max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
-
-    # Density-aware sampling: tighter constant for dense graphs where
-    # the paper's C=10 wastes time on already-redundant pivots. The
-    # choice is plumbed through the existing Flags by exposing the
-    # constant via _DENSITY_AWARE_CONSTANT before the recursion.
-    if f.adaptive_sampling:
-        global _DENSITY_AWARE_CONSTANT
-        _DENSITY_AWARE_CONSTANT = density_aware_constant(rho, k)
-    else:
-        _DENSITY_AWARE_CONSTANT = None
-
-    dag_shortcuts = jls_with_tc_pruning(
-        dag,
-        k,
-        rho,
-        max_level,
-        dag.num_vertices(),
-        level=0,
-        random_seed=random_seed,
-        flags=flags,
-        parallel_workers=parallel_workers,
-    )
-
-    shortcuts: set[tuple[object, object]] = set()
-
-    # SCC clique expansion -- skip trivial SCCs (the common case for DAG
-    # inputs). Improvement: skip shortcuts (u, v) where u already reaches
-    # v directly via a G-edge (the most common form of redundant SCC
-    # clique shortcut). This avoids adding O(|SCC|^2) shortcuts that are
-    # already covered by O(|SCC|) G-edges. The sparsifier below
-    # additionally removes any remaining redundant shortcuts from the
-    # recursion.
-    if not trivial:
-        for scc in sccs:
-            scc_list = list(scc)
-            if len(scc_list) <= 1:
-                continue
-            for i in range(len(scc_list)):
-                for j in range(len(scc_list)):
-                    if i == j:
-                        continue
-                    u, v = scc_list[i], scc_list[j]
-                    # Skip if u already reaches v directly via a G-edge.
-                    if v in graph.out_edges.get(u, ()):
-                        continue
-                    shortcuts.add((u, v))
-
-    for u_idx, v_idx in dag_shortcuts:
+        # Improvement 3: trivial condensation fast path.
+        trivial = f.skip_condense and all(len(scc) == 1 for scc in sccs)
         if trivial:
-            # DAG vertices ARE original vertices in the trivial path --
-            # scc_rep[scc_idx] would mis-index into the vertex list.
-            shortcuts.add((u_idx, v_idx))
+            dag = graph
+            scc_rep = [next(iter(scc)) for scc in sccs]
         else:
-            # DAG vertices are SCC indices; translate via scc_rep.
-            shortcuts.add((scc_rep[u_idx], scc_rep[v_idx]))
+            dag = Digraph()
+            for idx in range(len(sccs)):
+                dag.add_vertex(idx)
+            for u, v in graph.edges():
+                if scc_map[u] != scc_map[v]:
+                    dag.add_edge(scc_map[u], scc_map[v])
+            scc_rep = [next(iter(scc)) for scc in sccs]
 
-    # Innovation: sparsify the shortcut set. Iteratively remove shortcuts
-    # that are redundant given the rest. The result is a minimally-sound
-    # shortcut set -- every remaining shortcut is essential for at least
-    # one source-target reachability query.
-    if sparsify_shortcuts and shortcuts:
-        from reachq.research.sparsify import sparsify_shortcut_set
+        beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0)) if m > 0 else float("inf")
 
-        before = len(shortcuts)
-        shortcuts = sparsify_shortcut_set(graph, shortcuts)
-        log.info(
-            "sparsify: |H| %d -> %d (%d shortcuts removed, %.1f%%)",
-            before,
-            len(shortcuts),
-            before - len(shortcuts),
-            100 * (before - len(shortcuts)) / max(1, before),
+        k = max(2.0, math.log2(n))
+        rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
+        rho = min(rho, math.sqrt(n))
+        max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
+
+        if f.adaptive_sampling:
+            global _DENSITY_AWARE_CONSTANT
+            _DENSITY_AWARE_CONSTANT = density_aware_constant(rho, k)
+        else:
+            _DENSITY_AWARE_CONSTANT = None
+
+        dag_shortcuts = jls_with_tc_pruning(
+            dag,
+            k,
+            rho,
+            max_level,
+            dag.num_vertices(),
+            level=0,
+            random_seed=random_seed,
+            flags=flags,
+            parallel_workers=parallel_workers,
         )
 
-    return shortcuts, beta
+        shortcuts: set[tuple[object, object]] = set()
+
+        if not trivial:
+            for scc in sccs:
+                scc_list = list(scc)
+                if len(scc_list) <= 1:
+                    continue
+                for i in range(len(scc_list)):
+                    for j in range(len(scc_list)):
+                        if i == j:
+                            continue
+                        u, v = scc_list[i], scc_list[j]
+                        if v in graph.out_edges.get(u, ()):
+                            continue
+                        shortcuts.add((u, v))
+
+        for u_idx, v_idx in dag_shortcuts:
+            if trivial:
+                shortcuts.add((u_idx, v_idx))
+            else:
+                shortcuts.add((scc_rep[u_idx], scc_rep[v_idx]))
+
+        if sparsify_shortcuts and shortcuts:
+            from reachq.research.sparsify import sparsify_shortcut_set
+
+            before = len(shortcuts)
+            shortcuts = sparsify_shortcut_set(graph, shortcuts)
+            log.info(
+                "sparsify: |H| %d -> %d (%d shortcuts removed, %.1f%%)",
+                before,
+                len(shortcuts),
+                before - len(shortcuts),
+                100 * (before - len(shortcuts)) / max(1, before),
+            )
+
+        return shortcuts, beta
