@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import csv
 import time
+from typing import Any
 
 from reachq.core.generators import (
     dense_graph,
@@ -50,11 +51,11 @@ def measure_shortcut_construction(
     return shortcuts, beta, elapsed, max_hops, accountant.work
 
 
-def hop_count_bfs(graph: Digraph, source: object, shortcuts: set) -> dict[object, int]:
+def hop_count_bfs(graph: Digraph, source: object, shortcuts: set) -> dict[object, float]:
     """BFS returning hop counts."""
     from collections import deque
 
-    dist: dict[object, int] = {v: float("inf") for v in graph.vertices()}  # type: ignore[dict-item]
+    dist: dict[object, float] = {v: float("inf") for v in graph.vertices()}
     dist[source] = 0
     q: deque = deque([source])
     out = graph.out_edges
@@ -80,7 +81,7 @@ def benchmark_suite(
     output_csv: str | None,
 ) -> None:
     """Run benchmarks across sizes and densities."""
-    rows: list[dict[str, object]] = []
+    rows: list[dict[str, Any]] = []
     for n in sizes:
         for density in densities:
             # Approximate edge count from density

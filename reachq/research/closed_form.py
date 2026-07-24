@@ -132,7 +132,7 @@ def paper_bound_const(n: int, omega: float = 3.0) -> float:
         raise ValueError(f"omega must be > 1 for the formula to be defined; got {omega}")
     m = n
     beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
-    return m * beta + n * beta * beta
+    return float(m * beta + n * beta * beta)
 
 
 def upper_bound_paper(n: int, m: int) -> float:
@@ -159,6 +159,7 @@ def verify_path_optimality(n: int) -> dict[str, object]:
     from collections import deque
 
     for s in g.vertices():
+        s_int = int(s)
         visited = {s}
         q = deque([s])
         while q:
@@ -168,9 +169,9 @@ def verify_path_optimality(n: int) -> dict[str, object]:
                     visited.add(v)
                     q.append(v)
         # The path has only one path from s: s, s+1, ..., n-1.
-        assert visited == set(range(s, n)), (
+        assert visited == set(range(s_int, n)), (
             f"path_shortcut_set not sound at s={s}: "
-            f"expected {set(range(s, n))}, got {visited}"
+            f"expected {set(range(s_int, n))}, got {visited}"
         )
     return {
         "graph": f"path_{n}",
@@ -270,7 +271,8 @@ def verify_layered_dag_optimality(layers: int, layer_size: int) -> dict[str, obj
         # In each layer, all layer_size vertices are reachable from
         # the previous layer (bipartite) -- EXCEPT layer s_layer itself
         # where only s itself is reachable (no within-layer edges).
-        s_layer = s[0]
+        s_tup: tuple[int, int] = tuple(s)  # type: ignore[misc]  # vertices are (layer, vertex) tuples
+        s_layer = s_tup[0]
         expected = {s}  # s_layer includes only s itself
         for li in range(s_layer + 1, layers):
             for lj in range(layer_size):

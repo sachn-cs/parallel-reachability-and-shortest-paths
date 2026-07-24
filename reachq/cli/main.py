@@ -180,7 +180,10 @@ def cmd_benchmark_large(args: argparse.Namespace) -> None:
     from scripts.benchmark_large import run_snap_benchmarks, run_synthetic_scaling
 
     if not args.synthetic_only:
-        run_snap_benchmarks(args.datasets, args.omega, args.seed, args.output)
+        run_snap_benchmarks(
+            args.datasets, args.omega, args.seed, args.output,
+            check_correctness=True, timeout=None, workers=1,
+        )
     if not args.snap_only:
         run_synthetic_scaling(
             args.synthetic_sizes,
@@ -189,10 +192,15 @@ def cmd_benchmark_large(args: argparse.Namespace) -> None:
             args.epsilon,
             args.seed,
             args.output,
+            check_correctness=True,
+            timeout=None,
         )
 
 
 def cmd_generate_graph(args: argparse.Namespace) -> None:
+    from reachq.core.graph import Digraph as _Digraph
+
+    graph: _Digraph
     if args.weighted:
         if args.generator == "path":
             graph = weighted_path_graph(args.n, random_seed=args.seed)

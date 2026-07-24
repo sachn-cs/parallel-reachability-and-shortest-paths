@@ -93,7 +93,6 @@ def sparsify_shortcut_set(
     while changed:
         iterations += 1
         changed = False
-        shortcut_index = _build_shortcut_index(H)
         for u, v in list(H):
             H_minus = H - {(u, v)}
             index_minus = _build_shortcut_index(H_minus)

@@ -47,7 +47,7 @@ def record_histogram(name: str, value: float) -> None:
         _histograms.setdefault(name, []).append(value)
 
 
-def snapshot() -> dict[str, int | dict[str, float]]:
+def snapshot() -> dict[str, object]:
     """Return current metrics as a dict.
 
     Returns:

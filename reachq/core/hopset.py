@@ -390,7 +390,7 @@ def build_hopset_for_sssp(
             if trivial:
                 key = (u_idx, v_idx)
             else:
-                key = (scc_rep[u_idx], scc_rep[v_idx])
+                key = (scc_rep[int(u_idx)], scc_rep[int(v_idx)])
             prev = hopset.get(key)
             if prev is None or w < prev:
                 hopset[key] = w

@@ -13,10 +13,15 @@ than flagged as a bug.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
+if TYPE_CHECKING:
+    from reachq.core.graph import Digraph
 
-def spectrum(graph) -> np.ndarray:
+
+def spectrum(graph: Digraph) -> np.ndarray:
     """Return the eigenvalues of the adjacency matrix of *graph*.
 
     The adjacency matrix is built for vertices labelled by their
@@ -36,7 +41,7 @@ def spectrum(graph) -> np.ndarray:
     return np.sort(eigs)
 
 
-def spectral_gap(graph) -> float:
+def spectral_gap(graph: Digraph) -> float:
     """Largest absolute non-trivial eigenvalue of *graph*.
 
     For a connected graph, this is max(|lambda_2|, |lambda_n|) where
