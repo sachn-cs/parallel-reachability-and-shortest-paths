@@ -11,8 +11,8 @@ import random
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from reachq.graph import Digraph
-from reachq.serialization import digraph_from_json, digraph_to_json
+from reachq.core.graph import Digraph
+from reachq.core.io.json import load, dump
 
 
 @given(
@@ -30,8 +30,8 @@ def test_digraph_round_trip(n, p, seed):
         for j in range(n):
             if i != j and rng.random() < p:
                 g.add_edge(i, j)
-    j_str = digraph_to_json(g)
-    g2 = digraph_from_json(j_str)
+    j_str = dump(g)
+    g2 = load(j_str)
     # Same vertex set
     assert set(g.vertices()) == set(g2.vertices())
     # Same edges
@@ -42,7 +42,7 @@ def test_digraph_round_trip(n, p, seed):
 
 def test_digraph_empty_round_trip():
     g = Digraph()
-    g2 = digraph_from_json(digraph_to_json(g))
+    g2 = load(dump(g))
     assert g.out_edges == g2.out_edges
     assert g.num_edges() == g2.num_edges() == 0
 
@@ -50,7 +50,7 @@ def test_digraph_empty_round_trip():
 def test_digraph_single_vertex_round_trip():
     g = Digraph()
     g.add_vertex("only")
-    g2 = digraph_from_json(digraph_to_json(g))
+    g2 = load(dump(g))
     assert set(g.vertices()) == set(g2.vertices())
     assert g.out_edges == g2.out_edges
 
@@ -60,6 +60,6 @@ def test_digraph_string_vertices_round_trip():
     g.add_vertex("alice")
     g.add_vertex("bob")
     g.add_edge("alice", "bob")
-    g2 = digraph_from_json(digraph_to_json(g))
+    g2 = load(dump(g))
     assert g2.out_edges == g.out_edges
     assert set(g2.vertices()) == {"alice", "bob"}

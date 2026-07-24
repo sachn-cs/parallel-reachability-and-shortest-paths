@@ -2,8 +2,8 @@
 
 import pytest
 
-from reachq.graph import Digraph
-from reachq.reachability import (
+from reachq.core.graph import Digraph
+from reachq.core.reachability import (
     bfs_reachability,
     compute_ancestors,
     compute_bridges,

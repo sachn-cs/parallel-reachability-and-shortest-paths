@@ -2,8 +2,8 @@
 
 import pytest
 
-from reachq.generators import cycle_graph, path_graph, weighted_path_graph
-from reachq.invariants import (
+from reachq.core.generators import cycle_graph, path_graph, weighted_path_graph
+from reachq.core.invariants import (
     assert_distance_approximation,
     assert_hopbound,
     assert_hopset_size_bound,
@@ -13,7 +13,7 @@ from reachq.invariants import (
     assert_shortcut_set_size_bound,
     check_equivalence_classes,
 )
-from reachq.shortcut_set import build_shortcut_set_for_reachability, jls_with_tc_pruning
+from reachq.core.algorithm import build_shortcut_set_for_reachability, jls_with_tc_pruning
 
 
 class TestReachabilityPreserved:
@@ -91,7 +91,7 @@ class TestSccShortcuts:
         a 3-cycle but pretend to omit a critical shortcut, then
         assert that the invariant catches the failure.
         """
-        from reachq.graph import Digraph as _Digraph
+        from reachq.core.graph import Digraph as _Digraph
 
         g = _Digraph()
         # Build an SCC with 3 vertices and edges that make it

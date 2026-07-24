@@ -34,9 +34,9 @@ the result is the *robust core* (shortcuts present in every iteration).
 
 from __future__ import annotations
 
-from reachq.graph import Digraph
-from reachq.logging_config import get_logger
-from reachq.shortcut_set import jls_with_tc_pruning
+from reachq.core.graph import Digraph
+from reachq.core.config import get_logger
+from reachq.core.algorithm import jls_with_tc_pruning
 
 log = get_logger("reachq.iterate")
 
@@ -64,9 +64,9 @@ def iterative_shortcut_set(
     import time
 
     if random_seed is not None:
-        from reachq.logging_config import configure
+        from reachq.core.config import configure_logging
 
-        configure()
+        configure_logging()
 
     # Match the parameter selection of build_shortcut_set_for_reachability.
     n = graph.num_vertices()

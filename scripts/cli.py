@@ -15,7 +15,7 @@ import math
 import sys
 import time
 
-from reachq.generators import (
+from reachq.core.generators import (
     SNAP_DATASETS,
     complete_dag,
     cycle_graph,
@@ -28,19 +28,19 @@ from reachq.generators import (
     weighted_path_graph,
     weighted_random_dag,
 )
-from reachq.graph import Digraph, WeightedDigraph
-from reachq.hopset import build_hopset_for_sssp
-from reachq.reachability import bfs_reachability, parallel_bfs
-from reachq.serialization import (
-    digraph_from_json,
-    digraph_to_json,
-    weighted_digraph_from_json,
-    weighted_digraph_to_json,
+from reachq.core.graph import Digraph, WeightedDigraph
+from reachq.core.hopset import build_hopset_for_sssp
+from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.core.io.json import (
+    load,
+    dump,
+    weighted_load,
+    weighted_dump,
 )
-from reachq.shortcut_set import build_shortcut_set_for_reachability
-from reachq.shortest_paths import dijkstra, shortest_path_hopbound
-from reachq.logging_config import get_logger
-from reachq.work_depth import (
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.core.config import get_logger
+from reachq.core.work_depth import (
     WorkDepthAccountant,
     theoretical_hopset_depth,
     theoretical_hopset_work,
@@ -53,12 +53,12 @@ log = get_logger("reachq.cli")
 
 def load_digraph(path: str) -> Digraph:
     with open(path) as f:
-        return digraph_from_json(f.read())
+        return load(f.read())
 
 
 def load_weighted_digraph(path: str) -> WeightedDigraph:
     with open(path) as f:
-        return weighted_digraph_from_json(f.read())
+        return weighted_load(f.read())
 
 
 def cmd_reachability(args: argparse.Namespace) -> None:
@@ -206,7 +206,7 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
         else:
             log.error("unknown weighted generator: %s", args.generator)
             sys.exit(1)
-        text = weighted_digraph_to_json(graph)
+        text = weighted_dump(graph)
     else:
         if args.generator == "path":
             graph = path_graph(args.n)
@@ -233,7 +233,7 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
         else:
             log.error("unknown generator: %s", args.generator)
             sys.exit(1)
-        text = digraph_to_json(graph)
+        text = dump(graph)
 
     if args.output:
         with open(args.output, "w") as f:

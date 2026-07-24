@@ -21,15 +21,15 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.generators import (
+from reachq.core.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
     shrikhande_graph,
 )
-from reachq.logging_config import get_logger
-from reachq.shortcut_set import build_shortcut_set_for_reachability
-from reachq.spectrum import spectral_gap, spectrum
+from reachq.core.config import get_logger
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.spectrum import spectral_gap, spectrum
 
 log = get_logger("reachq.spectral_check")
 

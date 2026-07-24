@@ -4,7 +4,7 @@ JLS essential shortcut set).
 
 from __future__ import annotations
 
-from reachq.closed_form import (
+from reachq.research.closed_form import (
     binary_tree_dag,
     layered_dag_shortcut_set,
     lower_bound_path,
@@ -31,7 +31,7 @@ class TestCycleOptimality:
         """The n-cycle: every vertex reaches every other via the
         cycle, so optimal H is empty.
         """
-        from reachq.closed_form import cycle_shortcut_set
+        from reachq.research.closed_form import cycle_shortcut_set
 
         for n in [10, 50, 100]:
             assert cycle_shortcut_set(n) == set()

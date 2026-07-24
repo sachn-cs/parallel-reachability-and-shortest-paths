@@ -16,9 +16,9 @@ import time
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from reachq.generators import random_dag
-from reachq.graph import Digraph
-from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.core.generators import random_dag
+from reachq.core.graph import Digraph
+from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.research.approximation import greedy_shortcut_set
 
 

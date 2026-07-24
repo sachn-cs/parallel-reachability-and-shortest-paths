@@ -14,9 +14,9 @@ import random
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.graph import Digraph
-from reachq.reachability import bfs_reachability
-from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.core.graph import Digraph
+from reachq.core.reachability import bfs_reachability
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 
 def build_passage_graph(n_passages, density, seed):

@@ -23,7 +23,7 @@ Bug fixes vs earlier versions:
 
 Parallel pivot processing (Phase 2b):
   The per-pivot loop can be dispatched in parallel via
-  ``ParallelContext`` (see ``reachq/parallel.py``). Pivots are
+  ``ParallelContext`` (see ``reachq/core/backends``). Pivots are
   embarrassingly parallel: each computes (r_plus, r_minus, label
   contributions) on read-only shared CSR state. Per-pivot results are
   merged into the main-thread shortcut set and label dicts after
@@ -37,19 +37,19 @@ import random
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from reachq.graph import Digraph, contract_sccs, partition_by_labels
-from reachq.logging_config import get_logger
-from reachq.numpy_bfs import (
-    build_csr_pair,
+from reachq.core.graph import Digraph, contract_sccs, partition_by_labels
+from reachq.core.config import get_logger
+from reachq.core.bfs import (
     csr_reachable_backward,
     csr_reachable_forward,
     should_use_csr,
 )
-from reachq.parallel import SEQUENTIAL, ParallelContext
-from reachq.reachability import compute_r_minus, compute_r_plus
-from reachq.transitive_closure import transitive_closure_on_subset
+from reachq.core.csr import build_csr_pair
+from reachq.core.backends import SEQUENTIAL, ParallelContext
+from reachq.core.reachability import compute_r_minus, compute_r_plus
+from reachq.core.tc import transitive_closure_on_subset
 
-log = get_logger("reachq.shortcut_set")
+log = get_logger("reachq.core.algorithm")
 
 _SAMPLING_CONSTANT = 10
 # Density-aware override: when the wrapper passes a C value derived
@@ -181,7 +181,7 @@ def _get_runtime_omega() -> float:
     """Return the runtime omega from blas_omega.runtime_omega(), cached."""
     global _OMEGA_RUNTIME
     if _OMEGA_RUNTIME is None:
-        from reachq.blas_omega import runtime_omega
+        from reachq.research.blas_omega import runtime_omega
 
         _OMEGA_RUNTIME = runtime_omega()
     return _OMEGA_RUNTIME
@@ -365,7 +365,7 @@ def jls_with_tc_pruning(
         tc_pruning_threshold = min(tc_pruning_threshold, tight_cap)
 
     # Improvement 4: hop-bounded pivot BFS for the CSR path.
-    use_csr = should_use_csr(graph)
+    use_csr = should_use_csr(graph.num_vertices())
     csr_data = build_csr_pair(graph) if use_csr else None
     max_hops_for_bfs: Optional[int] = None
     if f.hop_bounded_bfs:
@@ -660,7 +660,7 @@ def build_shortcut_set_for_reachability(
     # shortcut set -- every remaining shortcut is essential for at least
     # one source-target reachability query.
     if sparsify_shortcuts and shortcuts:
-        from reachq.sparsify import sparsify_shortcut_set
+        from reachq.research.sparsify import sparsify_shortcut_set
 
         before = len(shortcuts)
         shortcuts = sparsify_shortcut_set(graph, shortcuts)

@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reachq.blas_omega import (
+from reachq.research.blas_omega import (
     BLAS_OMEGA_TABLE,
     detect_blas_vendor,
     omega_table,

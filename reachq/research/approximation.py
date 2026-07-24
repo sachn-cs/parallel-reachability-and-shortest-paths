@@ -18,8 +18,8 @@ from __future__ import annotations
 from collections import deque
 from typing import Any
 
-from reachq.graph import Digraph
-from reachq.logging_config import get_logger
+from reachq.core.graph import Digraph
+from reachq.core.config import get_logger
 
 log = get_logger("reachq.research.approximation")
 

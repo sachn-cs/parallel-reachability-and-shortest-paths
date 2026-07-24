@@ -11,17 +11,14 @@ Bugs covered:
   4. TC self-loops: (i, i) entries were leaking into the shortcut set.
 """
 
-from reachq.graph import Digraph
-from reachq.numpy_bfs import (
-    build_csr_pair,
-    csr_reachable_backward,
-    csr_reachable_forward,
-)
-from reachq.reachability import bfs_reachability, parallel_bfs
-from reachq.shortcut_set import (
+from reachq.core.graph import Digraph
+from reachq.core.bfs import csr_reachable_backward, csr_reachable_forward
+from reachq.core.csr import build_csr_pair
+from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.core.algorithm import (
     build_shortcut_set_for_reachability,
 )
-from reachq.transitive_closure import transitive_closure_matrix
+from reachq.core.tc import transitive_closure_matrix
 
 
 class TestRegressionTcMatrixSparsity:
@@ -90,7 +87,7 @@ class TestRegressionCsrBfsCorrectness:
         )
 
         # Python BFS from vertex 0.
-        from reachq.reachability import bfs_reachability
+        from reachq.core.reachability import bfs_reachability
 
         expected = bfs_reachability(g, 0)
 
@@ -137,7 +134,7 @@ class TestRegressionSccRepTrivialPath:
         """Random DAG (trivial condensation): shortcut set must be
         consistent. This is the case where the original bug fired.
         """
-        from reachq.generators import random_dag
+        from reachq.core.generators import random_dag
 
         g = random_dag(20, edge_probability=0.2, random_seed=42)
         shortcuts, _ = build_shortcut_set_for_reachability(

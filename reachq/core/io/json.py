@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from reachq.graph import Digraph, WeightedDigraph
+from reachq.core.graph import Digraph, WeightedDigraph
 
 
 def vertex_to_json(v: object) -> Any:
@@ -74,23 +74,23 @@ def weighted_digraph_from_dict(data: dict[str, Any]) -> WeightedDigraph:
     return g
 
 
-def digraph_to_json(graph: Digraph) -> str:
+def dump(graph: Digraph) -> str:
     """Serialize a Digraph to a JSON string."""
     return json.dumps(digraph_to_dict(graph), indent=2)
 
 
-def weighted_digraph_to_json(graph: WeightedDigraph) -> str:
+def weighted_dump(graph: WeightedDigraph) -> str:
     """Serialize a WeightedDigraph to a JSON string."""
     return json.dumps(weighted_digraph_to_dict(graph), indent=2)
 
 
-def digraph_from_json(text: str) -> Digraph:
+def load(text: str) -> Digraph:
     """Deserialize a Digraph from a JSON string."""
     data = json.loads(text)
     return digraph_from_dict(data)
 
 
-def weighted_digraph_from_json(text: str) -> WeightedDigraph:
+def weighted_load(text: str) -> WeightedDigraph:
     """Deserialize a WeightedDigraph from a JSON string."""
     data = json.loads(text)
     return weighted_digraph_from_dict(data)

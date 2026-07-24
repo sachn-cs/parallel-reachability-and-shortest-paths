@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from reachq.graph import Digraph
+from reachq.core.graph import Digraph
 
 
 def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]:
@@ -21,7 +21,7 @@ def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]
     Returns all pairs (u, v) such that there is a path from u to v in G.
     Time complexity: O(n * m) which is O(n^3) in the worst case.
     """
-    from reachq.reachability import compute_r_plus
+    from reachq.core.reachability import compute_r_plus
 
     result: set[tuple[object, object]] = set()
     for u in graph.vertices():

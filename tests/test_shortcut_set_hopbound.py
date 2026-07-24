@@ -8,9 +8,9 @@ connected within beta hops via G + shortcuts.
 
 from collections import deque
 
-from reachq.graph import Digraph
-from reachq.reachability import bfs_reachability, parallel_bfs
-from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.core.graph import Digraph
+from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 
 def _max_hops(g, s, H, beta):

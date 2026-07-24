@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import pytest
 
-from reachq.generators import random_dag
-from reachq.reachability import bfs_reachability, parallel_bfs
-from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.core.generators import random_dag
+from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 PAPER_TC = {
     "enable_tc_pruning": True,
@@ -133,7 +133,7 @@ def test_lemma_3_2_reachability_correctness_hop_bounded(seed: int) -> None:
 def test_flags_dataclass_is_public() -> None:
     """Flags must be importable from the top-level package, not be hidden."""
     from reachq import Flags as TopFlags
-    from reachq.shortcut_set import Flags as LocalFlags
+    from reachq.core.algorithm import Flags as LocalFlags
 
     assert TopFlags is LocalFlags
 

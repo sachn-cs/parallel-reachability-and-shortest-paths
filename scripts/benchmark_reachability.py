@@ -10,13 +10,13 @@ import argparse
 import csv
 import time
 
-from reachq.generators import (
+from reachq.core.generators import (
     dense_graph,
 )
-from reachq.graph import Digraph
-from reachq.logging_config import get_logger
-from reachq.shortcut_set import build_shortcut_set_for_reachability
-from reachq.work_depth import WorkDepthAccountant
+from reachq.core.graph import Digraph
+from reachq.core.config import get_logger
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.work_depth import WorkDepthAccountant
 
 log = get_logger("reachq.benchmark_reachability")
 

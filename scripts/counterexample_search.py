@@ -27,9 +27,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.generators import random_dag
-from reachq.logging_config import get_logger
-from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.core.generators import random_dag
+from reachq.core.config import get_logger
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 log = get_logger("reachq.counterexample")
 

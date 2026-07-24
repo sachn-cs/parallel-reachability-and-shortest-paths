@@ -8,7 +8,7 @@ from collections import deque
 from collections.abc import Iterator
 from typing import Optional
 
-from reachq.graph import Digraph
+from reachq.core.graph import Digraph
 
 
 def bfs_reachability(graph: Digraph, source: object) -> set[object]:

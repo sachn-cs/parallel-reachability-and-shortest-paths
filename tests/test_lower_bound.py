@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reachq.lower_bound import (
+from reachq.research.lower_bound import (
     barbell_graph,
     cycle_graph_dag,
     layered_dag,
@@ -44,7 +44,7 @@ class TestBoundGap:
     """
 
     def test_jls_overshoots_bound_on_long_path(self):
-        from reachq.shortcut_set import build_shortcut_set_for_reachability
+        from reachq.core.algorithm import build_shortcut_set_for_reachability
 
         g = long_path_dag(20)
         H, _ = build_shortcut_set_for_reachability(
@@ -70,7 +70,7 @@ class TestBoundGap:
         """Sparsify (Innovation #1) reduces the practical |H| below the
         paper's bound, since the JLS-added shortcuts are mostly redundant.
         """
-        from reachq.shortcut_set import build_shortcut_set_for_reachability
+        from reachq.core.algorithm import build_shortcut_set_for_reachability
 
         g = long_path_dag(20)
         H, _ = build_shortcut_set_for_reachability(

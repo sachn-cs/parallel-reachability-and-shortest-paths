@@ -1,7 +1,7 @@
 """Tests for transitive closure computation."""
 
-from reachq.graph import Digraph
-from reachq.transitive_closure import (
+from reachq.core.graph import Digraph
+from reachq.core.tc import (
     transitive_closure_brute_force,
     transitive_closure_matrix,
     transitive_closure_on_subset,
