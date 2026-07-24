@@ -1,0 +1,18 @@
+[package]
+name = "reachq_rust_kernels"
+version = "0.1.0"
+edition = "2021"
+description = "Rust acceleration kernels for reachq via PyO3"
+license = "MIT"
+
+[lib]
+name = "_reachq_rust"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.21", features = ["extension-module"] }
+numpy = "0.21"
+
+[profile.release]
+opt-level = 3
+lto = "thin"
