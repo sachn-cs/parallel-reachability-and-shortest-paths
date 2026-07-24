@@ -4,11 +4,11 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "reachq"
-version = "1.0.0"
-description = "Pure-Python reimplementation of the JLS shortcut-set and CFR hopset constructions, with seven toggleable algorithmic refinements and four documented correctness fixes."
+version = "2.0.0"
+description = "Parallel reachability and shortest-path algorithms for sparse digraphs, with near-linear work and sub-square-root depth."
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 authors = [
     {name = "Sachin <sachncs@gmail.com>"}
 ]
@@ -30,7 +30,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -69,7 +68,7 @@ include = ["reachq*"]
 [tool.cibuildwheel]
 # The user-side [6.x] commit uploads built wheels via GitHub Release
 # artifacts. This block configures what cibuildwheel will build.
-build = ["cp39-*", "cp310-*", "cp311-*", "cp312-*", "cp313-*"]
+build = ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
 build-platform = "linux"
 archs = ["auto64", "arm64"]  # amd64 + arm64 on Linux
 [tool.cibuildwheel.linux]
@@ -102,7 +101,7 @@ exclude_lines = [
 ]
 
 [tool.ruff]
-target-version = "py39"
+target-version = "py310"
 
 [tool.ruff.lint]
 [tool.ruff.lint.per-file-ignores]
