@@ -1,0 +1,31 @@
+name: Benchmarks
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  bench:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]" asv
+      - name: Run benchmarks
+        run: |
+          asv run --quick --python=same --no-pull --show-stderr \
+            --json 2>/dev/null | tee bench-results.json || true
+      - name: Upload benchmark results
+        uses: actions/upload-artifact@v4
+        with:
+          name: bench-results
+          path: bench-results.json
+          retention-days: 90
+          if-no-files-found: ignore
