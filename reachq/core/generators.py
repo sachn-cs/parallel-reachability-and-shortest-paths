@@ -325,21 +325,15 @@ def petersen_graph() -> Digraph:
 
 # Clebsch graph (srg(16, 5, 0, 2)): correctly constructing this requires
 # the Cayley-graph construction on Z_2^5 / {x ~ complement(x)}. The naive
-# "XOR weight in {0, 4}" definition we tried gives the wrong graph
-# (8 edges instead of 40). Rather than ship a broken generator, we
-# document the omission and point future work at the standard reference
-# (e.g. Brouwer's SRG database). Use hamming_graph(4, 2) or the rook's
-# graph shrikhande_graph() as the 16-vertex srg fixture instead.
+# "XOR weight in {0, 4}" definition gives the wrong graph (8 edges
+# instead of 40). We omit this generator and recommend hamming_graph(4, 2)
+# or shrikhande_graph() as the 16-vertex SRG fixture instead.
 
 
 # ---------------------------------------------------------------------------
-# Shrikhande_graph placeholder. The classical construction requires either
-# a Cayley table over Z_4 x Z_4 (with specific generators) or a lattice
-# construction with non-standard differences. The 16-vertex SRG with
-# parameters (16, 6, 2, 2) has TWO cospectral non-isomorphic members --
-# the rook's graph K_4 ☐ K_4 and the Shrikhande graph. We use the rook's
-# graph here (a faithful Kneser / Hamming lattice construction) and mark
-# the distinction as future work.
+# 16-vertex SRG (16, 6, 2, 2): the rook's graph K_4 □ K_4 below and the
+# Shrikhande graph proper (shrikhande_cayley) are TWO cospectral
+# non-isomorphic members of this parameter family. Both are implemented.
 # ---------------------------------------------------------------------------
 
 
@@ -372,35 +366,34 @@ def shrikhande_graph() -> Digraph:
     return g
 
 
-def _shrikhande_cayley() -> Digraph:
+def shrikhande_cayley() -> Digraph:
     """The Shrikhande graph proper: Cayley construction on Z_4 x Z_4.
 
     This is the OTHER srg(16, 6, 2, 2) graph, distinct from the rook's
-    graph above (cospectral but non-isomorphic). Generator set:
-    {(1,0), (0,1), (1,1), (1,3), (3,1), (2,2)} — symmetric closure under
-    negation.
+    graph above (cospectral but non-isomorphic). The Cayley graph is
+    built on the group Z_4 x Z_4 with the symmetric generator set
+    ``S ∪ (-S) = {(1,0), (0,1), (1,1), (3,0), (0,3), (3,3)}``: each
+    vertex is adjacent to the six vertices obtained by adding one of
+    these six difference vectors.
 
-    Kept private for now; not exported until validated against the
-    standard reference.
-    """
-    raise NotImplementedError(
-        "Shrikhande Cayley construction is left as future work -- the "
-        "lattice construction above (rook's graph) is the simpler and "
-        "more commonly used SRG(16, 6, 2, 2)."
-    )
-    """The Shrikhande graph: srg(16, 6, 2, 2).
+    Construction: vertices are Z_4 x Z_4 (16 total, encoded as integers
+    ``a * 4 + b`` for ``a, b in {0, 1, 2, 3}``). Two vertices ``u = (a, b)``
+    and ``v = (c, d)`` are adjacent iff the difference ``((a - c) mod 4,
+    (b - d) mod 4)`` lies in the symmetric generator set. The result is
+    a 6-regular undirected graph (12 directed edges per vertex when
+    counting both directions) that is cospectral but non-isomorphic to
+    the 4x4 rook's graph.
 
-    Distinguished from the 4x4 rook's graph (which is srg(16,6,2,2) too)
-    via the lattice-vs-Cayley distinction. Used here as the canonical
-    "non-rook" SRG with these parameters.
+    Returns:
+        A :class:`Digraph` with 16 vertices and 96 directed edges
+        (48 undirected).
     """
     g = Digraph()
     for i in range(16):
         g.add_vertex(i)
-    # Lattice construction: vertices are Z_4 x Z_4.
-    # u = (a, b), v = (c, d); u ~ v iff {(a-c) mod 4, (b-d) mod 4}
-    # is one of {(0,1), (1,0), (1,1), (2,3), (3,2), (3,3)}.
-    differences = {(0, 1), (1, 0), (1, 1), (2, 3), (3, 2), (3, 3)}
+    # Symmetric generator set: S ∪ (-S) for S = {(1,0), (0,1), (1,1)}.
+    # The negative of (1,0) is (3,0); (0,1)->(0,3); (1,1)->(3,3).
+    differences = {(1, 0), (0, 1), (1, 1), (3, 0), (0, 3), (3, 3)}
     for a in range(4):
         for b in range(4):
             u = a * 4 + b
@@ -421,7 +414,7 @@ def paley_graph(q: int) -> Digraph:
     """
     if q <= 0 or (q - 1) % 4 != 0:
         raise ValueError(f"Paley graph requires q ≡ 1 (mod 4), got q={q}")
-    if not _is_prime(q):
+    if not is_prime(q):
         raise ValueError(
             f"paley_graph: only prime q supported (got q={q}). "
             f"Generalisation to prime powers requires finite-field machinery."
@@ -438,7 +431,7 @@ def paley_graph(q: int) -> Digraph:
     return g
 
 
-def _is_prime(n: int) -> bool:
+def is_prime(n: int) -> bool:
     if n < 2:
         return False
     if n < 4:
@@ -479,20 +472,20 @@ def hamming_graph(d: int, q: int) -> Digraph:
         g.add_vertex(i)
     # Neighbours: differ in exactly one coordinate.
     for v in range(n):
-        coords = _int_to_base_q(v, q, d)
+        coords = int_to_base_q(v, q, d)
         for c in range(d):
             for new_value in range(q):
                 if new_value == coords[c]:
                     continue
                 new_coords = list(coords)
                 new_coords[c] = new_value
-                u = _base_q_to_int(new_coords, q)
+                u = base_q_to_int(new_coords, q)
                 if u < v:
                     g.add_undirected_edge(u, v)
     return g
 
 
-def _int_to_base_q(v: int, q: int, d: int) -> list[int]:
+def int_to_base_q(v: int, q: int, d: int) -> list[int]:
     """Convert integer to base-q representation with d digits (LSB at index 0)."""
     out = [0] * d
     for i in range(d):
@@ -501,7 +494,7 @@ def _int_to_base_q(v: int, q: int, d: int) -> list[int]:
     return out
 
 
-def _base_q_to_int(coords: list[int], q: int) -> int:
+def base_q_to_int(coords: list[int], q: int) -> int:
     """Convert base-q digit list (LSB at index 0) back to integer."""
     v = 0
     for i, x in enumerate(coords):
@@ -550,13 +543,13 @@ SNAP_DATASETS: dict[str, dict[str, str | int]] = {
 }
 
 
-def _parse_snap_file(path: str) -> Digraph:
+def parse_snap_file(path: str) -> Digraph:
     """Parse a SNAP edge list file into a Digraph."""
     import gzip
 
     g = Digraph()
-    open_fn = gzip.open if path.endswith(".gz") else open  # type: ignore[assignment]
-    with open_fn(path, "rt") as f:  # type: ignore[arg-type]
+    open_fn = gzip.open if path.endswith(".gz") else open
+    with open_fn(path, "rt") as f:
         for line in f:
             if line.startswith("#") or not line.strip():
                 continue
@@ -597,7 +590,7 @@ def load_dataset(name: str, cache_dir: str = "data") -> Digraph:
         urllib.request.urlretrieve(url, dest)
         print(f"Saved to {dest}")
 
-    return _parse_snap_file(str(dest))
+    return parse_snap_file(str(dest))
 
 
 def graph_stats(graph: Digraph) -> dict[str, int]:
