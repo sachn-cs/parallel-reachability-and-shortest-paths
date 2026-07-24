@@ -47,7 +47,7 @@ from reachq.core.bfs import (
 from reachq.core.csr import build_csr_pair
 from reachq.core.backends import SEQUENTIAL, ParallelContext
 from reachq.core.reachability import compute_r_minus, compute_r_plus
-from reachq.core.tc import transitive_closure_on_subset
+from reachq.core.prune import apply_tc_pruning, compute_tc_pruning_threshold
 
 log = get_logger("reachq.core.algorithm")
 
@@ -348,21 +348,13 @@ def jls_with_tc_pruning(
         anc_labels: dict[object, list[object]] = {v: [] for v in vertices}
         des_labels: dict[object, list[object]] = {v: [] for v in vertices}
 
-    tc_pruning_threshold = (k**2) * (log_n**2) * (rho**2)
+    tc_pruning_threshold = compute_tc_pruning_threshold(
+        k, log_n, rho, n, _OMEGA_DEFAULT if f.tight_tc_trigger else float("inf")
+    )
     # Improvement 7: tighter threshold when TC work exceeds sampling work.
-    # TC(G[R]) takes O(|R|^omega) ops; the alternative (sampling shortcuts
-    # for every vertex in R) costs O(|R| * k * log n). Trigger TC only when
-    # the former is cheaper.
     if f.tight_tc_trigger and rho > 0:
-        # Use the runtime-detected omega if available; otherwise fall
-        # back to the conservative 2.5 default. Never overestimate.
         omega_runtime = min(_OMEGA_DEFAULT, _get_runtime_omega())
-        tight_cap = (
-            (rho * n * k * log_n) ** (1.0 / omega_runtime)
-            if log_n > 0
-            else float("inf")
-        )
-        tc_pruning_threshold = min(tc_pruning_threshold, tight_cap)
+        tc_pruning_threshold = compute_tc_pruning_threshold(k, log_n, rho, n, omega_runtime)
 
     # Improvement 4: hop-bounded pivot BFS for the CSR path.
     use_csr = should_use_csr(graph.num_vertices())
@@ -410,9 +402,8 @@ def jls_with_tc_pruning(
 
         # Improvement 7: tighter TC pruning.
         r_ball = r_minus_set | r_plus_set | {pivot}
-        if f.enable_tc_pruning and 0 < len(r_ball) <= tc_pruning_threshold:
-            tc = transitive_closure_on_subset(graph, r_ball)
-            shortcuts |= {(u, v) for u, v in tc if u != v}
+        if f.enable_tc_pruning:
+            shortcuts |= apply_tc_pruning(graph, r_ball, tc_pruning_threshold)
 
     if f.label_compress:
         for v in vertices:
