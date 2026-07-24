@@ -33,23 +33,30 @@ from reachq.core.config import get_logger
 log = get_logger("reachq.sparsify")
 
 
+def _build_shortcut_index(
+    shortcuts: set[tuple[Any, Any]],
+) -> dict[Any, list[Any]]:
+    """Build an index of shortcuts grouped by source vertex."""
+    index: dict[Any, list[Any]] = {}
+    for u, v in shortcuts:
+        index.setdefault(u, []).append(v)
+    return index
+
+
 def _reachable_via(
-    graph: Digraph, source: Any, shortcuts: set[tuple[Any, Any]]
+    graph: Digraph, source: Any, shortcut_index: dict[Any, list[Any]]
 ) -> set[Any]:
     """Return all vertices reachable from source via G + shortcuts."""
     visited = {source}
     q = deque([source])
     out = graph.out_edges
-    index: dict[Any, list[Any]] = {}
-    for u, v in shortcuts:
-        index.setdefault(u, []).append(v)
     while q:
         u = q.popleft()
         for v in out.get(u, set()):
             if v not in visited:
                 visited.add(v)
                 q.append(v)
-        for v in index.get(u, ()):
+        for v in shortcut_index.get(u, ()):
             if v not in visited:
                 visited.add(v)
                 q.append(v)
@@ -86,10 +93,11 @@ def sparsify_shortcut_set(
     while changed:
         iterations += 1
         changed = False
-        # Iterate over a snapshot to avoid mutating-during-iteration.
+        shortcut_index = _build_shortcut_index(H)
         for u, v in list(H):
             H_minus = H - {(u, v)}
-            reachable = _reachable_via(graph, u, H_minus)
+            index_minus = _build_shortcut_index(H_minus)
+            reachable = _reachable_via(graph, u, index_minus)
             if v in reachable:
                 H = H_minus
                 changed = True
