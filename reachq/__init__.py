@@ -42,7 +42,7 @@ Near-linear Work and Sub-square-root Depth"
 by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak (2026).
 """
 
-__version__ = "6.0.0"
+__version__ = "7.0.0"
 
 from reachq.core import invariants
 from reachq.core.generators import (
