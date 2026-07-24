@@ -81,7 +81,6 @@ def _pivot_worker(pivot: Any) -> dict[str, Any]:
     be merged by the main thread.
     """
     csr_data = _PIVOT_STATE.get("csr_data")
-    rev = _PIVOT_STATE.get("rev")
     max_hops = _PIVOT_STATE.get("max_hops")
     shortcuts: set[tuple[Any, Any]] = set()
     anc: list[Any] = []
@@ -436,7 +435,11 @@ def jls_with_tc_pruning(
         if largest > 0:
             scale = min(10.0, max(0.1, target / largest))
             # ``scale`` lives in the recursion state; we re-pass it through
-            # the seed by perturbing the rng deterministically.
+            # the seed by perturbing the rng deterministically. The
+            # *7 and %13 values are arbitrary-but-fixed constants that
+            # only need to keep distinct seeds producing distinct streams
+            # of sub-call random draws. They have no theoretical role;
+            # their only job is reproducibility across runs.
             for _ in range(int(scale * 7) % 13):
                 rng.random()
 
@@ -471,7 +474,6 @@ def _bfs_hop_limited(
     """Hop-bounded BFS. Used by Improvement 4 when CSR is not available."""
     from collections import deque
 
-    target = rev if not forward else None  # forward uses graph directly
     g = graph if forward else (rev if rev is not None else graph.reversed())
     visited: set[object] = {source}
     q: deque[tuple[object, int]] = deque([(source, 0)])

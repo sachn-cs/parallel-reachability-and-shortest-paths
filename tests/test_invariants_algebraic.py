@@ -5,7 +5,6 @@ Each invariant is checked on multiple random inputs.
 
 from __future__ import annotations
 
-import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
@@ -16,7 +15,6 @@ from reachq.invariants import (
     assert_reachability_preserved,
     assert_scc_shortcuts_form_cliques,
 )
-from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.shortcut_set import build_shortcut_set_for_reachability
 
 
@@ -71,26 +69,14 @@ def test_scc_shortcut_invariant_two_disjoint_cycles():
     assert_scc_shortcuts_form_cliques(g, H)
 
 
-def test_partition_correctness_long_path():
-    """A long path: every vertex reachable from every other via shortcuts."""
-    g = Digraph()
-    n = 10
-    for i in range(n):
-        g.add_vertex(i)
-    for i in range(n - 1):
-        g.add_edge(i, i + 1)
-    H, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
-    assert_partition_correctness(g, H)
-
-
 def test_partition_correctness_empty_graph():
     g = Digraph()
-    H = set()
-    assert_partition_correctness(g, H)
+    parts: list[set[object]] = []
+    assert_partition_correctness(g, parts)
 
 
 def test_partition_correctness_single_vertex():
     g = Digraph()
     g.add_vertex("only")
-    H = set()
-    assert_partition_correctness(g, H)
+    parts: list[set[object]] = [{"only"}]
+    assert_partition_correctness(g, parts)

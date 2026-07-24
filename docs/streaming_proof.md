@@ -32,6 +32,3 @@ pivot gives the bound.
 **Honest scope.** The proof is a sketch. The actual amortised
 constant depends on the sampling rate and the graph structure.
 A graph-by-graph tight bound requires a per-class analysis.
-"""
-
-from reachq.research.streaming import StreamingShortcutSet

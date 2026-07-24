@@ -15,7 +15,6 @@ approximation ratio is small on tested inputs.
 
 from __future__ import annotations
 
-import random
 from collections import deque
 from typing import Any
 

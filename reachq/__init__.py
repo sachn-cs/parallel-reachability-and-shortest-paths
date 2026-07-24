@@ -13,9 +13,8 @@ The package is organised into two layers:
     shortcut-set construction, hopset construction, work-depth
     accounting, serialisation.
   - reachq.research.* (opt-in): refinements and new algorithms that
-    the paper does not include. These are gated behind
-    `reachq.research.enable()` if they need runtime activation, but
-    importing them directly always works.
+    the paper does not include. These are imported directly; no
+    runtime activation is required.
 
 The public API is in this `__init__.py`. The algorithms module
 (reachq.shortcut_set) is the most important; reachq.reachability
@@ -43,7 +42,7 @@ Near-linear Work and Sub-square-root Depth"
 by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak (2026).
 """
 
-__version__ = "0.4.0"
+__version__ = "1.0.0"
 
 from reachq import invariants
 from reachq.generators import (

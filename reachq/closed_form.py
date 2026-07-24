@@ -118,11 +118,19 @@ def lower_bound_path(n: int) -> int:
 def paper_bound_const(n: int, omega: float = 3.0) -> float:
     """The paper's worst-case bound for a graph on n vertices with m=n edges.
 
-    beta = (n^omega / m)^(1/(2*omega-2)) = n^((omega-1)/(2*omega-2)).
+    beta = (n^omega / m)^(1/(2*omega-2)).
+    With m=n this simplifies to beta = n^((omega-1)/(2*omega-2)).
     For omega=3, beta = n^0.5. Bound = m*beta + n*beta^2 = n^1.5 + n^2.
+
+    Note: the omega parameter only affects beta via the ratio; with
+    m=n the bound collapses to ~n^2 independent of omega. Pass a
+    different m to see omega dependence.
     """
-    omega = 3.0
-    m = n  # assume m = n
+    if n <= 0:
+        return 0.0
+    if 2.0 * omega - 2.0 <= 0:
+        raise ValueError(f"omega must be > 1 for the formula to be defined; got {omega}")
+    m = n
     beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
     return m * beta + n * beta * beta
 
@@ -130,10 +138,9 @@ def paper_bound_const(n: int, omega: float = 3.0) -> float:
 def upper_bound_paper(n: int, m: int) -> float:
     """The paper's worst-case bound for a graph with n vertices and m edges.
 
-    Bound: O(m * sqrt(n) + n * n) = O(m sqrt(n) + n^2).
-    For a path m = n-1, so bound = O(n^1.5) + O(n^2) = O(n^2).
+    Coarse form: m * sqrt(n) + n^2 (drops the rho factor). For a path
+    m = n-1, so bound is O(n^1.5) + O(n^2) = O(n^2).
     """
-    rho = (n * n * 0 + m) ** 0  # approximation
     return float(n * n + m * (n**0.5))
 
 

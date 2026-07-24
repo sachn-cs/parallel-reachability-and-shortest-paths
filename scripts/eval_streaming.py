@@ -11,14 +11,12 @@ they preserve reachability identically.
 from __future__ import annotations
 
 import csv
-import os
 import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from reachq.generators import random_dag
-from reachq.graph import Digraph
 from reachq.logging_config import get_logger
 from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.research.streaming import StreamingShortcutSet
@@ -36,15 +34,11 @@ def evaluate(n: int, p: float, beta: int, seed: int) -> dict:
         s.insert_edge(u, v)
     H_streaming = s.get_shortcuts()
 
-    # Build augmented graph (after streaming) and run batch JLS.
-    aug = Digraph()
-    for v in g.vertices():
-        aug.add_vertex(v)
-    for u, v in g.edges():
-        aug.add_edge(u, v)
-    for u, v in H_streaming:
-        aug.add_edge(u, v)
-    H_batch, _ = build_shortcut_set_for_reachability(aug, omega=3.0, random_seed=seed)
+    # Run batch JLS on the ORIGINAL graph (not augmented). Comparing
+    # against an augmented graph would trivially yield |H|_batch=0
+    # because every reachability query is already satisfied by the
+    # augmented shortcuts.
+    H_batch, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=seed)
 
     # Soundness: R+(G, s) = R+(G + H_streaming, s) for all s.
     sound_streaming = all(
@@ -52,8 +46,8 @@ def evaluate(n: int, p: float, beta: int, seed: int) -> dict:
         for s in g.vertices()
     )
     sound_batch = all(
-        bfs_reachability(aug, s) == parallel_bfs(aug, s, H_batch)
-        for s in aug.vertices()
+        bfs_reachability(g, s) == parallel_bfs(g, s, H_batch)
+        for s in g.vertices()
     )
 
     return {

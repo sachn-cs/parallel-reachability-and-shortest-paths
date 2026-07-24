@@ -16,14 +16,12 @@ def bfs_reachability(graph: Digraph, source: object) -> set[object]:
 
     Time: O(m). Space: O(n).
     """
-    visited: set[object] = set()
-    queue: deque[object] = deque()
-    queue.append(source)
-    visited.add(source)
+    visited: set[object] = {source}
+    queue: deque[object] = deque([source])
     out = graph.out_edges
     while queue:
         u = queue.popleft()
-        for v in out.get(u, set()):
+        for v in out.get(u, ()):
             if v not in visited:
                 visited.add(v)
                 queue.append(v)
@@ -103,20 +101,22 @@ def parallel_bfs(
 
     This simulates the parallel reachability primitive from Section 1.1.
     Sequential simulation; span bounds are NOT DETERMINED.
+
+    Shortcuts whose target vertex is not present in the graph are
+    silently ignored.
     """
-    visited: set[object] = set()
-    queue: deque[object] = deque()
-    queue.append(source)
-    visited.add(source)
+    visited: set[object] = {source}
+    queue: deque[object] = deque([source])
     out = graph.out_edges
-    # Index shortcuts by source for O(1) lookup per vertex instead of O(|H|).
     shortcut_index: dict[object, list[object]] = {}
     if shortcut_edges:
         for a, b in shortcut_edges:
+            if b not in graph.vertex_set:
+                continue
             shortcut_index.setdefault(a, []).append(b)
     while queue:
         u = queue.popleft()
-        for v in out.get(u, set()):
+        for v in out.get(u, ()):
             if v not in visited:
                 visited.add(v)
                 queue.append(v)

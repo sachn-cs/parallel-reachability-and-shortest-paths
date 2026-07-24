@@ -97,18 +97,28 @@ shortcuts, beta = build_shortcut_set_for_reachability(
 )
 ```
 
+End-to-end applications live in [`examples/`](examples/):
+
+- `gnn_preprocessing.py` — citation graph → PyG Data object.
+- `rag_reranking.py` — passage-citation graph → pivot-reach ranking.
+- `compiler_inlining.py` — IR graph → inlining candidate ranking.
+- `social_network.py` — SNAP cit-HepPh → `|H|/|E|` ratio.
+- `bioinformatics.py` — synthetic PPI → downstream-hub detection.
+
 ---
 
 ## Algorithmic refinements (paper contribution)
 
-Two are formalised with proofs in [`docs/paper_refinements.md`](docs/paper_refinements.md):
+## Algorithmic refinements (paper contribution)
+
+Two are formalised with proofs in [`docs/PAPER.md`](docs/PAPER.md):
 
 | # | Refinement | Lemma | Default |
 |---|---|---|---|
 | 1 | Tightened TC-pruning trigger | Lemma 2.1 (soundness), Lemma 2.2 (size contribution) | on |
 | 2 | Hop-bounded pivot BFS | Lemma 3.1 (hopbound preservation), Lemma 3.2 (work bound) | on |
 
-Five more (data-structure and engineering wins) are documented in [`docs/algorithmic_improvements.md`](docs/algorithmic_improvements.md): adaptive sampling, label compression, trivial-condensation fast path, degree-ordered pivots, skip-trivial-partition guard.
+Five more (data-structure and engineering wins) are documented in [`docs/PAPER.md`](docs/PAPER.md) §3: adaptive sampling, label compression, trivial-condensation fast path, degree-ordered pivots, skip-trivial-partition guard.
 
 ---
 
@@ -231,9 +241,8 @@ parallel-reachability-and-shortest-paths/
 │   ├── benchmark_shortest_paths.py
 │   └── demo.py
 ├── docs/                             # Research + user documentation
-│   ├── paper_refinements.md          # Paper draft (Lemmas 2.1, 2.2, 3.1, 3.2)
+│   ├── PAPER.md                      # Consolidated paper draft
 │   ├── notes_correctness.md          # Corrigendum on 4 bugs found
-│   ├── algorithmic_improvements.md   # Engineering notes on 7 refinements
 │   ├── algorithms.md                 # Algorithm descriptions
 │   ├── architecture.md
 │   ├── invariants.md
@@ -243,6 +252,13 @@ parallel-reachability-and-shortest-paths/
 │   ├── getting-started.md
 │   ├── faq.md
 │   └── index.md
+├── examples/                         # End-to-end applications
+│   ├── gnn_preprocessing.py
+│   ├── rag_reranking.py
+│   ├── compiler_inlining.py
+│   ├── social_network.py
+│   └── bioinformatics.py
+├── benchmarks/                       # asv micro-benchmarks
 ├── results/                          # Auto-generated, gitignored
 │   ├── scaling.csv                   # Synthetic ladder
 │   ├── snap.csv                      # SNAP datasets
@@ -312,9 +328,9 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 
 ### Done (v0.6.0)
 - [x] Faithful reimplementation of JLS shortcut set + CFR hopset
-- [x] Two formalised algorithmic refinements with proofs (`docs/paper_refinements.md`)
+- [x] Two formalised algorithmic refinements with proofs (`docs/PAPER.md`)
 - [x] Corrigendum on four correctness bugs found (`docs/notes_correctness.md`)
-- [x] Five engineering refinements documented (`docs/algorithmic_improvements.md`)
+- [x] Five engineering refinements documented (`docs/PAPER.md` §3)
 - [x] Toggleable per-refinement flags (`reachq.Flags`)
 - [x] Sparse Boolean transitive closure (scipy.sparse)
 - [x] Vectorised CSR BFS (numpy)
@@ -373,7 +389,7 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). For research questions, see [`docs/paper_refinements.md`](docs/paper_refinements.md) for what's been proved and what's empirical.
+See [CONTRIBUTING.md](CONTRIBUTING.md). For research questions, see [`docs/PAPER.md`](docs/PAPER.md) for what's been proved and what's empirical.
 
 ## Citation
 

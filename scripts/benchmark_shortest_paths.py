@@ -13,8 +13,11 @@ import time
 from reachq.generators import weighted_dense_graph
 from reachq.graph import WeightedDigraph
 from reachq.hopset import build_hopset_for_sssp
+from reachq.logging_config import get_logger
 from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 from reachq.work_depth import WorkDepthAccountant
+
+log = get_logger("reachq.benchmark_shortest_paths")
 
 
 def measure_hopset_construction(
@@ -82,11 +85,10 @@ def benchmark_suite(
                 "simulated_work": work,
             }
             rows.append(row)
-            print(
-                f"n={n:5d} m={graph.num_edges():7d} eps={epsilon:.3f} "
-                f"beta={beta:8.2f} |H|={len(hopset):7d} "
-                f"time={elapsed:.3f}s max_ratio={max_ratio:.4f} "
-                f"mismatches={mismatches}"
+            log.info(
+                "n=%d m=%d eps=%.3f beta=%.2f |H|=%d time=%.3fs max_ratio=%.4f mismatches=%d",
+                n, graph.num_edges(), epsilon, beta,
+                len(hopset), elapsed, max_ratio, mismatches,
             )
 
     if output_csv:
@@ -94,7 +96,7 @@ def benchmark_suite(
             writer = csv.DictWriter(f, fieldnames=rows[0].keys())
             writer.writeheader()
             writer.writerows(rows)
-        print(f"Results written to {output_csv}")
+        log.info("results written to %s", output_csv)
 
 
 def main() -> None:

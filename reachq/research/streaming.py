@@ -1,25 +1,26 @@
-"""Streaming shortcut-set maintenance (Innovation #2 from the paper).
+"""Streaming shortcut-set maintenance (research prototype).
 
 The static JLS construction rebuilds the shortcut set from scratch
-on every graph change. The streaming version maintains the shortcut
-set incrementally as edges are inserted.
+on every graph change. This module is a research prototype that
+maintains a small set of pivots and re-BFSs from each pivot on
+every edge insertion. The shortcut set is the union of every pivot's
+beta-hop-reachable set seen so far.
 
-Theoretical result: amortised O(log^2 n) time per edge insertion,
-matching the offline construction's time per pivot.
-
-Honest scope: the proof is a sketch. The implementation exercises
-the algorithm and verifies that the streaming output matches the
-batch output on a fixed edge-insertion sequence.
+Honest scope: this prototype does NOT achieve the amortised O(log^2 n)
+per insertion bound claimed in the cited dynamic-reachability paper
+(see `docs/streaming_proof.md` for a sketch). The re-BFS per pivot
+per insertion is O(|R_ball|) per pivot, which gives O(|pivots| *
+|r_ball|) per insertion in the worst case. It is suitable for
+demonstrating the API surface and for testing on small graphs; do
+not use it on web-scale inputs.
 """
 
 from __future__ import annotations
 
-from collections import defaultdict
 from typing import Any
 
 from reachq.graph import Digraph
 from reachq.logging_config import get_logger
-from reachq.reachability import bfs_reachability, parallel_bfs
 
 log = get_logger("reachq.research.streaming")
 

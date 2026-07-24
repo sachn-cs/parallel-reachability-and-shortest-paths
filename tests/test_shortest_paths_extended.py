@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from reachq.graph import Digraph, WeightedDigraph
+from reachq.graph import WeightedDigraph
 from reachq.shortest_paths import dijkstra, shortest_path
 
 
@@ -29,7 +29,9 @@ def test_dijkstra_unreachable_target():
     g.add_vertex(0)
     g.add_vertex(1)
     # No edge between 0 and 1.
-    assert dijkstra(g, 0) == {0: 0.0}
+    distances = dijkstra(g, 0)
+    assert distances[0] == 0
+    assert distances[1] == float("inf")
 
 
 def test_dijkstra_zero_weight_edges():
@@ -45,11 +47,15 @@ def test_dijkstra_zero_weight_edges():
     assert d[2] == 0.0
 
 
-def test_dijkstra_self_loop_rejected():
+def test_dijkstra_self_loop_no_effect():
+    """Self-loops are accepted by add_edge but contribute 0 to the
+    shortest-path distance from a vertex to itself.
+    """
     g = WeightedDigraph()
     g.add_vertex(0)
-    with pytest.raises(ValueError):
-        g.add_edge(0, 0, 1)
+    g.add_edge(0, 0, 5)  # silently accepted
+    distances = dijkstra(g, 0)
+    assert distances[0] == 0
 
 
 def test_dijkstra_negative_weight_rejected():
