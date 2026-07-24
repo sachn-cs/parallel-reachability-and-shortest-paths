@@ -151,7 +151,7 @@ def assert_partition_correctness(
 
 def assert_distance_approximation(
     graph: WeightedDigraph,
-    hopset: dict[tuple[object, object], int],
+    hopset: dict[tuple[object, object], float],
     source: object,
     epsilon: float,
     max_hops: int,
@@ -209,7 +209,7 @@ def assert_shortcut_set_size_bound(
 
 def assert_hopset_size_bound(
     graph: WeightedDigraph,
-    hopset: dict[tuple[object, object], int],
+    hopset: dict[tuple[object, object], float],
     epsilon: float,
     rho: float,
     msg: str | None = None,

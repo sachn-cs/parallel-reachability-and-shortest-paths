@@ -23,7 +23,7 @@ log = get_logger("reachq.benchmark_shortest_paths")
 
 def measure_hopset_construction(
     graph: WeightedDigraph, epsilon: float, seed: int
-) -> tuple[dict[tuple[object, object], int], float, float, float, float, float]:
+) -> tuple[dict[tuple[object, object], float], float, float, float, int, float]:
     """Build hopset and return metrics.
 
     Returns: (hopset, beta, elapsed_seconds, max_ratio, mismatches, work_estimate)

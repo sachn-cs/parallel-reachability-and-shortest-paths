@@ -599,7 +599,9 @@ def build_shortcut_set_for_reachability(
             if trivial:
                 shortcuts.add((u_idx, v_idx))
             else:
-                shortcuts.add((scc_rep[int(u_idx)], scc_rep[int(v_idx)]))
+                assert isinstance(u_idx, int)
+                assert isinstance(v_idx, int)
+                shortcuts.add((scc_rep[u_idx], scc_rep[v_idx]))
 
         if sparsify_shortcuts and shortcuts:
             from reachq.research.sparsify import sparsify_shortcut_set

@@ -56,10 +56,10 @@ def compute_truncated_sssp_structure(
     graph: WeightedDigraph,
     vertex_subset: set[object],
     max_distance: int,
-) -> dict[tuple[object, object], int]:
+) -> dict[tuple[object, object], float]:
     """Compute all-pairs shortest paths within *vertex_subset*, truncated at *max_distance*."""
     subgraph = graph.induced_subgraph(vertex_subset)
-    edges: dict[tuple[object, object], int] = {}
+    edges: dict[tuple[object, object], float] = {}
     for u in vertex_subset:
         dists = dijkstra(subgraph, u)
         for v, d in dists.items():
@@ -80,7 +80,7 @@ def _cfr_recursive(
     flags: RefinementConfig,
     *,
     prunning: bool,
-) -> dict[tuple[object, object], int]:
+) -> dict[tuple[object, object], float]:
     """Shared CFR-with-TruncSSSP-Pruning body used by both public entry points.
 
     When ``prunning`` is False, runs the baseline CFR hopset (no TruncSSSP).
@@ -122,7 +122,7 @@ def _cfr_recursive(
     if not pivots:
         return {}
 
-    hopset: dict[tuple[object, object], int] = {}
+    hopset: dict[tuple[object, object], float] = {}
     labels: dict[object, Any] = {v: set() for v in vertices}
     if flags.label_compress:
         anc_labels: dict[object, list[object]] = {v: [] for v in vertices}
@@ -136,7 +136,7 @@ def _cfr_recursive(
     # Distances from each pivot to all vertices: shared Dijkstra per pivot.
     # Reversed graph built once per level, not once per pivot.
     rev = graph.reversed()
-    dists_to_p_cache: dict[object, dict[object, int]] = {}
+    dists_to_p_cache: dict[object, dict[object, float]] = {}
 
     truncsssp_threshold = (k**2) * (log_n**2) * (rho**2)
 
@@ -230,7 +230,7 @@ def cfr_hopset(
     level: int = 0,
     random_seed: Optional[int] = None,
     flags: Optional[dict[str, bool]] = None,
-) -> dict[tuple[object, object], int]:
+) -> dict[tuple[object, object], float]:
     """Construct the CFR hopset without TruncSSSP-Pruning.
 
     Equivalent to the public CFR baseline, used here as a comparison point
@@ -270,7 +270,7 @@ def cfr_with_truncsssp_pruning(
     level: int = 0,
     random_seed: Optional[int] = None,
     flags: Optional[dict[str, bool]] = None,
-) -> dict[tuple[object, object], int]:
+) -> dict[tuple[object, object], float]:
     """Construct the CFR hopset with TruncSSSP-Pruning (Section 6.3, Theorem 4)."""
     f = RefinementConfig.from_dict(flags)
     if k <= 1:
@@ -302,7 +302,7 @@ def build_hopset_for_sssp(
     random_seed: Optional[int] = None,
     flags: Optional[dict[str, bool]] = None,
     parallel_workers: int = 1,
-) -> tuple[dict[tuple[object, object], int], float]:
+) -> tuple[dict[tuple[object, object], float], float]:
     """High-level wrapper: build a (beta, epsilon)-hopset matching Theorem 4.
 
     Automatically selects parameters based on graph density.
@@ -368,7 +368,7 @@ def build_hopset_for_sssp(
             flags=flags,
         )
 
-        hopset: dict[tuple[object, object], int] = {}
+        hopset: dict[tuple[object, object], float] = {}
 
         # SCC intra-clique shortcuts — skip trivial SCCs.
         if not trivial:
@@ -386,13 +386,15 @@ def build_hopset_for_sssp(
                             if prev is None or d < prev:
                                 hopset[key] = d
 
-        for u_idx, v_idx, w in ((u, v, dag_hopset[(u, v)]) for u, v in dag_hopset):
+        for u_idx, v_idx, hw in ((u, v, dag_hopset[(u, v)]) for u, v in dag_hopset):
             if trivial:
                 key = (u_idx, v_idx)
             else:
-                key = (scc_rep[int(u_idx)], scc_rep[int(v_idx)])
+                assert isinstance(u_idx, int)
+                assert isinstance(v_idx, int)
+                key = (scc_rep[u_idx], scc_rep[v_idx])
             prev = hopset.get(key)
-            if prev is None or w < prev:
-                hopset[key] = w
+            if prev is None or hw < prev:
+                hopset[key] = hw
 
         return hopset, beta
