@@ -9,8 +9,8 @@ from __future__ import annotations
 
 import pytest
 
-from reachq.graph import WeightedDigraph
-from reachq.shortest_paths import dijkstra, shortest_path
+from reachq.core.graph import WeightedDigraph
+from reachq.core.shortest_paths import dijkstra, shortest_path
 
 
 def test_dijkstra_empty_graph():

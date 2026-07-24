@@ -10,7 +10,7 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from reachq.graph import Digraph, WeightedDigraph
+from reachq.core.graph import Digraph, WeightedDigraph
 
 
 @given(

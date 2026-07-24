@@ -9,13 +9,13 @@ from __future__ import annotations
 
 import math
 
-from reachq.graph import Digraph, WeightedDigraph
-from reachq.reachability import (
+from reachq.core.graph import Digraph, WeightedDigraph
+from reachq.core.reachability import (
     bfs_reachability,
     parallel_bfs,
     strongly_connected_components,
 )
-from reachq.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
 
 
 def assert_reachability_preserved(
@@ -97,7 +97,7 @@ def assert_scc_shortcuts_form_cliques(
     is pairs where G has no edge in either direction. (If G has u→v
     directly, no shortcut is needed.)
     """
-    from reachq.reachability import parallel_bfs
+    from reachq.core.reachability import parallel_bfs
 
     sccs = strongly_connected_components(graph)
     for scc in sccs:

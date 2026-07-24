@@ -47,7 +47,7 @@ empirical evaluation. The actual contribution is:
 
 from __future__ import annotations
 
-from reachq.graph import Digraph
+from reachq.core.graph import Digraph
 
 
 def barbell_graph(k: int) -> Digraph:

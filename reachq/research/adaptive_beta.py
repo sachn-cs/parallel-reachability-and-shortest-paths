@@ -21,7 +21,7 @@ gives a different `|H|` than using paper_beta, but the
 hopbound guarantee becomes graph-specific rather than worst-case.
 
 Usage:
-  from reachq.adaptive_beta import adaptive_beta, paper_beta
+  from reachq.research.adaptive_beta import adaptive_beta, paper_beta
   beta = adaptive_beta(graph, n_samples=10)  # or
   beta = paper_beta(graph, omega=3.0)       # worst-case
 """
@@ -32,8 +32,8 @@ import random
 from collections import deque
 from typing import Any
 
-from reachq.graph import Digraph
-from reachq.logging_config import get_logger
+from reachq.core.graph import Digraph
+from reachq.core.config import get_logger
 
 log = get_logger("reachq.adaptive_beta")
 

@@ -24,7 +24,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from reachq.graph import Digraph
+from reachq.core.graph import Digraph
 
 
 def path_shortcut_set(n: int) -> set[tuple[Any, Any]]:

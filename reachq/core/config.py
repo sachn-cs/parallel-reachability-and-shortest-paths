@@ -1,6 +1,6 @@
 """Centralised logging configuration.
 
-Call ``configure()`` once at the entry point of a CLI / script. Module
+Call ``configure_logging()`` once at the entry point of a CLI / script. Module
 loggers (``logging.getLogger(__name__)``) inside ``reachq`` pick up the
 handler automatically because we attach to the root logger.
 
@@ -18,7 +18,7 @@ import sys
 CONFIGURED: bool = False
 
 
-def configure(level: int | str | None = None) -> None:
+def configure_logging(level: int | str | None = None) -> None:
     """Idempotent logger setup.
 
     Idempotent so importing this module multiple times (which happens in
@@ -48,5 +48,5 @@ def configure(level: int | str | None = None) -> None:
 
 def get_logger(name: str) -> logging.Logger:
     """Return a logger for the given module name, configuring on first call."""
-    configure()
+    configure_logging()
     return logging.getLogger(name)

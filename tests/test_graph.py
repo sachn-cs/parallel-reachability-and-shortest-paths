@@ -2,7 +2,7 @@
 
 import pytest
 
-from reachq.graph import Digraph, WeightedDigraph, contract_sccs, partition_by_labels
+from reachq.core.graph import Digraph, WeightedDigraph, contract_sccs, partition_by_labels
 
 
 class TestDigraph:

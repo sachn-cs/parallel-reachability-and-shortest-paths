@@ -10,12 +10,12 @@ import argparse
 import csv
 import time
 
-from reachq.generators import weighted_dense_graph
-from reachq.graph import WeightedDigraph
-from reachq.hopset import build_hopset_for_sssp
-from reachq.logging_config import get_logger
-from reachq.shortest_paths import dijkstra, shortest_path_hopbound
-from reachq.work_depth import WorkDepthAccountant
+from reachq.core.generators import weighted_dense_graph
+from reachq.core.graph import WeightedDigraph
+from reachq.core.hopset import build_hopset_for_sssp
+from reachq.core.config import get_logger
+from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.core.work_depth import WorkDepthAccountant
 
 log = get_logger("reachq.benchmark_shortest_paths")
 

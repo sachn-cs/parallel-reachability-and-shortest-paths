@@ -4,13 +4,13 @@ from __future__ import annotations
 
 import pytest
 
-from reachq.generators import (
+from reachq.core.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
     shrikhande_graph,
 )
-from reachq.spectrum import spectral_gap, spectrum
+from reachq.core.spectrum import spectral_gap, spectrum
 
 
 class TestSpectrumHelpers:
@@ -62,7 +62,7 @@ class TestSpectrumHelpers:
         assert gap == pytest.approx(2.0)  # max(|-2|, |1|) = 2
 
     def test_spectral_gap_empty_graph(self):
-        from reachq.graph import Digraph
+        from reachq.core.graph import Digraph
 
         g = Digraph()
         assert spectral_gap(g) == 0.0

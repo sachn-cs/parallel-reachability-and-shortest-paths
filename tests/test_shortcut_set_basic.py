@@ -7,9 +7,9 @@ edge-case failure modes for graph algorithms.
 
 import pytest
 
-from reachq.graph import Digraph
-from reachq.reachability import bfs_reachability, parallel_bfs
-from reachq.shortcut_set import (
+from reachq.core.graph import Digraph
+from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.core.algorithm import (
     build_shortcut_set_for_reachability,
     jls_shortcut_set,
     jls_with_tc_pruning,

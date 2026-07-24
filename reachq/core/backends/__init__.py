@@ -64,3 +64,6 @@ class ParallelContext:
 
     def __repr__(self) -> str:
         return f"ParallelContext(mode={self.mode!r}, " f"n_workers={self.n_workers})"
+
+
+SEQUENTIAL = ParallelContext("sequential", 1)

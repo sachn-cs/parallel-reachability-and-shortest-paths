@@ -1,5 +1,5 @@
 """No-op (single-threaded) backend."""
 
-from reachq.core.backends import ParallelContext
+from reachq.core.backends import SEQUENTIAL
 
-SEQUENTIAL = ParallelContext("sequential", 1)
+__all__ = ["SEQUENTIAL"]

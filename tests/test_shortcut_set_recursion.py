@@ -6,9 +6,9 @@ within max_level levels, and the resulting shortcut set must
 preserve reachability.
 """
 
-from reachq.graph import Digraph
-from reachq.reachability import bfs_reachability, parallel_bfs
-from reachq.shortcut_set import jls_shortcut_set, jls_with_tc_pruning
+from reachq.core.graph import Digraph
+from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.core.algorithm import jls_shortcut_set, jls_with_tc_pruning
 
 
 class TestRecursionTermination:

@@ -11,15 +11,15 @@ This script demonstrates end-to-end usage of:
 import random
 import time
 
-from reachq.graph import Digraph, WeightedDigraph
-from reachq.hopset import build_hopset_for_sssp
-from reachq.reachability import (
+from reachq.core.graph import Digraph, WeightedDigraph
+from reachq.core.hopset import build_hopset_for_sssp
+from reachq.core.reachability import (
     bfs_reachability,
     parallel_bfs,
     strongly_connected_components,
 )
-from reachq.shortcut_set import build_shortcut_set_for_reachability
-from reachq.shortest_paths import astar, dijkstra, shortest_path_hopbound
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.shortest_paths import astar, dijkstra, shortest_path_hopbound
 
 
 def demo_reachability():

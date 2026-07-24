@@ -12,12 +12,12 @@ import os
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 
 def main():
     try:
-        from reachq.generators import load_dataset
+        from reachq.core.generators import load_dataset
     except ImportError:
         print("SNAP loader not available; skipping")
         return

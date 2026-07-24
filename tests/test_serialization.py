@@ -2,25 +2,25 @@
 
 import pytest
 
-from reachq.generators import path_graph, weighted_path_graph
-from reachq.graph import Digraph, WeightedDigraph
-from reachq.serialization import (
+from reachq.core.generators import path_graph, weighted_path_graph
+from reachq.core.graph import Digraph, WeightedDigraph
+from reachq.core.io.json import (
     digraph_from_dict,
-    digraph_from_json,
+    load,
     digraph_to_dict,
-    digraph_to_json,
+    dump,
     weighted_digraph_from_dict,
-    weighted_digraph_from_json,
+    weighted_load,
     weighted_digraph_to_dict,
-    weighted_digraph_to_json,
+    weighted_dump,
 )
 
 
 class TestDigraphSerialization:
     def test_roundtrip(self):
         g = path_graph(5)
-        text = digraph_to_json(g)
-        h = digraph_from_json(text)
+        text = dump(g)
+        h = load(text)
         assert g.num_vertices() == h.num_vertices()
         assert g.num_edges() == h.num_edges()
         assert set(g.edges()) == set(h.edges())
@@ -34,16 +34,16 @@ class TestDigraphSerialization:
 
     def test_empty_graph(self):
         g = Digraph()
-        text = digraph_to_json(g)
-        h = digraph_from_json(text)
+        text = dump(g)
+        h = load(text)
         assert h.num_vertices() == 0
         assert h.num_edges() == 0
 
     def test_tuple_vertices(self):
         g = Digraph()
         g.add_edge((0, 0), (0, 1))
-        text = digraph_to_json(g)
-        h = digraph_from_json(text)
+        text = dump(g)
+        h = load(text)
         assert h.has_edge((0, 0), (0, 1))
 
     def test_invalid_type_raises(self):
@@ -54,8 +54,8 @@ class TestDigraphSerialization:
 class TestWeightedDigraphSerialization:
     def test_roundtrip(self):
         g = weighted_path_graph(5, weight_range=(1, 3), random_seed=1)
-        text = weighted_digraph_to_json(g)
-        h = weighted_digraph_from_json(text)
+        text = weighted_dump(g)
+        h = weighted_load(text)
         assert g.num_vertices() == h.num_vertices()
         assert g.num_edges() == h.num_edges()
         for u, v, w in g.edges():
@@ -71,8 +71,8 @@ class TestWeightedDigraphSerialization:
 
     def test_empty_graph(self):
         g = WeightedDigraph()
-        text = weighted_digraph_to_json(g)
-        h = weighted_digraph_from_json(text)
+        text = weighted_dump(g)
+        h = weighted_load(text)
         assert h.num_vertices() == 0
         assert h.num_edges() == 0
 

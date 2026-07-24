@@ -21,14 +21,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.logging_config import get_logger
-from reachq.lower_bound import (
+from reachq.core.config import get_logger
+from reachq.research.lower_bound import (
     barbell_graph,
     cycle_graph_dag,
     layered_dag,
     long_path_dag,
 )
-from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 log = get_logger("reachq.lower_bound_eval")
 
