@@ -7,6 +7,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [5.0.0] - 2026-07-24
+
+### Changed (BREAKING)
+
+- **CLI entry point moved.** `reachq.cli` → `reachq.cli.main:cli_main`.
+- **`should_use_csr()` signature changed.** Now takes `int` (vertex
+  count) instead of `Digraph`.
+- **Serialization renames.** `digraph_to_json` → `dump`,
+  `digraph_from_json` → `load`, `weighted_digraph_to_json` →
+  `weighted_dump`, `weighted_digraph_from_json` → `weighted_load`.
+
+## [4.0.0] - 2026-07-24
+
+### Changed (BREAKING)
+
+- **Process mode uses fork-safe initializer.** `algorithm.py` now
+  passes graph data via a dedicated `_init_pivot_worker()` function
+  instead of module-level globals.
+
+## [3.0.0] - 2026-07-24
+
+### Changed (BREAKING)
+
+- **`Flags` replaced by `RefinementConfig`.** Frozen dataclass with
+  slots in `core/config.py`. `Flags = RefinementConfig` alias kept.
+
 ## [2.0.0] - 2026-07-24
 
 ### Changed (BREAKING)
@@ -25,14 +51,32 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `reachq/core/` — core algorithms, graph primitives, BFS, CSR,
   reachability, shortest paths, transitive closure, shortcut-set
   construction, hopset construction, invariants, work-depth accounting.
-- `reachq/core/backends/` — thread and process pool backends.
-- `reachq/core/io/` — serialisation backends (JSON).
+- `reachq/core/backends/` — thread, process, and noop pool backends.
+- `reachq/core/io/` — serialization backends (JSON, Arrow IPC,
+  NetworkX adapter).
+- `reachq/core/trace.py` — contextmanager tracing with timing.
+- `reachq/core/metrics.py` — thread-safe counters and histograms.
+- `reachq/core/snapshot.py` — frozen graph snapshot dataclass.
+- `reachq/core/errors.py` — `ReachqError` hierarchy.
+- `reachq/core/prune.py` — TC-pruning extracted as reusable module.
+- `reachq/core/tuner.py` — auto-tune RefinementConfig from graph.
+- `reachq/core/predictor.py` — predict algorithm parameters.
 - `reachq/cli/` — command-line interface.
-- `reachq/proto/` — protocol definitions for extension points.
+- `reachq/proto/` — Protocol definitions for graph, rng, backend, store.
 - `reachq/accel/` — acceleration backends (Cython, Rust, Numba, Ray,
   Dask, GraphBLAS).
+- `reachq/research/dynamic_tc.py` — dynamic TC maintenance (stub).
+- `reachq/research/sketch.py` — HyperLogLog-style BFS (stub).
+- `reachq/research/temporal.py` — temporal graph reachability (stub).
+- `reachq/research/hyper.py` — hypergraph reachability (stub).
+- `reachq/research/attributed.py` — attributed graph reachability (stub).
 - `Makefile` — test, lint, typecheck, bench, docs, clean targets.
 - `tox.ini` — test matrix for py310–py313.
+- `.github/ISSUE_TEMPLATE/` — bug, feature, algorithm, performance
+  templates.
+- `.github/PULL_REQUEST_TEMPLATE.md` — PR checklist.
+- 10 split CI workflows (lint, typecheck, test-fast, test-slow, bench,
+  docs, security, doctest, wheels, release).
 
 ## [1.0.0] - 2026-07-24
 
