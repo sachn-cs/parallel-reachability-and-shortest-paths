@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-15
+
+### Fixed
+
+- **The default shortcut-set build now preserves the beta-hopbound.**
+  `sparsify_shortcuts` defaults to `False` again. The reach-only
+  sparsifier used to remove shortcuts that other pairs still relied on
+  (on a path n=30 it left 207 pairs above the beta hopbound); pass
+  `sparsify_shortcuts=True` explicitly if you accept the reach-only
+  guarantee.
+- **`sparsify_hop_bounded` preserves the GLOBAL beta-hopbound.** The
+  greedy now removes a shortcut only when every reachable pair stays
+  within beta hops after removal, verifies the input is sound before
+  touching it, and refuses to run on graphs above `max_vertices`.
+  Regression tests cover paths and random DAGs.
+- **CI was red and is now green.** ruff was unpinned and every release
+  silently changed the default rule set; it is now pinned to 0.16.3 in
+  the lint workflow, the dev extra, and pre-commit, and the tree is
+  clean under `ruff check` and `ruff format --check`.
+- **`mkdocs build --strict` passes.** The API reference pointed at dead
+  flat-module paths (`reachq.shortcut_set`, `reachq.spectrum`, ...)
+  that mkdocstrings could not resolve; it now documents the real
+  `reachq.core.*` / `reachq.research.*` API. Nav entries that pointed
+  at source files or files outside `docs/` are fixed.
+
+### Changed
+
+- Version bumped from the never-released `7.0.0` to `0.8.0`.
+  `7.0.0` was a placeholder version; this is the first releaseable
+  version of the package.
+- README comparison table is honest: streaming shortcut set is a
+  prototype with no amortized bound, the (1+ε) approximation has no
+  formal guarantee, and beta-hopbound-preserving sparsification is
+  small-graphs only.
+- Test count in the README corrected (304 → 574).
+- Python requirement corrected to ≥ 3.10 everywhere (the package never
+  supported 3.9).
+
 ## [7.0.0] - 2026-07-24
 
 ### Added

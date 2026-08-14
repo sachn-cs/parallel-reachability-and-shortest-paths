@@ -3,7 +3,7 @@
   <p align="center"><em>reachq: graph reachability, queryable.</em></p>
   <p align="center">Pure-Python reimplementation of the JLS shortcut-set and CFR hopset constructions, with seven toggleable algorithmic refinements and four documented correctness fixes.</p>
   <p align="center">
-    <a href="#installation"><img src="https://img.shields.io/badge/python-3.9%20%7C%203.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
+    <a href="#installation"><img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
     <a href="https://github.com/sachncs/parallel-reachability-and-shortest-paths/actions"><img src="https://img.shields.io/github/actions/workflow/status/sachncs/parallel-reachability-and-shortest-paths/ci.yml?branch=master" alt="CI"></a>
     <a href="https://pypi.org/project/reachq/"><img src="https://img.shields.io/pypi/v/reachq" alt="PyPI"></a>
@@ -70,7 +70,7 @@ cd parallel-reachability-and-shortest-paths
 pip install -e ".[dev]"
 ```
 
-**Requirements:** Python ≥ 3.9, `numpy` ≥ 1.21, `scipy` ≥ 1.10. No JIT, no native extensions.
+**Requirements:** Python ≥ 3.10, `numpy` ≥ 1.21, `scipy` ≥ 1.10. No JIT, no native extensions.
 
 ---
 
@@ -150,7 +150,7 @@ Every script auto-detects hardware (CPU, RAM, Python, BLAS) and writes it to `re
 ## Tests
 
 ```bash
-pytest                        # 304 tests
+pytest                        # 574 tests (1 xfailed)
 pytest -m "not slow"          # skip slow tests
 pytest --cov=reachq          # with coverage
 pytest tests/test_paper_lemmas.py -v   # the 22 empirical lemma tests
@@ -235,7 +235,7 @@ parallel-reachability-and-shortest-paths/
 │   ├── serialization.py              # JSON serialisation
 │   ├── work_depth.py                 # PRAM work/depth accounting
 │   └── invariants.py                 # Theorem-oriented validators
-├── tests/                            # 304 tests
+├── tests/                            # 574 tests
 │   ├── test_paper_lemmas.py          # Empirical support for paper lemmas
 │   ├── test_algorithmic_improvements.py   # Per-flag ablation tests
 │   ├── test_numpy_bfs.py             # Vectorised BFS equivalence
