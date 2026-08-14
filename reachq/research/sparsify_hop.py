@@ -1,37 +1,29 @@
-"""β-hopbound-preserving sparsification (Innovation #6, the genuine
-contribution).
+"""beta-hopbound-preserving sparsification (research prototype).
 
-The earlier `sparsify` (Innovation #1) checks reachability in
-`G + (H \\ {(u, v)})` without a hop limit. This proves the shortcut
-is redundant for reachability, but the resulting shortcut set may
-VIOLATE the β-hopbound guarantee of the original JLS construction.
+The reachability-only sparsifier in ``reachq.research.sparsify``
+removes a shortcut (u, v) whenever v is still reachable from u via
+``G + (H \\ {(u, v)})`` without a hop limit. That preserves
+reachability but can destroy the beta-hopbound guarantee of the JLS
+construction: on a path of n=50 vertices the JLS shortcut set compresses
+the diameter from 49 to 2 hops, and the reachability-only sparsifier
+removes every shortcut, restoring the long path.
 
-Empirical demonstration: on a path of n=50 vertices with the JLS
-construction followed by sparsify:
-  * |H| (JLS) = 949, max empirical hop = 2 (β-hopbound preserved)
-  * |H|_essential (sparsify) = 0, max empirical hop = 49
-    (β-hopbound VIOLATED!)
+This module provides a sparsifier that only removes a shortcut when the
+GLOBAL beta-hopbound is preserved, i.e. every pair (s, t) that is
+reachable in G must remain reachable in ``G + (H \\ {(u, v)})`` within
+beta hops. The greedy is correct by construction: it never removes a
+shortcut whose removal would push any reachable pair above beta.
 
-The path has diameter 49; the JLS shortcuts compress this to
-diameter 2. Sparsify removes them all, restoring the long path.
+Honest scope:
 
-This module provides the correct sparsification: a shortcut is
-removed only if doing so preserves the β-hopbound for the
-augmented graph G + (H \\ {(u, v)}).
-
-**Theorem (Pipeline correctness, paper contribution).** The
-JLS construction followed by β-hopbound-preserving sparsification
-produces a sound shortcut set H with:
-  1. R+(G, s) = R+(G + H, s) for all s (reachability equivalence).
-  2. parallel_bfs(g, s, H) reaches every v ∈ R+(G, s) in ≤ β hops
-     (β-hopbound guarantee).
-  3. |H| is minimal among all H satisfying (1) and (2).
-
-**Theorem (Optimality on standard classes).** For the path
-graph P_n with β = n^{1/2}, the JLS essential shortcut set has
-size Θ(n^{1.5}), matching the paper's bound m·ρ = Θ(n^{1.5}).
-For β << n (the paper's worst case), the bound is asymptotically
-tight on the path -- the JLS construction is optimal on this class.
+* The correctness guarantee holds for every graph, but the per-removal
+  check is an all-pairs hop-BFS, so the total cost is
+  O(|H| * n * (n + m + |H|)). This is only practical for small graphs;
+  the ``max_vertices`` guard refuses to run above a size threshold.
+* "Minimality" is NOT claimed. Computing a minimum-size hop-bound
+  shortcut set is NP-hard in general; the greedy output is simply a
+  sound set with no locally-redundant shortcut (each remaining shortcut
+  is essential for the beta-hopbound of at least one pair).
 """
 
 from __future__ import annotations
@@ -41,6 +33,7 @@ from typing import Any
 
 from reachq.core.graph import Digraph
 from reachq.core.config import get_logger
+from reachq.core.reachability import bfs_reachability
 
 log = get_logger("reachq.sparsify_hop")
 
@@ -53,8 +46,8 @@ def bfs_limited(
 ) -> dict[Any, int]:
     """BFS from source, limited to max_depth hops. Returns distance map.
 
-    Returns dict[v] = d for v reached in d ≤ max_depth, d hops. If v
-    is not reached in ≤ max_depth hops, it is absent from the dict.
+    Returns dict[v] = d for v reached in d <= max_depth hops. If v
+    is not reached in <= max_depth hops, it is absent from the dict.
     """
     dist: dict[Any, int] = {source: 0}
     q: deque = deque([source])
@@ -77,39 +70,85 @@ def bfs_limited(
     return dist
 
 
+def verify_hopbound_preserved(
+    graph: Digraph,
+    shortcuts: set[tuple[Any, Any]],
+    beta: int,
+) -> bool:
+    """True iff every vertex pair reachable in G is also reachable in
+    G + shortcuts within beta hops.
+
+    Runs one unbounded BFS per source to determine the reachable set
+    (which depends only on G) and one beta-limited BFS per source over
+    G + shortcuts. Cost: O(n * (n + m + |H|)).
+    """
+    for s in graph.vertices():
+        R = bfs_reachability(graph, s)
+        dist = bfs_limited(graph, s, beta, shortcuts)
+        for v in R:
+            if v != s and v not in dist:
+                return False
+    return True
+
+
 def sparsify_hop_bounded(
     graph: Digraph,
     shortcuts: set[tuple[Any, Any]],
     beta: int,
     *,
     max_iterations: int = 100,
+    max_vertices: int = 200,
 ) -> set[tuple[Any, Any]]:
-    """β-hopbound-preserving sparsification.
+    """Beta-hopbound-preserving sparsification.
 
-    Iteratively remove shortcuts (u, v) such that v is still
-    reachable from u in ≤ β hops via G + (H \\ {(u, v)}). This
-    preserves both the reachability equivalence AND the β-hopbound
-    guarantee of the original JLS output.
+    Iteratively remove a shortcut (u, v) only when removing it leaves
+    EVERY reachable pair connected within beta hops in
+    G + (H \\ {(u, v)}). Each remaining shortcut is essential for the
+    beta-hopbound of at least one pair, and the returned set satisfies
+    the same beta-hopbound as the input.
 
-    If a shortcut (u, v) is ESSENTIAL for the β-hopbound (removing
-    it would push some pair's distance above β), it is preserved.
+    The all-pairs per-removal check is O(n * (n + m + |H|)), so the
+    total cost is O(|H| * n * (n + m + |H|)). To stay practical, the
+    function refuses to run on graphs above ``max_vertices`` (returning
+    the input unchanged) and always verifies that the input already
+    satisfies the beta-hopbound before touching it.
 
-    Termination: converges in at most |H| iterations; usually 1-2
-    on tested inputs.
+    Args:
+        graph: The original digraph.
+        shortcuts: A sound shortcut set (beta-hopbound guaranteed).
+        beta: The hopbound that must be preserved.
+        max_iterations: Cap on greedy passes over H.
+        max_vertices: Refuse to run on larger graphs (all-pairs check
+            is too expensive).
+
+    Returns:
+        A subset of ``shortcuts`` that preserves the beta-hopbound.
     """
     H: set[tuple[Any, Any]] = set(shortcuts)
+    n = graph.num_vertices()
+    if n > max_vertices:
+        log.info(
+            "sparsify_hop_bounded: skipping (n=%d > max_vertices=%d)",
+            n,
+            max_vertices,
+        )
+        return H
+    if not verify_hopbound_preserved(graph, H, beta):
+        log.warning(
+            "sparsify_hop_bounded: input does not satisfy the beta-hopbound "
+            "(beta=%d); returning input unchanged",
+            beta,
+        )
+        return H
     log.info("sparsify_hop_bounded: starting with |H|=%d, beta=%d", len(H), beta)
 
     for iteration in range(max_iterations):
         changed = False
         for u, v in list(H):
             H_minus = H - {(u, v)}
-            # Check: v reachable from u in ≤ β hops in G + H_minus.
-            dist = bfs_limited(graph, u, beta, H_minus)
-            if v in dist and dist[v] <= beta:
+            if verify_hopbound_preserved(graph, H_minus, beta):
                 H = H_minus
                 changed = True
-                log.debug("sparsify_hop: removed (%s, %s)", u, v)
         if not changed:
             log.info(
                 "sparsify_hop_bounded: converged at iter=%d, |H|=%d",
@@ -123,42 +162,3 @@ def sparsify_hop_bounded(
         len(H),
     )
     return H
-
-
-def verify_hopbound_preserved(
-    graph: Digraph,
-    shortcuts: set[tuple[Any, Any]],
-    beta: int,
-) -> bool:
-    """True if every vertex pair reachable in G is also reachable in ≤ β
-    hops via G + shortcuts.
-
-    Returns True iff the β-hopbound is preserved.
-    """
-    for s in graph.vertices():
-        dist = bfs_limited(graph, s, beta, shortcuts)
-        for v in graph.vertices():
-            if not bfs_full(graph, s, v):
-                continue  # v not reachable from s in G -- skip
-            if v not in dist:
-                return False
-            if dist[v] > beta:
-                return False
-    return True
-
-
-def bfs_full(graph: Digraph, source: Any, target: Any) -> bool:
-    """Unbounded BFS -- is target reachable from source?"""
-    if source == target:
-        return True
-    visited = {source}
-    q = deque([source])
-    while q:
-        u = q.popleft()
-        for v in graph.out_edges.get(u, set()):
-            if v == target:
-                return True
-            if v not in visited:
-                visited.add(v)
-                q.append(v)
-    return False
