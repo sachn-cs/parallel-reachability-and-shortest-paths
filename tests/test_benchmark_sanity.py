@@ -30,6 +30,7 @@ class TestBenchmarkReachability:
             ],
             cwd=REPO_ROOT,
             capture_output=True,
+            check=False,
             text=True,
         )
         assert result.returncode == 0, result.stderr
@@ -54,6 +55,7 @@ class TestBenchmarkReachability:
             ],
             cwd=REPO_ROOT,
             capture_output=True,
+            check=False,
             text=True,
         )
         assert result.returncode == 0, result.stderr
@@ -82,6 +84,7 @@ class TestBenchmarkShortestPaths:
             ],
             cwd=REPO_ROOT,
             capture_output=True,
+            check=False,
             text=True,
         )
         assert result.returncode == 0, result.stderr
@@ -105,6 +108,7 @@ class TestBenchmarkShortestPaths:
             ],
             cwd=REPO_ROOT,
             capture_output=True,
+            check=False,
             text=True,
         )
         assert result.returncode == 0, result.stderr
@@ -133,6 +137,7 @@ class TestCliSanity:
             ],
             cwd=REPO_ROOT,
             capture_output=True,
+            check=False,
             text=True,
         )
         assert result.returncode == 0, result.stderr
@@ -154,6 +159,7 @@ class TestCliSanity:
             ],
             cwd=REPO_ROOT,
             capture_output=True,
+            check=False,
             text=True,
         )
         assert result.returncode == 0, result.stderr
@@ -174,6 +180,7 @@ class TestCliSanity:
             ],
             cwd=REPO_ROOT,
             capture_output=True,
+            check=False,
             text=True,
         )
         assert result.returncode == 0, result.stderr

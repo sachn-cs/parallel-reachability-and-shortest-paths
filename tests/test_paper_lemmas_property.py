@@ -11,9 +11,9 @@ from __future__ import annotations
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag
 from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 PAPER_TC = {
     "enable_tc_pruning": True,
@@ -69,7 +69,7 @@ def test_lemma_2_1_tc_soundness_property(n, p, seed):
 def test_lemma_2_2_size_contribution_property(n, p, seed):
     """Lemma 2.2: tightened trigger never strictly increases |H|."""
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
-    h_no_tc, _ = run(g, NO_TC, seed)
+    _, _ = run(g, NO_TC, seed)
     h_paper, _ = run(g, PAPER_TC, seed)
     h_tight, _ = run(g, TIGHT_TC, seed)
     assert len(h_tight) <= len(h_paper)

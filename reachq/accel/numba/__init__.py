@@ -26,7 +26,6 @@ import numpy as np
 from reachq.core.bfs import csr_reachable_forward
 from reachq.core.shortest_paths import dijkstra
 
-
 _numba_available = False
 try:
     import numba  # type: ignore[import-not-found]
@@ -37,6 +36,7 @@ except ImportError:
 
 
 if _numba_available:
+
     @numba.njit(cache=True, fastmath=True, boundscheck=False)
     def _jit_bfs_forward_kernel(
         indptr: np.ndarray,
@@ -108,12 +108,18 @@ if _numba_available:
                     child = 2 * k + 1
                     if child >= heap_size:
                         break
-                    if child + 1 < heap_size and heap_dist[child + 1] < heap_dist[child]:
+                    if (
+                        child + 1 < heap_size
+                        and heap_dist[child + 1] < heap_dist[child]
+                    ):
                         child += 1
                     if heap_dist[k] <= heap_dist[child]:
                         break
                     heap_dist[k], heap_dist[child] = heap_dist[child], heap_dist[k]
-                    heap_vertex[k], heap_vertex[child] = heap_vertex[child], heap_vertex[k]
+                    heap_vertex[k], heap_vertex[child] = (
+                        heap_vertex[child],
+                        heap_vertex[k],
+                    )
                     heap_pos[heap_vertex[k]] = k
                     heap_pos[heap_vertex[child]] = child
                     k = child
@@ -135,8 +141,14 @@ if _numba_available:
                             parent = (k - 1) // 2
                             if heap_dist[parent] <= heap_dist[k]:
                                 break
-                            heap_dist[parent], heap_dist[k] = heap_dist[k], heap_dist[parent]
-                            heap_vertex[parent], heap_vertex[k] = heap_vertex[k], heap_vertex[parent]
+                            heap_dist[parent], heap_dist[k] = (
+                                heap_dist[k],
+                                heap_dist[parent],
+                            )
+                            heap_vertex[parent], heap_vertex[k] = (
+                                heap_vertex[k],
+                                heap_vertex[parent],
+                            )
                             heap_pos[heap_vertex[parent]] = parent
                             heap_pos[heap_vertex[k]] = k
                             k = parent
@@ -147,8 +159,14 @@ if _numba_available:
                             parent = (k - 1) // 2
                             if heap_dist[parent] <= heap_dist[k]:
                                 break
-                            heap_dist[parent], heap_dist[k] = heap_dist[k], heap_dist[parent]
-                            heap_vertex[parent], heap_vertex[k] = heap_vertex[k], heap_vertex[parent]
+                            heap_dist[parent], heap_dist[k] = (
+                                heap_dist[k],
+                                heap_dist[parent],
+                            )
+                            heap_vertex[parent], heap_vertex[k] = (
+                                heap_vertex[k],
+                                heap_vertex[parent],
+                            )
                             heap_pos[heap_vertex[parent]] = parent
                             heap_pos[heap_vertex[k]] = k
                             k = parent
@@ -162,8 +180,14 @@ if _numba_available:
                             parent = (k - 1) // 2
                             if heap_dist[parent] <= heap_dist[k]:
                                 break
-                            heap_dist[parent], heap_dist[k] = heap_dist[k], heap_dist[parent]
-                            heap_vertex[parent], heap_vertex[k] = heap_vertex[k], heap_vertex[parent]
+                            heap_dist[parent], heap_dist[k] = (
+                                heap_dist[k],
+                                heap_dist[parent],
+                            )
+                            heap_vertex[parent], heap_vertex[k] = (
+                                heap_vertex[k],
+                                heap_vertex[parent],
+                            )
                             heap_pos[heap_vertex[parent]] = parent
                             heap_pos[heap_vertex[k]] = k
                             k = parent
@@ -312,4 +336,4 @@ def prewarm(
     _jit_dijkstra_kernel(indptr, indices, weights, 0, n)
 
 
-__all__ = ["njit_bfs_forward", "njit_dijkstra", "is_numba_available", "prewarm"]
+__all__ = ["is_numba_available", "njit_bfs_forward", "njit_dijkstra", "prewarm"]

@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from reachq.research.fix_resample import fix_resample_reachable, fix_resample_shortcut_set
 from reachq.core.generators import (
     hamming_graph,
     paley_graph,
@@ -10,6 +9,10 @@ from reachq.core.generators import (
     random_dag,
 )
 from reachq.core.reachability import bfs_reachability
+from reachq.research.fix_resample import (
+    fix_resample_reachable,
+    fix_resample_shortcut_set,
+)
 
 
 class TestFixResampleBasic:

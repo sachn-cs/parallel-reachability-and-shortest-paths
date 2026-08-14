@@ -27,7 +27,7 @@ class Graph:
         edge_count: Total number of edges |E|.
     """
 
-    __slots__ = ("vertex_set", "out_edges", "in_edges", "edge_count")
+    __slots__ = ("edge_count", "in_edges", "out_edges", "vertex_set")
 
     def __init__(self) -> None:
         """Initialize an empty graph."""

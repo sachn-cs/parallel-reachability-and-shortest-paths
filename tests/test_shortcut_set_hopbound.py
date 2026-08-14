@@ -8,9 +8,9 @@ connected within beta hops via G + shortcuts.
 
 from collections import deque
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.graph import Digraph
 from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 
 def max_hops(g, s, H, beta):
@@ -80,9 +80,9 @@ class TestHopboundPreserved:
         )
         for s in g.vertices():
             d = max_hops(g, s, shortcuts, int(beta) + 1)
-            assert (
-                d <= int(beta) + 1
-            ), f"hopbound violated from {s}: max hop = {d}, beta = {beta}"
+            assert d <= int(beta) + 1, (
+                f"hopbound violated from {s}: max hop = {d}, beta = {beta}"
+            )
 
     def test_hopbound_on_dag_n_30(self):
         g = Digraph()
@@ -131,7 +131,7 @@ class TestHopboundPreserved:
             g.add_vertex(i)
         for i in range(0, n - 1, 2):
             g.add_edge(i, i + 1)
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,

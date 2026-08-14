@@ -75,8 +75,8 @@ def hopbound_actual(graph, source: object, shortcuts, beta: float) -> tuple[int,
 def run_one(
     graph, flags: dict[str, bool], seed: int, omega: float, max_seconds: int
 ) -> dict[str, object]:
-    from reachq.core.reachability import bfs_reachability, parallel_bfs
     from reachq.core.algorithm import build_shortcut_set_for_reachability
+    from reachq.core.reachability import bfs_reachability, parallel_bfs
 
     row: dict[str, object] = {
         "n": graph.num_vertices(),
@@ -117,7 +117,7 @@ def run_one(
         row["hopbound_violations"] = violations
     except TimeoutError as e:
         row["error"] = str(e)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - harness records the failure and continues
         row["error"] = f"{type(e).__name__}: {e}"
     return row
 
@@ -226,7 +226,7 @@ def main() -> int:
         for name in args.datasets:
             try:
                 g = load_dataset(name)
-            except Exception as e:
+            except Exception as e:  # noqa: BLE001 - record load failure and continue
                 rows.append(
                     {
                         "config": "load_failed",

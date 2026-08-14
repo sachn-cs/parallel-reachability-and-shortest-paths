@@ -32,8 +32,8 @@ import random
 from collections import deque
 from typing import Any
 
-from reachq.core.graph import Digraph
 from reachq.core.config import get_logger
+from reachq.core.graph import Digraph
 
 log = get_logger("reachq.adaptive_beta")
 
@@ -79,8 +79,7 @@ def adaptive_beta(
     max_depth = 0
     for v in sample:
         d = bfs_depth(graph, v)
-        if d > max_depth:
-            max_depth = d
+        max_depth = max(max_depth, d)
     beta = safety_factor * max(1, max_depth)
     log.info(
         "adaptive_beta: max_depth=%d over %d samples, beta=%.2f",

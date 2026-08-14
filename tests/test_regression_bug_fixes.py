@@ -11,13 +11,13 @@ Bugs covered:
   4. TC self-loops: (i, i) entries were leaking into the shortcut set.
 """
 
-from reachq.core.graph import Digraph
-from reachq.core.bfs import csr_reachable_backward, csr_reachable_forward
-from reachq.core.csr import build_csr_pair
-from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.core.algorithm import (
     build_shortcut_set_for_reachability,
 )
+from reachq.core.bfs import csr_reachable_backward, csr_reachable_forward
+from reachq.core.csr import build_csr_pair
+from reachq.core.graph import Digraph
+from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.core.tc import transitive_closure_matrix
 
 
@@ -82,9 +82,7 @@ class TestRegressionCsrBfsCorrectness:
             g.add_vertex(i)
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        indptr_fwd, indices_fwd, indptr_rev, indices_rev, n_cs, idx_to_v = (
-            build_csr_pair(g)
-        )
+        indptr_fwd, indices_fwd, _, _, n_cs, idx_to_v = build_csr_pair(g)
 
         # Python BFS from vertex 0.
         from reachq.core.reachability import bfs_reachability
@@ -110,9 +108,7 @@ class TestRegressionCsrBfsCorrectness:
             g.add_vertex(i)
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        indptr_fwd, indices_fwd, indptr_rev, indices_rev, n_cs, idx_to_v = (
-            build_csr_pair(g)
-        )
+        _, _, indptr_rev, indices_rev, n_cs, idx_to_v = build_csr_pair(g)
 
         # Backward BFS from 0 (source) returns {0}.
         idx_set = csr_reachable_backward(indptr_rev, indices_rev, 0, n_cs)

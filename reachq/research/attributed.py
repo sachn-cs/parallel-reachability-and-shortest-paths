@@ -18,10 +18,10 @@ true" (no filtering).
 from __future__ import annotations
 
 from collections import deque
-from typing import Any, Callable
+from collections.abc import Callable
+from typing import Any
 
 from reachq.core.graph import Digraph
-
 
 VertexPredicate = Callable[[Any], bool]
 """Predicate over vertex objects. Returns True to allow visit."""
@@ -119,9 +119,7 @@ def attributed_reachable_pairs(
     for s in sources:
         if s not in graph.vertex_set:
             continue
-        visited = attributed_bfs(
-            graph, s, vertex_pred=vertex_pred, edge_pred=edge_pred
-        )
+        visited = attributed_bfs(graph, s, vertex_pred=vertex_pred, edge_pred=edge_pred)
         for t in targets:
             if t in visited:
                 out.add((s, t))

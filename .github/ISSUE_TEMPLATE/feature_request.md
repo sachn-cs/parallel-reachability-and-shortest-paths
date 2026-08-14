@@ -33,6 +33,7 @@ If this relates to a specific section of the paper, please reference it:
 ```python
 # Example of how the feature would be used
 from prspnsd import new_feature
+
 result = new_feature(graph, params)
 ```
 

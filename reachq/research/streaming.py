@@ -19,8 +19,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from reachq.core.graph import Digraph
 from reachq.core.config import get_logger
+from reachq.core.graph import Digraph
 
 log = get_logger("reachq.research.streaming")
 
@@ -67,9 +67,12 @@ class StreamingShortcutSet:
         # In the worst case, all pivots are affected.
         affected = set(self.__pivots)
         # If a new pivot candidate appears, add it.
-        if len(self.__pivots) < self.__max_pivots and v not in self.__pivots:
-            if self.__rng.random() < 0.1:  # sample at fixed rate
-                affected.add(v)
+        if (
+            len(self.__pivots) < self.__max_pivots
+            and v not in self.__pivots
+            and self.__rng.random() < 0.1  # sample at fixed rate
+        ):
+            affected.add(v)
         # Update affected pivots' reachability.
         for p in list(affected):
             new_r_plus = self.__bfs(p, max_depth=self.__beta)
@@ -97,13 +100,10 @@ class StreamingShortcutSet:
         reverse: bool = False,
     ) -> set[Any]:
         from collections import deque
+
         visited = {source}
         q = deque([(source, 0)])
-        out = (
-            self.__graph.in_edges
-            if reverse
-            else self.__graph.out_edges
-        )
+        out = self.__graph.in_edges if reverse else self.__graph.out_edges
         while q:
             u, d = q.popleft()
             if d >= max_depth:

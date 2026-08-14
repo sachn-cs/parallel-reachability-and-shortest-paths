@@ -82,6 +82,5 @@ class TestBoundGap:
         # On a path graph, the JLS adds O(n^2) shortcuts but they all
         # compress the same path, so sparsify removes them all.
         assert len(H) == 0, (
-            f"expected sparsify to remove all shortcuts on long path; "
-            f"got |H|={len(H)}"
+            f"expected sparsify to remove all shortcuts on long path; got |H|={len(H)}"
         )

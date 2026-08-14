@@ -267,6 +267,6 @@ class TestSpectralGraphGenerators:
             ("rook's (Shrikhande SRG)", shrikhande_graph(), 6, 2, 2),
         ]:
             n = g.num_vertices()
-            assert (
-                k * (k - lam - 1) == (n - k - 1) * mu
-            ), f"{label}: k(k-lam-1)={k*(k-lam-1)} != (n-k-1)mu={(n-k-1)*mu}"
+            assert k * (k - lam - 1) == (n - k - 1) * mu, (
+                f"{label}: k(k-lam-1)={k * (k - lam - 1)} != (n-k-1)mu={(n - k - 1) * mu}"
+            )

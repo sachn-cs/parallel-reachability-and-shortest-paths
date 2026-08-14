@@ -49,7 +49,7 @@ def detect_blas_vendor() -> str | None:
     with contextlib.redirect_stdout(buf):
         try:
             np.show_config()
-        except Exception:
+        except Exception:  # noqa: BLE001 - show_config output is not stable API; degrade gracefully
             return None
     text = buf.getvalue().lower()
     for vendor in BLAS_OMEGA_TABLE:

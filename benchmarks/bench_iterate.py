@@ -9,8 +9,8 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.iterate import iterative_shortcut_set
 from reachq.generators import random_dag
+from reachq.iterate import iterative_shortcut_set
 
 
 def time_iterate_1_iter_n100():

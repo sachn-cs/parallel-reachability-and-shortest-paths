@@ -510,7 +510,8 @@ class RefinementConfig:
     skip_trivial_part: bool = True
     enable_tc_pruning: bool = True
     backend: str = "threads"
-    backend_workers: int = 0   # 0 == os.cpu_count()
+    backend_workers: int = 0  # 0 == os.cpu_count()
+
     @classmethod
     def PAPER_BASELINE(cls) -> "RefinementConfig": ...
     @classmethod

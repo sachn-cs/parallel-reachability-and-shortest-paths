@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import math
 
-from reachq.core.generators import path_graph, dense_graph
-from reachq.core.predictor import predict_epsilon, predict_omega, predict_rho
+from reachq.core.generators import dense_graph, path_graph
 from reachq.core.graph import Digraph
+from reachq.core.predictor import predict_epsilon, predict_omega, predict_rho
 
 
 def test_predict_omega_returns_float_in_range():

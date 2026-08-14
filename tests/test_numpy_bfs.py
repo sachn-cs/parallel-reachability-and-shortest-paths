@@ -4,18 +4,18 @@ from __future__ import annotations
 
 import numpy as np
 
-from reachq.core.generators import (
-    cycle_graph,
-    path_graph,
-    random_dag,
-)
-from reachq.core.graph import Digraph
 from reachq.core.bfs import (
     csr_reachable_backward,
     csr_reachable_forward,
     should_use_csr,
 )
 from reachq.core.csr import build_csr_pair
+from reachq.core.generators import (
+    cycle_graph,
+    path_graph,
+    random_dag,
+)
+from reachq.core.graph import Digraph
 from reachq.core.reachability import bfs_reachability, reverse_bfs_reachability
 
 
@@ -101,7 +101,7 @@ def test_should_use_csr_threshold() -> None:
 def test_build_csr_pair_empty_graph() -> None:
     g = Digraph()
     g.add_vertex(0)
-    indptr_fwd, indices_fwd, indptr_rev, indices_rev, n, vertices = build_csr_pair(g)
+    _, indices_fwd, _, indices_rev, n, _ = build_csr_pair(g)
     assert n == 1
     assert len(indices_fwd) == 0
     assert len(indices_rev) == 0

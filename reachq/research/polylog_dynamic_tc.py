@@ -55,7 +55,7 @@ naive implementation.
 from __future__ import annotations
 
 from collections import deque
-from typing import Iterable
+from collections.abc import Iterable
 
 from reachq.core.graph import Digraph
 
@@ -84,14 +84,12 @@ class PolylogDynamicTC:
         n: Number of vertices.
     """
 
-    __slots__ = ("graph", "_index", "_vertices", "n", "_rows", "_out")
+    __slots__ = ("_index", "_out", "_rows", "_vertices", "graph", "n")
 
     def __init__(self, graph: Digraph) -> None:
         self.graph = graph
         self._vertices: tuple[object, ...] = tuple(graph.vertices())
-        self._index: dict[object, int] = {
-            v: i for i, v in enumerate(self._vertices)
-        }
+        self._index: dict[object, int] = {v: i for i, v in enumerate(self._vertices)}
         self.n = len(self._vertices)
         # _rows[i] is the bitset of vertices reachable from i.
         self._rows: list[list[int]] = [
@@ -345,14 +343,11 @@ class PolylogDynamicTC:
         total = 0
         for row in self._rows:
             for chunk in row:
-                total += bin(chunk).count("1")
+                total += chunk.bit_count()
         return total
 
     def __repr__(self) -> str:
-        return (
-            f"PolylogDynamicTC(n={self.n}, "
-            f"|reach|={len(self)})"
-        )
+        return f"PolylogDynamicTC(n={self.n}, |reach|={len(self)})"
 
 
 def polylog_incremental_tc(

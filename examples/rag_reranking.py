@@ -8,15 +8,14 @@ generation) pipeline.
 This example is a sketch, not a production RAG system.
 """
 
-import sys
 import os
 import random
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability
 from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.graph import Digraph
 
 
 def build_passage_graph(n_passages, density, seed):

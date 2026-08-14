@@ -12,7 +12,7 @@ from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
 from reachq.core.graph import Digraph
-from reachq.core.io.json import load, dump
+from reachq.core.io.json import dump, load
 
 
 @given(

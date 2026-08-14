@@ -22,8 +22,8 @@ from __future__ import annotations
 import random
 from typing import Any
 
-from reachq.core.graph import Digraph
 from reachq.core.config import get_logger
+from reachq.core.graph import Digraph
 from reachq.core.reachability import (
     compute_r_minus,
     compute_r_plus,

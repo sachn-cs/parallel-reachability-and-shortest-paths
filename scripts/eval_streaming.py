@@ -16,11 +16,11 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.generators import random_dag
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.config import get_logger
+from reachq.core.generators import random_dag
 from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.research.streaming import StreamingShortcutSet
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 log = get_logger("reachq.eval_streaming")
 
@@ -42,16 +42,17 @@ def evaluate(n: int, p: float, beta: int, seed: int) -> dict:
 
     # Soundness: R+(G, s) = R+(G + H_streaming, s) for all s.
     sound_streaming = all(
-        bfs_reachability(g, s) == parallel_bfs(g, s, H_streaming)
-        for s in g.vertices()
+        bfs_reachability(g, s) == parallel_bfs(g, s, H_streaming) for s in g.vertices()
     )
     sound_batch = all(
-        bfs_reachability(g, s) == parallel_bfs(g, s, H_batch)
-        for s in g.vertices()
+        bfs_reachability(g, s) == parallel_bfs(g, s, H_batch) for s in g.vertices()
     )
 
     return {
-        "n": n, "p": p, "beta": beta, "seed": seed,
+        "n": n,
+        "p": p,
+        "beta": beta,
+        "seed": seed,
         "edges": g.num_edges(),
         "|H|_streaming": len(H_streaming),
         "|H|_batch": len(H_batch),
@@ -70,7 +71,9 @@ def main() -> int:
                 rows.append(row)
                 log.info(
                     "n=%d p=%.2f beta=%d: |H|_streaming=%d |H|_batch=%d sound_s=%s sound_b=%s",
-                    n, p, beta,
+                    n,
+                    p,
+                    beta,
                     row["|H|_streaming"],
                     row["|H|_batch"],
                     row["sound_streaming"],
@@ -90,4 +93,5 @@ def main() -> int:
 
 if __name__ == "__main__":
     import sys
+
     sys.exit(main())

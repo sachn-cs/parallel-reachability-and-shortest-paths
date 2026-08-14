@@ -15,6 +15,8 @@ import math
 import sys
 import time
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.config import get_logger
 from reachq.core.generators import (
     SNAP_DATASETS,
     complete_dag,
@@ -30,16 +32,14 @@ from reachq.core.generators import (
 )
 from reachq.core.graph import Digraph, WeightedDigraph
 from reachq.core.hopset import build_hopset_for_sssp
-from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.core.io.json import (
-    load,
     dump,
-    weighted_load,
+    load,
     weighted_dump,
+    weighted_load,
 )
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
-from reachq.core.config import get_logger
 from reachq.core.work_depth import (
     WorkDepthAccountant,
     theoretical_hopset_depth,

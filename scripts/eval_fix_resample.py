@@ -23,7 +23,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.research.fix_resample import fix_resample_reachable, fix_resample_shortcut_set
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.config import get_logger
 from reachq.core.generators import (
     hamming_graph,
     paley_graph,
@@ -31,9 +32,11 @@ from reachq.core.generators import (
     random_dag,
     shrikhande_graph,
 )
-from reachq.core.config import get_logger
 from reachq.core.reachability import bfs_reachability
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.research.fix_resample import (
+    fix_resample_reachable,
+    fix_resample_shortcut_set,
+)
 
 log = get_logger("reachq.fix_resample_eval")
 

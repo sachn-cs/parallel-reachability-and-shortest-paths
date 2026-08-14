@@ -11,10 +11,10 @@ import csv
 import time
 from typing import Any
 
+from reachq.core.config import get_logger
 from reachq.core.generators import weighted_dense_graph
 from reachq.core.graph import WeightedDigraph
 from reachq.core.hopset import build_hopset_for_sssp
-from reachq.core.config import get_logger
 from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
 from reachq.core.work_depth import WorkDepthAccountant
 
@@ -88,8 +88,14 @@ def benchmark_suite(
             rows.append(row)
             log.info(
                 "n=%d m=%d eps=%.3f beta=%.2f |H|=%d time=%.3fs max_ratio=%.4f mismatches=%d",
-                n, graph.num_edges(), epsilon, beta,
-                len(hopset), elapsed, max_ratio, mismatches,
+                n,
+                graph.num_edges(),
+                epsilon,
+                beta,
+                len(hopset),
+                elapsed,
+                max_ratio,
+                mismatches,
             )
 
     if output_csv:

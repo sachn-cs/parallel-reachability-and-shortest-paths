@@ -30,10 +30,9 @@ is not addressed here.
 from __future__ import annotations
 
 from collections import deque
-from typing import Callable, Iterable
+from collections.abc import Callable, Iterable
 
 from reachq.core.graph import Digraph
-
 
 Hyperedge = tuple[frozenset[object], frozenset[object]]
 """A directed hyperedge: (tail set, head set). Both non-empty."""
@@ -48,7 +47,7 @@ class DirectedHypergraph:
             use ``add_edge`` / ``remove_edge`` to mutate.
     """
 
-    __slots__ = ("_vertices", "_edges", "_tail_index", "_head_index")
+    __slots__ = ("_edges", "_head_index", "_tail_index", "_vertices")
 
     def __init__(self) -> None:
         self._vertices: set[object] = set()
@@ -108,10 +107,7 @@ class DirectedHypergraph:
         return set(self._vertices)
 
     def __repr__(self) -> str:
-        return (
-            f"DirectedHypergraph(V={self.num_vertices}, "
-            f"|E|={self.num_edges})"
-        )
+        return f"DirectedHypergraph(V={self.num_vertices}, |E|={self.num_edges})"
 
 
 def hyper_reachable(hg: DirectedHypergraph, source: object) -> set[object]:

@@ -153,6 +153,7 @@ The library uses Python's built-in `logging` module. Enable debug output:
 
 ```python
 import logging
+
 logging.basicConfig(level=logging.DEBUG)
 ```
 

@@ -114,7 +114,7 @@ def assert_scc_shortcuts_form_cliques(
                     continue
                 if v not in reach:
                     raise AssertionError(
-                        f"u={u} cannot reach v={v} in same SCC via G+H. " f"{msg or ''}"
+                        f"u={u} cannot reach v={v} in same SCC via G+H. {msg or ''}"
                     )
 
 

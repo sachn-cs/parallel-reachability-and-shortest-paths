@@ -21,6 +21,7 @@ from reachq.core.graph import Digraph, WeightedDigraph
 def test_add_vertex_idempotent(n, seed):
     """Adding a vertex twice yields the same state."""
     import random
+
     g = Digraph()
     rng = random.Random(seed)
     for _ in range(n):
@@ -40,6 +41,7 @@ def test_add_vertex_idempotent(n, seed):
 def test_edge_count_matches_added(n, p, seed):
     """edge_count == number of distinct edges added (no duplicates)."""
     import random
+
     g = Digraph()
     rng = random.Random(seed)
     expected = 0
@@ -51,10 +53,13 @@ def test_edge_count_matches_added(n, p, seed):
     assert g.num_edges() == expected
 
 
-@pytest.mark.xfail(reason="Digraph.add_edge silently accepts self-loops; only add_undirected_edge rejects them")
+@pytest.mark.xfail(
+    reason="Digraph.add_edge silently accepts self-loops; only add_undirected_edge rejects them"
+)
 def test_self_loop_rejected(n, seed):
     """Adding a self-loop raises ValueError."""
     import random
+
     g = Digraph()
     rng = random.Random(seed)
     v = rng.randint(0, 100)

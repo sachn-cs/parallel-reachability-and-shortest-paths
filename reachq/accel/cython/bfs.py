@@ -26,11 +26,12 @@ import numpy as np
 
 from reachq.core.bfs import csr_reachable_backward, csr_reachable_forward
 
-
 _ext_available = False
 try:
     from reachq.accel.cython._cy_bfs import (  # type: ignore[import-not-found]
         cy_bfs_backward as _cy_bfs_backward_ext,
+    )
+    from reachq.accel.cython._cy_bfs import (
         cy_bfs_forward as _cy_bfs_forward_ext,
     )
 
@@ -121,4 +122,4 @@ def is_cython_available() -> bool:
     return _ext_available
 
 
-__all__ = ["cy_bfs_forward", "cy_bfs_backward", "is_cython_available"]
+__all__ = ["cy_bfs_backward", "cy_bfs_forward", "is_cython_available"]

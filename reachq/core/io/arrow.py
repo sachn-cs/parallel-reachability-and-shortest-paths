@@ -18,7 +18,7 @@ def dump_arrow(graph: Digraph, path: str) -> None:
     """Serialize a Digraph to Arrow IPC format."""
     try:
         import pyarrow as pa
-        import pyarrow.ipc as ipc
+        from pyarrow import ipc
     except ImportError as e:
         raise ImportError(
             "pyarrow is required for Arrow serialisation. "
@@ -32,11 +32,13 @@ def dump_arrow(graph: Digraph, path: str) -> None:
     u_array = pa.array([u for u, _ in edges])
     v_edge_array = pa.array([v for _, v in edges])
 
-    table = pa.table({
-        "vertices": v_array,
-        "edge_src": u_array,
-        "edge_dst": v_edge_array,
-    })
+    table = pa.table(
+        {
+            "vertices": v_array,
+            "edge_src": u_array,
+            "edge_dst": v_edge_array,
+        }
+    )
 
     with ipc.new_file(path, table.schema) as writer:
         writer.write_table(table)
@@ -45,7 +47,7 @@ def dump_arrow(graph: Digraph, path: str) -> None:
 def load_arrow(path: str) -> Digraph:
     """Deserialize a Digraph from Arrow IPC format."""
     try:
-        import pyarrow.ipc as ipc
+        from pyarrow import ipc
     except ImportError as e:
         raise ImportError(
             "pyarrow is required for Arrow serialisation. "

@@ -147,7 +147,9 @@ def paper_bound_const(n: int, omega: float = 3.0) -> float:
     if n <= 0:
         return 0.0
     if 2.0 * omega - 2.0 <= 0:
-        raise ValueError(f"omega must be > 1 for the formula to be defined; got {omega}")
+        raise ValueError(
+            f"omega must be > 1 for the formula to be defined; got {omega}"
+        )
     m = n
     beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
     return float(m * beta + n * beta * beta)
@@ -314,7 +316,9 @@ def verify_layered_dag_optimality(layers: int, layer_size: int) -> dict[str, obj
     }
 
 
-def verify_bipartite_layered_soundness(layers: int, layer_size: int) -> dict[str, object]:
+def verify_bipartite_layered_soundness(
+    layers: int, layer_size: int
+) -> dict[str, object]:
     """Layered DAG with COMPLETE bipartite between consecutive layers and
     NO within-layer edges.
 

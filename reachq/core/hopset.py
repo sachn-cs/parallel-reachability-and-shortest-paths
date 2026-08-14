@@ -26,17 +26,17 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Any, Optional
+from typing import Any
 
-from reachq.core.graph import WeightedDigraph, contract_sccs, partition_by_labels
 from reachq.core.config import RefinementConfig
-from reachq.core.trace import trace
+from reachq.core.graph import WeightedDigraph, contract_sccs, partition_by_labels
 from reachq.core.shortest_paths import (
     compute_d_ancestors,
     compute_d_ball,
     compute_d_descendants,
     dijkstra,
 )
+from reachq.core.trace import trace
 
 OMEGA_DEFAULT = 2.5
 OMEGA_RUNTIME_HOP: float | None = None
@@ -228,8 +228,8 @@ def cfr_hopset(
     max_level: int,
     n_global: int,
     level: int = 0,
-    random_seed: Optional[int] = None,
-    flags: Optional[dict[str, bool]] = None,
+    random_seed: int | None = None,
+    flags: dict[str, bool] | None = None,
 ) -> dict[tuple[object, object], float]:
     """Construct the CFR hopset without TruncSSSP-Pruning.
 
@@ -268,8 +268,8 @@ def cfr_with_truncsssp_pruning(
     max_level: int,
     n_global: int,
     level: int = 0,
-    random_seed: Optional[int] = None,
-    flags: Optional[dict[str, bool]] = None,
+    random_seed: int | None = None,
+    flags: dict[str, bool] | None = None,
 ) -> dict[tuple[object, object], float]:
     """Construct the CFR hopset with TruncSSSP-Pruning (Section 6.3, Theorem 4)."""
     f = RefinementConfig.from_dict(flags)
@@ -299,8 +299,8 @@ def cfr_with_truncsssp_pruning(
 def build_hopset_for_sssp(
     graph: WeightedDigraph,
     epsilon: float = 0.1,
-    random_seed: Optional[int] = None,
-    flags: Optional[dict[str, bool]] = None,
+    random_seed: int | None = None,
+    flags: dict[str, bool] | None = None,
     parallel_workers: int = 1,
 ) -> tuple[dict[tuple[object, object], float], float]:
     """High-level wrapper: build a (beta, epsilon)-hopset matching Theorem 4.

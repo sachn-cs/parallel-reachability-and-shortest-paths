@@ -5,7 +5,7 @@ computations as used in the hopset construction (Section 6).
 """
 
 import heapq
-from typing import Callable, Optional
+from collections.abc import Callable
 
 from reachq.core.graph import WeightedDigraph
 
@@ -39,7 +39,7 @@ def astar(
     source: object,
     target: object,
     heuristic: Callable[[object], int],
-) -> Optional[int]:
+) -> int | None:
     """A* search from source to target with an admissible heuristic.
 
     Returns the shortest distance from source to target, or None if unreachable.
@@ -166,14 +166,14 @@ def shortest_path_hopbound(
 
 def shortest_path_tree(
     graph: WeightedDigraph, source: object
-) -> dict[object, Optional[object]]:
+) -> dict[object, object | None]:
     """Compute a shortest path tree from source using Dijkstra.
 
     Returns a parent map where parent[v] is the predecessor of v, or None
     for the source itself.
     """
     distances: dict[object, float] = {v: float("inf") for v in graph.vertices()}
-    parent: dict[object, Optional[object]] = dict.fromkeys(graph.vertices())
+    parent: dict[object, object | None] = dict.fromkeys(graph.vertices())
     distances[source] = 0
     heap: list[tuple[float, object]] = [(0, source)]
     visited: set[object] = set()
@@ -193,9 +193,7 @@ def shortest_path_tree(
     return parent
 
 
-def shortest_path(
-    graph: WeightedDigraph, source: object, target: object
-) -> float:
+def shortest_path(graph: WeightedDigraph, source: object, target: object) -> float:
     """Return the shortest distance from source to target.
 
     Returns ``float("inf")`` if target is unreachable from source.
