@@ -509,7 +509,7 @@ def build_shortcut_set_for_reachability(
     random_seed: Optional[int] = None,
     flags: Optional[dict[str, bool]] = None,
     parallel_workers: int = 1,
-    sparsify_shortcuts: bool = True,
+    sparsify_shortcuts: bool = False,
 ) -> tuple[set[tuple[object, object]], float]:
     """High-level wrapper: build a beta-shortcut set matching Theorem 2.
 
@@ -522,10 +522,14 @@ def build_shortcut_set_for_reachability(
         flags: Optional dict of algorithmic refinement toggles.
         parallel_workers: Number of threads for per-pivot BFS dispatch
             (default 1 = sequential). See jls_with_tc_pruning.
-        sparsify_shortcuts: If True (default), iteratively remove
-            redundant shortcuts after construction. Empirically removes
-            50-100% of the JLS shortcut set on most inputs while
-            preserving the hopbound guarantee.
+        sparsify_shortcuts: If True, iteratively remove redundant
+            shortcuts after construction. Empirically removes 50-100%
+            of the JLS shortcut set on most inputs. Note: the default
+            is False because the sparsifier used here preserves
+            reachability but can VIOLATE the beta-hopbound guarantee
+            (see reachq.research.sparsify_hop for the hop-bound-aware
+            variant). With the default, the returned shortcut set
+            satisfies the beta-hopbound of Theorem 2.
 
     Returns:
         (shortcut_set, beta) where beta is the target hopbound.
