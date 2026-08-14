@@ -11,6 +11,7 @@ from __future__ import annotations
 import csv
 import sys
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -118,7 +119,9 @@ def main() -> int:
             r["paper_bound"],
             r["ratio_essential_to_bound"],
         )
-    avg_ratio = sum(r["ratio_essential_to_bound"] for r in rows) / max(1, len(rows))
+    avg_ratio = sum(cast(float, r["ratio_essential_to_bound"]) for r in rows) / max(
+        1, len(rows)
+    )
     log.info("average |H|_essential/bound = %.4f", avg_ratio)
     log.info(
         "INTERPRETATION: ratio < 1 means the JLS essential set is "

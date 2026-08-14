@@ -18,6 +18,7 @@ import csv
 import sys
 import time
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -29,6 +30,7 @@ from reachq.core.generators import (
     petersen_graph,
     shrikhande_graph,
 )
+from reachq.core.graph import Digraph
 from reachq.core.spectrum import spectral_gap, spectrum
 
 log = get_logger("reachq.spectral_check")
@@ -39,7 +41,7 @@ def main() -> int:
     parser.add_argument("--out", default="results/spectral_check.csv")
     args = parser.parse_args()
 
-    fixtures: list[tuple[str, object]] = [
+    fixtures: list[tuple[str, Digraph]] = [
         ("Petersen", petersen_graph()),
         ("Paley(5)", paley_graph(5)),
         ("Paley(13)", paley_graph(13)),
@@ -114,7 +116,7 @@ def main() -> int:
 
     # Sanity: |H|/n should grow with beta = (n^omega/m)^(1/(2omega-2)).
     if rows:
-        b_values = sorted({r["beta"] for r in rows})
+        b_values = sorted({cast(float, r["beta"]) for r in rows})
         log.info("beta range across fixtures: %s", b_values)
         log.info(
             "INTERPRETATION: |H|/n grows roughly with beta (= (n^omega/m)^(1/(2omega-2))). "

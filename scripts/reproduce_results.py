@@ -370,8 +370,8 @@ def write_summary(
     lines.append("")
 
     lines.append("## Active flags")
-    for k, v in flags.items():
-        lines.append(f"- `{k}` = `{v}`")
+    for k, flag in flags.items():
+        lines.append(f"- `{k}` = `{flag}`")
     lines.append("")
 
     if scaling:

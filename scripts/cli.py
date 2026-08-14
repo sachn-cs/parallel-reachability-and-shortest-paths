@@ -180,7 +180,15 @@ def cmd_benchmark_large(args: argparse.Namespace) -> None:
     from scripts.benchmark_large import run_snap_benchmarks, run_synthetic_scaling
 
     if not args.synthetic_only:
-        run_snap_benchmarks(args.datasets, args.omega, args.seed, args.output)
+        run_snap_benchmarks(
+            args.datasets,
+            args.omega,
+            args.seed,
+            args.output,
+            args.check_correctness,
+            args.timeout,
+            args.workers,
+        )
     if not args.snap_only:
         run_synthetic_scaling(
             args.synthetic_sizes,
@@ -189,10 +197,13 @@ def cmd_benchmark_large(args: argparse.Namespace) -> None:
             args.epsilon,
             args.seed,
             args.output,
+            args.check_correctness,
+            args.timeout,
         )
 
 
 def cmd_generate_graph(args: argparse.Namespace) -> None:
+    graph: Digraph | WeightedDigraph
     if args.weighted:
         if args.generator == "path":
             graph = weighted_path_graph(args.n, random_seed=args.seed)
@@ -331,6 +342,9 @@ def main() -> None:
     p_bl.add_argument("--output", type=str, default=None)
     p_bl.add_argument("--snap-only", action="store_true")
     p_bl.add_argument("--synthetic-only", action="store_true")
+    p_bl.add_argument("--check-correctness", action="store_true")
+    p_bl.add_argument("--timeout", type=int, default=None)
+    p_bl.add_argument("--workers", type=int, default=1)
     p_bl.set_defaults(func=cmd_benchmark_large)
 
     # generate-graph

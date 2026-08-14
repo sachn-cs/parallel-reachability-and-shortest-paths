@@ -18,6 +18,7 @@ import argparse
 import csv
 import sys
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -120,8 +121,10 @@ def main() -> int:
             r["ratio_with_to_bound"],
             r["ratio_without_to_bound"],
         )
-    avg_with = sum(r["ratio_with_to_bound"] for r in rows) / len(rows)
-    avg_without = sum(r["ratio_without_to_bound"] for r in rows) / len(rows)
+    avg_with = sum(cast(float, r["ratio_with_to_bound"]) for r in rows) / len(rows)
+    avg_without = sum(cast(float, r["ratio_without_to_bound"]) for r in rows) / len(
+        rows
+    )
     log.info("average ratio with_sparsify/bound = %.4f", avg_with)
     log.info("average ratio without_sparsify/bound = %.4f", avg_without)
     log.info(
