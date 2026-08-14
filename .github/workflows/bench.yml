@@ -23,7 +23,7 @@ jobs:
           asv run --quick --python=same --no-pull --show-stderr \
             --json 2>/dev/null | tee bench-results.json || true
       - name: Upload benchmark results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: bench-results
           path: bench-results.json
