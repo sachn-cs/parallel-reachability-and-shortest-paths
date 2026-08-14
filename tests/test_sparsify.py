@@ -100,22 +100,44 @@ class TestSparsifyReducesJLS:
                 f"got {reduction*100:.1f}% (orig={len(H_orig)} sparse={len(H_sparse)})"
             )
 
-    def test_wrapper_default_sparsifies(self):
-        """build_shortcut_set_for_reachability sparsifies by default."""
+    def test_wrapper_default_does_not_sparsify(self):
+        """build_shortcut_set_for_reachability does not sparsify by
+        default (sparsify_shortcuts=False), so the default output is
+        identical to the explicit unsparsified output.
+
+        The sparsifier is opt-in because the reachability-only variant
+        can violate the beta-hopbound guarantee.
+        """
         g = random_dag(60, edge_probability=0.3, random_seed=42)
         H_default = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,
         )
-        # sparsify_shortcuts=False should give a larger H.
         H_unsparsified = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,
             sparsify_shortcuts=False,
         )
-        assert len(H_default) <= len(H_unsparsified)
+        assert H_default == H_unsparsified
+
+    def test_wrapper_opt_in_sparsifies(self):
+        """With sparsify_shortcuts=True the output is no larger."""
+        g = random_dag(60, edge_probability=0.3, random_seed=42)
+        H_sparse = build_shortcut_set_for_reachability(
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=True,
+        )
+        H_unsparsified = build_shortcut_set_for_reachability(
+            g,
+            omega=3.0,
+            random_seed=42,
+            sparsify_shortcuts=False,
+        )
+        assert len(H_sparse) <= len(H_unsparsified)
 
 
 class TestSparsifyCorrectnessInvariant:

@@ -76,7 +76,8 @@ class TestBoundGap:
         H, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,  # sparsify_shortcuts=True (default)
+            random_seed=42,
+            sparsify_shortcuts=True,
         )
         # On a path graph, the JLS adds O(n^2) shortcuts but they all
         # compress the same path, so sparsify removes them all.

@@ -38,6 +38,33 @@ def max_hops(g, s, H, beta):
 
 
 class TestHopboundPreserved:
+    def test_default_preserves_hopbound_on_path(self):
+        """The default build_shortcut_set_for_reachability must return a
+        shortcut set that satisfies the beta-hopbound.
+
+        Regression test: the old default (sparsify_shortcuts=True)
+        used the reachability-only sparsifier, which on a path graph
+        stripped H down to empty and pushed the max hop to n-1,
+        far above beta.
+        """
+        for n in (20, 30, 50):
+            g = Digraph()
+            for i in range(n):
+                g.add_vertex(i)
+            for i in range(n - 1):
+                g.add_edge(i, i + 1)
+            shortcuts, beta = build_shortcut_set_for_reachability(
+                g,
+                omega=3.0,
+                random_seed=42,
+            )
+            for s in g.vertices():
+                d = max_hops(g, s, shortcuts, int(beta) + 1)
+                assert d <= int(beta) + 1, (
+                    f"default build violated hopbound (n={n}, s={s}): "
+                    f"max hop = {d}, beta = {beta}"
+                )
+
     def test_hopbound_on_path_n_20(self):
         g = Digraph()
         n = 20
