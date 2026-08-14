@@ -52,9 +52,9 @@ reachq only for the specific parallel-reachability shortcuts.
 |---|---|---|---|
 | JLS shortcut set | yes | no | no |
 | CFR hopset | yes | no | no |
-| hop-bound-preserving sparsification | yes | no | no |
-| streaming shortcut set | yes | no | no |
-| (1+ε) approximation | yes | no | no |
+| beta-hopbound-preserving sparsification | yes (small graphs) | no | no |
+| streaming shortcut set | prototype (no amortized bound) | no | no |
+| (1+ε) approximation | no formal guarantee | no | no |
 | full graph library | no (focused) | yes | yes |
 | reproducible benchmarks | yes | partial | no |
 
