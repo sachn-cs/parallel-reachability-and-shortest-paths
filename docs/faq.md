@@ -173,7 +173,7 @@ limitations. For critical applications:
 
 ## Contributing
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for guidelines on:
+See [CONTRIBUTING.md](https://github.com/sachncs/parallel-reachability-and-shortest-paths/blob/master/CONTRIBUTING.md) for guidelines on:
 
 - Setting up the development environment
 - Branch naming conventions

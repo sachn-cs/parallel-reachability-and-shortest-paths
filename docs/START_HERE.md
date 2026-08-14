@@ -17,7 +17,7 @@ contributions layered on top of them). For a shorter overview read
 
 ## I want to add a new algorithm to reachq
 
-Read [`CONTRIBUTING.md`](../CONTRIBUTING.md#adding-a-new-algorithm)
+Read [`CONTRIBUTING.md`](https://github.com/sachncs/parallel-reachability-and-shortest-paths/blob/master/CONTRIBUTING.md#adding-a-new-algorithm)
 for the pattern. The shortest path from idea to PR is:
 1. Implement `reachq/research/<your_algo>.py` with a single public
    function.

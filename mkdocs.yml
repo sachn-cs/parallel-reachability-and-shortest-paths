@@ -21,7 +21,8 @@ plugins:
             show_source: false
 
 nav:
-  - Overview: START_HERE.md
+  - Overview: index.md
+  - Start here: START_HERE.md
   - Why reachq: WHY.md
   - Getting started: getting-started.md
   - API reference: REFERENCE.md
@@ -29,16 +30,17 @@ nav:
   - Paper: PAPER.md
   - Benchmarks: benchmarks.md
   - Architecture: architecture.md
+  - Architecture review: ARCHITECTURE_REVIEW.md
+  - Acceleration backends: accel.md
   - Correctness: notes_correctness.md
+  - Invariants: invariants.md
   - Spectral fixtures: spectral_fixtures.md
   - Fix/Resample: fix_resample.md
-  - Streaming: reachq/research/streaming.py
-  - Approximation: reachq/research/approximation.py
+  - Streaming: streaming_proof.md
+  - Approximation: approximation_analysis.md
   - Glossary: GLOSSARY.md
   - Inspired by: INSPIRED_BY.md
   - FAQ: faq.md
   - Deployment: deployment.md
   - Work-depth: work-depth.md
   - Lit survey: lit_survey.md
-  - Changelog: ../CHANGELOG.md
-  - Contributing: ../CONTRIBUTING.md
