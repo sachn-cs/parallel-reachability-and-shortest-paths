@@ -21,6 +21,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.config import get_logger
 from reachq.research.lower_bound import (
     barbell_graph,
@@ -28,7 +29,6 @@ from reachq.research.lower_bound import (
     layered_dag,
     long_path_dag,
 )
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 log = get_logger("reachq.lower_bound_eval")
 
@@ -112,7 +112,7 @@ def main() -> int:
     log.info("summary:")
     for r in rows:
         log.info(
-            "  %s: with=%d without=%d bound=%.0f " "ratio_with=%.4f ratio_without=%.4f",
+            "  %s: with=%d without=%d bound=%.0f ratio_with=%.4f ratio_without=%.4f",
             r["construction"],
             r["|H|_with_sparsify"],
             r["|H|_without_sparsify"],

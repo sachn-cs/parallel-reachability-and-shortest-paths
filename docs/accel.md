@@ -45,6 +45,7 @@ near-native speed.
 
 ```python
 from reachq.accel.numba import njit_bfs_forward, is_numba_available
+
 print("Numba available:", is_numba_available())
 # ...
 ```

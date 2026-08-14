@@ -264,7 +264,7 @@ class TestBuildHopsetForSssp:
     def test_single_vertex(self):
         g = WeightedDigraph()
         g.add_vertex(0)
-        hopset, beta = build_hopset_for_sssp(g, epsilon=0.1, random_seed=42)
+        hopset, _ = build_hopset_for_sssp(g, epsilon=0.1, random_seed=42)
         assert hopset == {}
 
     def test_reproducibility(self):

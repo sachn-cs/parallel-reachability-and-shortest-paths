@@ -24,7 +24,6 @@ import numpy as np
 
 from reachq.core.shortest_paths import dijkstra
 
-
 _ext_available = False
 try:
     from reachq.accel.cython._cy_dijkstra import (  # type: ignore[import-not-found]

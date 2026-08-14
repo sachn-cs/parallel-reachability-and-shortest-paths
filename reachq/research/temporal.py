@@ -32,8 +32,7 @@ algorithm (Algorithm 1 in that paper).
 from __future__ import annotations
 
 from collections import deque
-from typing import Iterable
-
+from collections.abc import Iterable
 
 TemporalEdge = tuple[object, object, int]
 """A temporal edge: (source, target, timestamp)."""
@@ -50,7 +49,7 @@ class TemporalDigraph:
         num_edges: |E| (counting all temporal edges).
     """
 
-    __slots__ = ("_vertices", "_edges", "_out")
+    __slots__ = ("_edges", "_out", "_vertices")
 
     def __init__(self) -> None:
         self._vertices: set[object] = set()
@@ -101,10 +100,7 @@ class TemporalDigraph:
         return list(self._out.get(u, ()))
 
     def __repr__(self) -> str:
-        return (
-            f"TemporalDigraph(V={self.num_vertices}, "
-            f"|E|={self.num_edges})"
-        )
+        return f"TemporalDigraph(V={self.num_vertices}, |E|={self.num_edges})"
 
 
 def temporal_bfs(

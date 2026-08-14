@@ -7,8 +7,8 @@ on the shortcut-set size and the beta-hopbound.
 This example is a sketch, not a full social network analyzer.
 """
 
-import sys
 import os
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 

@@ -18,7 +18,9 @@ from reachq.core.csr import build_csr_pair
 from reachq.core.generators import dense_graph
 
 
-def _setup_graph(n: int = 10, m: int = 30, seed: int = 42) -> tuple[np.ndarray, np.ndarray, int]:
+def _setup_graph(
+    n: int = 10, m: int = 30, seed: int = 42
+) -> tuple[np.ndarray, np.ndarray, int]:
     g = dense_graph(n, m, random_seed=seed)
     indptr_fwd, indices_fwd, _, _, csr_n, _ = build_csr_pair(g)
     return indptr_fwd, indices_fwd, csr_n

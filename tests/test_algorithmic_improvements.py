@@ -14,10 +14,10 @@ from importlib.util import find_spec
 import pytest
 
 from reachq import Flags
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag, weighted_random_dag
 from reachq.core.hopset import build_hopset_for_sssp
 from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
 
 
@@ -29,7 +29,7 @@ def all_flag_names() -> list[str]:
 def test_shortcut_set_correctness_with_each_flag_off(off: str) -> None:
     """Disabling any single flag must still preserve reachability."""
     g = random_dag(n=80, edge_probability=0.2, random_seed=7)
-    flags = {name: False if name == off else True for name in all_flag_names()}
+    flags = {name: name != off for name in all_flag_names()}
     shortcuts, beta = build_shortcut_set_for_reachability(
         g,
         omega=3.0,
@@ -47,7 +47,7 @@ def test_shortcut_set_correctness_with_each_flag_off(off: str) -> None:
 def test_hopset_correctness_with_each_flag_off(off: str) -> None:
     """Disabling any single flag must still preserve (1+eps) hopbound."""
     g = weighted_random_dag(n=60, edge_probability=0.2, random_seed=7)
-    flags = {name: False if name == off else True for name in all_flag_names()}
+    flags = {name: name != off for name in all_flag_names()}
     hopset, _ = build_hopset_for_sssp(g, epsilon=0.1, random_seed=7, flags=flags)
     src = next(iter(g.vertices()))
     orig = dijkstra(g, src)
@@ -57,9 +57,9 @@ def test_hopset_correctness_with_each_flag_off(off: str) -> None:
         if od == float("inf"):
             continue
         ad = approx.get(v, float("inf"))
-        assert (
-            ad <= 1.1 * od + 1e-9
-        ), f"flag {off} off breaks (1+eps) bound for {v}: orig={od}, approx={ad}"
+        assert ad <= 1.1 * od + 1e-9, (
+            f"flag {off} off breaks (1+eps) bound for {v}: orig={od}, approx={ad}"
+        )
 
 
 def test_flags_dataclass_rejects_unknown_names() -> None:

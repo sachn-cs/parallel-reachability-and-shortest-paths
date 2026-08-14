@@ -41,10 +41,9 @@ from __future__ import annotations
 import hashlib
 import math
 from collections import deque
-from typing import Iterable
+from collections.abc import Iterable
 
 from reachq.core.graph import Digraph
-
 
 # Bias-correction constant from the HyperLogLog paper (Flajolet et
 # al. 2007, Table 1). Different p values use different constants.
@@ -110,8 +109,7 @@ class HyperLogLogSketch:
         # "w" in the paper ranges from 1 to 64-p+1).
         tail = (h << p) & ((1 << 64) - 1)  # zero out the index bits
         w = _leading_zero_count(tail, 64 - p) + 1
-        if w > self.registers[idx]:
-            self.registers[idx] = w
+        self.registers[idx] = max(self.registers[idx], w)
 
     def update(self, items: Iterable[object]) -> int:
         """Add every item and return the new cardinality estimate.
@@ -184,8 +182,7 @@ class HyperLogLogSketch:
                 f"{self.precision} vs {other.precision}"
             )
         for i in range(len(self.registers)):
-            if other.registers[i] > self.registers[i]:
-                self.registers[i] = other.registers[i]
+            self.registers[i] = max(self.registers[i], other.registers[i])
 
     def __len__(self) -> int:
         return len(self.registers)

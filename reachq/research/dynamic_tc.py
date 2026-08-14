@@ -32,7 +32,7 @@ be benchmarked.
 
 from __future__ import annotations
 
-from typing import Iterable
+from collections.abc import Iterable
 
 from reachq.core.graph import Digraph
 
@@ -50,7 +50,7 @@ class DynamicTransitiveClosure:
         vertices: Tuple of vertex objects in canonical order.
     """
 
-    __slots__ = ("graph", "vertices", "_index", "_reach")
+    __slots__ = ("_index", "_reach", "graph", "vertices")
 
     def __init__(self, graph: Digraph) -> None:
         self.graph = graph
@@ -64,9 +64,7 @@ class DynamicTransitiveClosure:
 
         n = len(self.vertices)
         reach: set[tuple[int, int]] = set()
-        out_edges_idx: dict[int, list[int]] = {
-            i: [] for i in range(n)
-        }
+        out_edges_idx: dict[int, list[int]] = {i: [] for i in range(n)}
         for u, v in self.graph.edges():
             iu = self._index[u]
             iv = self._index[v]

@@ -11,12 +11,12 @@ import csv
 import time
 from typing import Any
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.config import get_logger
 from reachq.core.generators import (
     dense_graph,
 )
 from reachq.core.graph import Digraph
-from reachq.core.config import get_logger
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.work_depth import WorkDepthAccountant
 
 log = get_logger("reachq.benchmark_reachability")
@@ -51,7 +51,9 @@ def measure_shortcut_construction(
     return shortcuts, beta, elapsed, max_hops, accountant.work
 
 
-def hop_count_bfs(graph: Digraph, source: object, shortcuts: set) -> dict[object, float]:
+def hop_count_bfs(
+    graph: Digraph, source: object, shortcuts: set
+) -> dict[object, float]:
     """BFS returning hop counts."""
     from collections import deque
 
@@ -109,8 +111,13 @@ def benchmark_suite(
             rows.append(row)
             log.info(
                 "n=%d m=%d density=%.3f beta=%.2f |H|=%d time=%.3fs max_hops=%d",
-                n, graph.num_edges(), density, beta,
-                len(shortcuts), elapsed, max_hops,
+                n,
+                graph.num_edges(),
+                density,
+                beta,
+                len(shortcuts),
+                elapsed,
+                max_hops,
             )
 
     if output_csv:

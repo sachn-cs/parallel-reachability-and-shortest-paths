@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from reachq.research.adaptive_beta import adaptive_beta, paper_beta
 from reachq.core.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
     random_dag,
 )
+from reachq.research.adaptive_beta import adaptive_beta, paper_beta
 
 
 class TestAdaptiveBeta:

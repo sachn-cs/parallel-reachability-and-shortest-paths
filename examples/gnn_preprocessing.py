@@ -7,15 +7,15 @@ This example is intentionally short: it's a sketch, not a
 production pipeline.
 """
 
-import sys
 import os
 import random
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.graph import Digraph
 from reachq.core.reachability import parallel_bfs
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 
 def build_citation_graph(n_papers, density, seed):
@@ -51,9 +51,9 @@ def to_pyg_data(g, H, beta):
     n = g.num_vertices()
     # Edges
     if H:
-        edge_set = set((u, v) for u, v in g.edges()) | set((u, v) for u, v in H)
+        edge_set = {(u, v) for u, v in g.edges()} | {(u, v) for u, v in H}
     else:
-        edge_set = set((u, v) for u, v in g.edges())
+        edge_set = {(u, v) for u, v in g.edges()}
     edge_index = np.array(sorted(edge_set), dtype=np.int64).T
 
     data = Data(
@@ -78,6 +78,7 @@ def main():
     # Verify soundness
     for s in range(0, n, 50):
         from reachq.core.reachability import bfs_reachability
+
         if bfs_reachability(g, s) != parallel_bfs(g, s, H):
             print(f"soundness VIOLATED at {s}")
             return

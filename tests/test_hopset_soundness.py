@@ -74,7 +74,7 @@ def test_hopset_does_not_introduce_negative_weights():
     g.add_vertex(1)
     g.add_edge(0, 1, 5)
     H, _ = build_hopset_for_sssp(g, epsilon=0.1, random_seed=42)
-    for (_, (_, _, _)) in H.items():
+    for _, (_, _, _) in H.items():
         assert isinstance(_, int)
         assert _ >= 0
 
@@ -102,7 +102,10 @@ def test_hopset_soundness_long_path():
     H, beta = build_hopset_for_sssp(g, epsilon=0.1, random_seed=42)
     for source in g.vertices():
         approx = shortest_path_hopbound(
-            g, H, source, max_hops=int(beta) + 1,
+            g,
+            H,
+            source,
+            max_hops=int(beta) + 1,
         )
         for target in g.vertices():
             if source != target:

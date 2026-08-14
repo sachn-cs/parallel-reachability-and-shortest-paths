@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from typing import Any, Callable, Protocol, TypeVar
+from typing import Any, Protocol, TypeVar
 
 T = TypeVar("T")
 R = TypeVar("R")
@@ -63,7 +63,7 @@ class ParallelContext:
         raise ValueError(f"unknown parallel mode: {self.mode!r}")
 
     def __repr__(self) -> str:
-        return f"ParallelContext(mode={self.mode!r}, " f"n_workers={self.n_workers})"
+        return f"ParallelContext(mode={self.mode!r}, n_workers={self.n_workers})"
 
 
 SEQUENTIAL = ParallelContext("sequential", 1)

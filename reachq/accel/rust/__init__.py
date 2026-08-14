@@ -35,15 +35,17 @@ import numpy as np
 from reachq.core.bfs import csr_reachable_forward
 from reachq.core.shortest_paths import dijkstra
 
-
 _ext_available = False
 _rust_bfs_forward_ext: Any = None
 _rust_dijkstra_ext: Any = None
 try:
     from reachq.accel.rust._reachq_rust import (  # type: ignore[import-not-found]
         rust_bfs_forward as _bfs_impl,
+    )
+    from reachq.accel.rust._reachq_rust import (
         rust_dijkstra as _dijkstra_impl,
     )
+
     _rust_bfs_forward_ext = _bfs_impl
     _rust_dijkstra_ext = _dijkstra_impl
     _ext_available = True
@@ -53,8 +55,11 @@ except ImportError:
     try:
         from _reachq_rust._reachq_rust import (  # type: ignore[import-not-found]
             rust_bfs_forward as _bfs_impl,
+        )
+        from _reachq_rust._reachq_rust import (
             rust_dijkstra as _dijkstra_impl,
         )
+
         _rust_bfs_forward_ext = _bfs_impl
         _rust_dijkstra_ext = _dijkstra_impl
         _ext_available = True
@@ -135,4 +140,4 @@ def is_rust_available() -> bool:
     return _ext_available
 
 
-__all__ = ["rust_bfs_forward", "rust_dijkstra", "is_rust_available"]
+__all__ = ["is_rust_available", "rust_bfs_forward", "rust_dijkstra"]

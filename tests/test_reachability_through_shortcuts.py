@@ -114,6 +114,7 @@ def test_parallel_bfs_matches_bfs_on_random_dag():
     """Sanity: parallel_bfs and bfs_reachability should agree on a
     random DAG with random shortcuts."""
     from reachq.core.generators import random_dag
+
     g = random_dag(n=20, edge_probability=0.3, random_seed=42)
     shortcuts = {(0, 5), (5, 10), (10, 15), (0, 19)}
     for s in g.vertices():

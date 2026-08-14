@@ -18,8 +18,8 @@ from __future__ import annotations
 from collections import deque
 from typing import Any
 
-from reachq.core.graph import Digraph
 from reachq.core.config import get_logger
+from reachq.core.graph import Digraph
 
 log = get_logger("reachq.research.approximation")
 
@@ -48,7 +48,9 @@ def greedy_shortcut_set(
         H.add(candidate)
         if iteration % 100 == 0:
             log.info(
-                "greedy: iter=%d |H|=%d", iteration, len(H),
+                "greedy: iter=%d |H|=%d",
+                iteration,
+                len(H),
             )
     return H
 
@@ -74,17 +76,19 @@ def best_candidate(
     for u in graph.vertices():
         dist = bfs_limited(graph, u, beta, H)
         for v, d in dist.items():
-            if d >= beta - 1:
-                if (u, v) not in H:
-                    benefit = beta - d
-                    if benefit > best_benefit:
-                        best_benefit = benefit
-                        best = (u, v)
+            if d >= beta - 1 and (u, v) not in H:
+                benefit = beta - d
+                if benefit > best_benefit:
+                    best_benefit = benefit
+                    best = (u, v)
     return best
 
 
 def bfs_limited(
-    graph: Digraph, source: Any, beta: int, H: set[tuple[Any, Any]],
+    graph: Digraph,
+    source: Any,
+    beta: int,
+    H: set[tuple[Any, Any]],
 ) -> dict[Any, int]:
     """BFS from source, limited to beta hops, using G + H."""
     visited = {source: 0}

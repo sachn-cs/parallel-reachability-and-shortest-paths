@@ -6,13 +6,13 @@ from reachq.core.generators import path_graph, weighted_path_graph
 from reachq.core.graph import Digraph, WeightedDigraph
 from reachq.core.io.json import (
     digraph_from_dict,
-    load,
     digraph_to_dict,
     dump,
+    load,
     weighted_digraph_from_dict,
-    weighted_load,
     weighted_digraph_to_dict,
     weighted_dump,
+    weighted_load,
 )
 
 

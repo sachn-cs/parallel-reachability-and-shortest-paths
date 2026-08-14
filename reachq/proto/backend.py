@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from collections.abc import Iterable
-from typing import Callable, Protocol, TypeVar, runtime_checkable
+from collections.abc import Callable, Iterable
+from typing import Protocol, TypeVar, runtime_checkable
 
 T = TypeVar("T")
 R = TypeVar("R")

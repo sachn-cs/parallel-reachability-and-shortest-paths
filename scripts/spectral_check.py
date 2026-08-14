@@ -21,14 +21,14 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.config import get_logger
 from reachq.core.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
     shrikhande_graph,
 )
-from reachq.core.config import get_logger
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.spectrum import spectral_gap, spectrum
 
 log = get_logger("reachq.spectral_check")
@@ -114,7 +114,7 @@ def main() -> int:
 
     # Sanity: |H|/n should grow with beta = (n^omega/m)^(1/(2omega-2)).
     if rows:
-        b_values = sorted(set(r["beta"] for r in rows))
+        b_values = sorted({r["beta"] for r in rows})
         log.info("beta range across fixtures: %s", b_values)
         log.info(
             "INTERPRETATION: |H|/n grows roughly with beta (= (n^omega/m)^(1/(2omega-2))). "

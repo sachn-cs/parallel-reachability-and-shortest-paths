@@ -435,7 +435,7 @@ class SpanProfiler:
 
     def __repr__(self) -> str:
         span = self.total_span_seconds()
-        return f"SpanProfiler(span={span:.3f}s, " f"phases={len(self.phases)})"
+        return f"SpanProfiler(span={span:.3f}s, phases={len(self.phases)})"
 
 
 def theoretical_shortcut_work(n: int, m: int, rho: float, omega: float = 3.0) -> float:

@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import pytest
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag
 from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 PAPER_TC = {
     "enable_tc_pruning": True,
@@ -75,9 +75,9 @@ def test_lemma_2_1_tc_soundness(seed: int) -> None:
         for v in g.vertices():
             original = bfs_reachability(g, v)
             augmented = parallel_bfs(g, v, shortcuts)
-            assert (
-                original == augmented
-            ), f"seed={seed} flags={flags}: mismatch from {v}"
+            assert original == augmented, (
+                f"seed={seed} flags={flags}: mismatch from {v}"
+            )
 
 
 @pytest.mark.parametrize("seed", [1, 2, 3, 7, 42])
@@ -95,9 +95,9 @@ def test_lemma_2_2_size_contribution(seed: int) -> None:
     h_tight, _ = run(g, TIGHT_TC, seed)
     # Tightened trigger fires at most as often as paper's trigger; thus
     # |H|_tight <= |H|_paper.
-    assert len(h_tight) <= len(
-        h_paper
-    ), f"seed={seed}: |H|_tight={len(h_tight)} > |H|_paper={len(h_paper)}"
+    assert len(h_tight) <= len(h_paper), (
+        f"seed={seed}: |H|_tight={len(h_tight)} > |H|_paper={len(h_paper)}"
+    )
     # Sampling-only baseline always valid (perhaps larger):
     assert len(h_no_tc) >= len(h_paper)
 
@@ -114,8 +114,7 @@ def test_lemma_3_1_hopbound_preserved(seed: int) -> None:
         for src in list(g.vertices())[:10]:
             max_obs = hopbound_max(g, src, shortcuts, beta)
             assert max_obs <= beta + 1e-9, (
-                f"seed={seed} cfg={label} src={src}: "
-                f"max_obs={max_obs} > beta={beta}"
+                f"seed={seed} cfg={label} src={src}: max_obs={max_obs} > beta={beta}"
             )
 
 
@@ -147,6 +146,6 @@ def test_paper_tc_vs_tight_tc_size_invariant_across_seeds() -> None:
         h_tight, _ = run(g, TIGHT_TC, seed)
         if len(h_tight) > len(h_paper):
             n_violations += 1
-    assert (
-        n_violations == 0
-    ), f"tightened trigger increased |H| in {n_violations}/50 seeds"
+    assert n_violations == 0, (
+        f"tightened trigger increased |H| in {n_violations}/50 seeds"
+    )

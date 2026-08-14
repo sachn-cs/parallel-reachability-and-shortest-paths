@@ -30,9 +30,7 @@ def _numpy_include() -> list[str]:
 def _pyx_files() -> list[str]:
     here = os.path.dirname(os.path.abspath(__file__))
     return [
-        os.path.join(here, name)
-        for name in os.listdir(here)
-        if name.endswith(".pyx")
+        os.path.join(here, name) for name in os.listdir(here) if name.endswith(".pyx")
     ]
 
 

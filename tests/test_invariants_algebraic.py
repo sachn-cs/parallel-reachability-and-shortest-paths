@@ -8,6 +8,7 @@ from __future__ import annotations
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag
 from reachq.core.graph import Digraph
 from reachq.core.invariants import (
@@ -15,7 +16,6 @@ from reachq.core.invariants import (
     assert_reachability_preserved,
     assert_scc_shortcuts_form_cliques,
 )
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 
 @given(

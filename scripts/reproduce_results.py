@@ -67,33 +67,33 @@ def detect_hardware() -> dict[str, str]:
 
         info["numpy"] = np.__version__
         info["numpy_blas"] = detect_blas(np)
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - env probe degrades gracefully
         log.warning("numpy detection failed: %s", e)
     try:
         import scipy
 
         info["scipy"] = scipy.__version__
-    except Exception as e:
+    except Exception as e:  # noqa: BLE001 - env probe degrades gracefully
         log.warning("scipy detection failed: %s", e)
     try:
         import psutil
 
-        info["ram_gb"] = f"{psutil.virtual_memory().total / (1024 ** 3):.1f}"
+        info["ram_gb"] = f"{psutil.virtual_memory().total / (1024**3):.1f}"
     except ImportError:
         try:
             out = subprocess.check_output(
                 ["sysctl", "-n", "hw.memsize"],
                 text=True,
             ).strip()
-            info["ram_gb"] = f"{int(out) / (1024 ** 3):.1f}"
-        except Exception:
+            info["ram_gb"] = f"{int(out) / (1024**3):.1f}"
+        except Exception:  # noqa: BLE001 - env probe degrades gracefully
             info["ram_gb"] = "(unknown)"
     try:
         import sysconfig
 
         info["python_compiler"] = sysconfig.get_config_var("CC") or "(unknown)"
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001 - env probe degrades gracefully
+        log.debug("python_compiler probe failed: %s", e)
     try:
         out = subprocess.check_output(
             ["sysctl", "-n", "machdep.cpu.brand_string"],
@@ -101,8 +101,8 @@ def detect_hardware() -> dict[str, str]:
             stderr=subprocess.DEVNULL,
         ).strip()
         info["cpu_brand"] = out
-    except Exception:
-        pass
+    except Exception as e:  # noqa: BLE001 - env probe degrades gracefully
+        log.debug("cpu_brand probe failed: %s", e)
     return info
 
 
@@ -117,7 +117,7 @@ def detect_blas(np_mod: object) -> str:
     with contextlib.redirect_stdout(io.StringIO()):
         try:
             cfg = show_config()
-        except Exception:
+        except Exception:  # noqa: BLE001 - show_config output is not stable API; degrade gracefully
             return "(unknown)"
     for line in str(cfg).splitlines():
         for vendor in ("OpenBLAS", "Accelerate", "MKL", "BLIS", "netlib"):
@@ -146,10 +146,10 @@ def run_sampling(
     out_dir: Path,
 ) -> list[dict[str, object]]:
     """Run synthetic random DAGs. Per-graph timeouts land in `error`."""
+    from reachq.core.algorithm import build_shortcut_set_for_reachability
     from reachq.core.generators import random_dag, weighted_random_dag
     from reachq.core.hopset import build_hopset_for_sssp
     from reachq.core.reachability import bfs_reachability, parallel_bfs
-    from reachq.core.algorithm import build_shortcut_set_for_reachability
     from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
 
     rows: list[dict[str, object]] = []
@@ -276,9 +276,9 @@ def run_snap(
     out_dir: Path,
 ) -> list[dict[str, object]]:
     """Run SNAP datasets. Skips datasets with no cached file. Per-graph timeouts land in `error`."""
+    from reachq.core.algorithm import build_shortcut_set_for_reachability
     from reachq.core.generators import load_dataset
     from reachq.core.reachability import bfs_reachability, parallel_bfs
-    from reachq.core.algorithm import build_shortcut_set_for_reachability
 
     rows: list[dict[str, object]] = []
     for name in datasets:
@@ -386,9 +386,9 @@ def write_summary(
             cell = "true" if ok is True else ("false" if ok is False else err)
             sz = r.get("shortcut_size", r.get("hopset_size", ""))
             lines.append(
-                f"| {r.get('kind','')} | {r.get('source','')} | {r.get('n','')} | "
-                f"{r.get('m','')} | {r.get('beta','')} | {sz} | "
-                f"{r.get('elapsed_sec','')} | {cell} |"
+                f"| {r.get('kind', '')} | {r.get('source', '')} | {r.get('n', '')} | "
+                f"{r.get('m', '')} | {r.get('beta', '')} | {sz} | "
+                f"{r.get('elapsed_sec', '')} | {cell} |"
             )
         lines.append("")
 
@@ -403,9 +403,9 @@ def write_summary(
             ok = r.get("correct")
             cell = "true" if ok is True else ("false" if ok is False else err)
             lines.append(
-                f"| {r.get('kind','')} | {r.get('source','')} | {r.get('n','')} | "
-                f"{r.get('m','')} | {r.get('beta','')} | {r.get('shortcut_size','')} | "
-                f"{r.get('elapsed_sec','')} | {cell} |"
+                f"| {r.get('kind', '')} | {r.get('source', '')} | {r.get('n', '')} | "
+                f"{r.get('m', '')} | {r.get('beta', '')} | {r.get('shortcut_size', '')} | "
+                f"{r.get('elapsed_sec', '')} | {cell} |"
             )
     (out_dir / "summary.md").write_text("\n".join(lines))
 

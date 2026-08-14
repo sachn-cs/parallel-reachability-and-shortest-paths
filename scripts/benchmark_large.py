@@ -18,6 +18,8 @@ import signal
 import time
 from collections.abc import Iterator
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.config import get_logger
 from reachq.core.generators import (
     SNAP_DATASETS,
     load_dataset,
@@ -26,9 +28,7 @@ from reachq.core.generators import (
 )
 from reachq.core.graph import Digraph, WeightedDigraph
 from reachq.core.hopset import build_hopset_for_sssp
-from reachq.core.config import get_logger
 from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
 
 log = get_logger("reachq.benchmark_large")
@@ -164,7 +164,9 @@ class CsvWriter:
         self.path = path
         self.header: list[str] | None = None
         self._stack = contextlib.ExitStack()
-        self.fh = self._stack.enter_context(open(path, "a", newline="", buffering=1))
+        self.fh = self._stack.enter_context(
+            open(path, "a", newline="", buffering=1)  # noqa: SIM115 - held by ExitStack, closed in close()
+        )
 
     def write(self, row: dict[str, object]) -> None:
         """Append a row to the CSV, writing the header on first use."""
@@ -214,10 +216,10 @@ def run_snap_benchmarks(
     try:
         if workers <= 1 or len(datasets) <= 1:
             for name in datasets:
-                log.info("--- %s (%s) ---", name, SNAP_DATASETS[name]['type'])
+                log.info("--- %s (%s) ---", name, SNAP_DATASETS[name]["type"])
                 try:
                     row = run_one_snap(name, omega, seed, check_correctness)
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 - harness records the failure and continues
                     row = {
                         "source": name,
                         "kind": "snap-reachability",
@@ -244,7 +246,7 @@ def run_snap_benchmarks(
             }
             while async_results:
                 async_result, name = next(iter(async_results.items()))
-                log.info("--- %s (%s) ---", name, SNAP_DATASETS[name]['type'])
+                log.info("--- %s (%s) ---", name, SNAP_DATASETS[name]["type"])
                 try:
                     row = async_result.get(timeout=timeout)
                 except multiprocessing.TimeoutError:
@@ -257,13 +259,17 @@ def run_snap_benchmarks(
                             "kind": "snap-reachability",
                             "error": f"exceeded {timeout}s timeout",
                         }
-                        log.info("--- %s (%s) ---", pending_name, SNAP_DATASETS[pending_name]['type'])
+                        log.info(
+                            "--- %s (%s) ---",
+                            pending_name,
+                            SNAP_DATASETS[pending_name]["type"],
+                        )
                         log.warning("  timeout after %ds", timeout)
                         if writer:
                             writer.write(row)
                     async_results.clear()
                     break
-                except Exception as e:
+                except Exception as e:  # noqa: BLE001 - harness records the failure and continues
                     row = {
                         "source": name,
                         "kind": "snap-reachability",

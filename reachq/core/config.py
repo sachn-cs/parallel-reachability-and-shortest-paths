@@ -50,7 +50,9 @@ class RefinementConfig:
         valid = {f.name for f in fields(cls)}
         bad = set(d) - valid
         if bad:
-            raise ValueError(f"Unknown refinements: {sorted(bad)}; valid: {sorted(valid)}")
+            raise ValueError(
+                f"Unknown refinements: {sorted(bad)}; valid: {sorted(valid)}"
+            )
         return cls(**{k: v for k, v in d.items() if k in valid})
 
 

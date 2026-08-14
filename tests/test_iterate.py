@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from reachq.core.generators import petersen_graph, random_dag
-from reachq.research.iterate import iterative_shortcut_set
-from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.generators import petersen_graph, random_dag
+from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.research.iterate import iterative_shortcut_set
 
 
 class TestIterativeSoundness:
@@ -54,8 +54,8 @@ class TestIterativeRefines:
             random_seed=42,
             sparsify_shortcuts=False,
         )
-        from reachq.core.graph import Digraph
         from reachq.core.algorithm import jls_with_tc_pruning
+        from reachq.core.graph import Digraph
 
         aug = Digraph()
         for v in g.vertices():

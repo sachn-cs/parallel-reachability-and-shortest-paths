@@ -7,13 +7,13 @@ edge-case failure modes for graph algorithms.
 
 import pytest
 
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.core.algorithm import (
     build_shortcut_set_for_reachability,
     jls_shortcut_set,
     jls_with_tc_pruning,
 )
+from reachq.core.graph import Digraph
+from reachq.core.reachability import bfs_reachability, parallel_bfs
 
 
 class TestJlsBasic:
@@ -177,9 +177,7 @@ class TestWrapperBasic:
     def test_single_vertex_returns_empty(self):
         g = Digraph()
         g.add_vertex(0)
-        shortcuts, beta = build_shortcut_set_for_reachability(
-            g, omega=3.0, random_seed=42
-        )
+        shortcuts, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
         assert shortcuts == set()
 
     def test_dag_end_to_end(self):

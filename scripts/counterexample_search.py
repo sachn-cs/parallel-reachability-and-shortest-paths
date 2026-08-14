@@ -27,9 +27,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.generators import random_dag
-from reachq.core.config import get_logger
 from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.config import get_logger
+from reachq.core.generators import random_dag
 
 log = get_logger("reachq.counterexample")
 
@@ -72,7 +72,7 @@ def measure_one(n: int, p: float, seed: int) -> dict[str, float]:
         random_seed=seed,
         flags=PAPER_TC_FLAGS,
     )
-    s_tight, beta_t = build_shortcut_set_for_reachability(
+    s_tight, _ = build_shortcut_set_for_reachability(
         g,
         omega=3.0,
         random_seed=seed,

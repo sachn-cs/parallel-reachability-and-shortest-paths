@@ -7,15 +7,15 @@ reachable from a query protein in a small hop count.
 This example is a sketch, not a real bioinformatics pipeline.
 """
 
-import sys
 import os
 import random
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability, parallel_bfs
 from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.graph import Digraph
+from reachq.core.reachability import parallel_bfs
 
 
 def build_ppi_graph(n_proteins, density, seed):

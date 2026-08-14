@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.generators import petersen_graph, random_dag
 from reachq.core.graph import Digraph
 from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.research.sparsify import sparsify_shortcut_set
 
 
@@ -49,9 +49,9 @@ class TestSparsifyBasic:
         # Now sparsify and verify soundness is preserved.
         H_sparse = sparsify_shortcut_set(g, H_orig)
         for v in g.vertices():
-            assert bfs_reachability(g, v) == parallel_bfs(
-                g, v, H_sparse
-            ), f"sparsification broke soundness at v={v}"
+            assert bfs_reachability(g, v) == parallel_bfs(g, v, H_sparse), (
+                f"sparsification broke soundness at v={v}"
+            )
 
     def test_sparsify_reduces_or_preserves(self):
         """Sparsification never increases |H|."""
@@ -97,7 +97,7 @@ class TestSparsifyReducesJLS:
             reduction = 1 - len(H_sparse) / len(H_orig)
             assert reduction >= 0.5, (
                 f"expected >= 50% reduction on dense random DAG; "
-                f"got {reduction*100:.1f}% (orig={len(H_orig)} sparse={len(H_sparse)})"
+                f"got {reduction * 100:.1f}% (orig={len(H_orig)} sparse={len(H_sparse)})"
             )
 
     def test_wrapper_default_does_not_sparsify(self):

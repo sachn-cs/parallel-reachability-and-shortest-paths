@@ -15,9 +15,9 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag
 from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 EXAMPLES = int(os.environ.get("reachq_HYPOTHESIS", "20"))
 
@@ -82,9 +82,9 @@ def test_beta_hopbound_observed(n, p, seed):
         return
     for src in list(g.vertices())[:5]:
         max_obs = hopbound_max(g, src, shortcuts, beta)
-        assert (
-            max_obs <= beta + 1e-9
-        ), f"n={n} p={p} seed={seed}: max_obs={max_obs} > beta={beta}"
+        assert max_obs <= beta + 1e-9, (
+            f"n={n} p={p} seed={seed}: max_obs={max_obs} > beta={beta}"
+        )
 
 
 @given(n=small_n, p=small_p, seed=small_seed)

@@ -37,8 +37,12 @@ class Snapshot:
             raise TypeError(f"Expected Digraph, got {type(graph).__name__}")
         n = graph.num_vertices()
         m = graph.num_edges()
-        max_in = max((len(graph.in_edges.get(v, set())) for v in graph.vertices()), default=0)
-        max_out = max((len(graph.out_edges.get(v, set())) for v in graph.vertices()), default=0)
+        max_in = max(
+            (len(graph.in_edges.get(v, set())) for v in graph.vertices()), default=0
+        )
+        max_out = max(
+            (len(graph.out_edges.get(v, set())) for v in graph.vertices()), default=0
+        )
         from reachq.core.reachability import strongly_connected_components
 
         sccs = strongly_connected_components(graph)

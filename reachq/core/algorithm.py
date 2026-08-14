@@ -34,19 +34,20 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Any, Iterable, Optional
+from collections.abc import Iterable
+from typing import Any
 
-from reachq.core.graph import Digraph, contract_sccs, partition_by_labels
-from reachq.core.config import RefinementConfig, get_logger
+from reachq.core.backends import SEQUENTIAL, ParallelContext
 from reachq.core.bfs import (
     csr_reachable_backward,
     csr_reachable_forward,
     should_use_csr,
 )
+from reachq.core.config import RefinementConfig, get_logger
 from reachq.core.csr import build_csr_pair
-from reachq.core.backends import SEQUENTIAL, ParallelContext
-from reachq.core.reachability import compute_r_minus, compute_r_plus
+from reachq.core.graph import Digraph, contract_sccs, partition_by_labels
 from reachq.core.prune import apply_tc_pruning, compute_tc_pruning_threshold
+from reachq.core.reachability import compute_r_minus, compute_r_plus
 from reachq.core.trace import trace
 
 log = get_logger("reachq.core.algorithm")
@@ -72,9 +73,7 @@ def init_pivot_worker(state: dict[str, Any]) -> None:
     PIVOT_STATE.update(state)
 
 
-def set_pivot_state(
-    csr_data: Any, rev: Any, graph: Any, max_hops: Optional[int]
-) -> None:
+def set_pivot_state(csr_data: Any, rev: Any, graph: Any, max_hops: int | None) -> None:
     """Install the per-recursion-level pivot state for parallel workers."""
     PIVOT_STATE["csr_data"] = csr_data
     PIVOT_STATE["rev"] = rev
@@ -249,8 +248,8 @@ def jls_with_tc_pruning(
     max_level: int,
     n_global: int,
     level: int = 0,
-    random_seed: Optional[int] = None,
-    flags: Optional[dict[str, bool]] = None,
+    random_seed: int | None = None,
+    flags: dict[str, bool] | None = None,
     parallel_workers: int = 1,
 ) -> set[tuple[object, object]]:
     """Construct the JLS shortcut set with TC-Pruning (Section 4.2, Theorem 5).
@@ -323,12 +322,14 @@ def jls_with_tc_pruning(
     # Improvement 7: tighter threshold when TC work exceeds sampling work.
     if f.tight_tc_trigger and rho > 0:
         omega_runtime = min(OMEGA_DEFAULT, get_runtime_omega())
-        tc_pruning_threshold = compute_tc_pruning_threshold(k, log_n, rho, n, omega_runtime)
+        tc_pruning_threshold = compute_tc_pruning_threshold(
+            k, log_n, rho, n, omega_runtime
+        )
 
     # Improvement 4: hop-bounded pivot BFS for the CSR path.
     use_csr = should_use_csr(graph.num_vertices())
     csr_data = build_csr_pair(graph) if use_csr else None
-    max_hops_for_bfs: Optional[int] = None
+    max_hops_for_bfs: int | None = None
     if f.hop_bounded_bfs:
         # Use the wrapper's beta estimate: (n^omega/m)^(1/(2omega-2)).
         # Cheap closed-form bound that doesn't require knowing m at this level
@@ -338,7 +339,7 @@ def jls_with_tc_pruning(
             beta_est = n_global ** (omega_runtime / (2.0 * omega_runtime - 2.0))
             max_hops_for_bfs = int(beta_est) if beta_est < n_global else None
 
-    rev: Optional[Digraph] = None
+    rev: Digraph | None = None
     if not use_csr:
         # Hoisted once per recursion level (was per-pivot in the old code).
         rev = graph.reversed()
@@ -429,7 +430,7 @@ def bfs_hop_limited(
     max_hops: int,
     *,
     forward: bool,
-    rev: Optional[Digraph] = None,
+    rev: Digraph | None = None,
 ) -> set[object]:
     """Hop-bounded BFS. Used by Improvement 4 when CSR is not available."""
     from collections import deque
@@ -454,9 +455,9 @@ def apply_pivot(
     r_minus: set[object],
     r_plus: set[object],
     shortcuts: set[tuple[object, object]],
-    anc_labels: Optional[dict[object, list[object]]],
-    des_labels: Optional[dict[object, list[object]]],
-    legacy_labels: Optional[dict[object, set[Any]]],
+    anc_labels: dict[object, list[object]] | None,
+    des_labels: dict[object, list[object]] | None,
+    legacy_labels: dict[object, set[Any]] | None,
 ) -> None:
     """Apply a pivot's reachability to shortcuts and labels."""
     for v in r_minus:
@@ -483,7 +484,7 @@ def jls_shortcut_set(
     max_level: int,
     n_global: int,
     level: int = 0,
-    random_seed: Optional[int] = None,
+    random_seed: int | None = None,
 ) -> set[tuple[object, object]]:
     """Compatibility wrapper: JLS baseline (no TC pruning).
 
@@ -506,8 +507,8 @@ def jls_shortcut_set(
 def build_shortcut_set_for_reachability(
     graph: Digraph,
     omega: float = 3.0,
-    random_seed: Optional[int] = None,
-    flags: Optional[dict[str, bool]] = None,
+    random_seed: int | None = None,
+    flags: dict[str, bool] | None = None,
     parallel_workers: int = 1,
     sparsify_shortcuts: bool = False,
 ) -> tuple[set[tuple[object, object]], float]:

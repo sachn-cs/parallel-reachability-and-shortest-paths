@@ -8,14 +8,14 @@ in a small hop count are good inlining candidates (they are
 This example is a sketch, not a production compiler.
 """
 
-import sys
 import os
 import random
+import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.core.graph import Digraph
 from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.graph import Digraph
 
 
 def build_ir_graph(seed):

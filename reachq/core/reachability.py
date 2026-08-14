@@ -6,7 +6,6 @@ computations from Section 2. All algorithms are deterministic.
 
 from collections import deque
 from collections.abc import Iterator
-from typing import Optional
 
 from reachq.core.graph import Digraph
 
@@ -95,7 +94,7 @@ def compute_bridges(graph: Digraph, path_vertices: list[object]) -> set[object]:
 def parallel_bfs(
     graph: Digraph,
     source: object,
-    shortcut_edges: Optional[set[tuple[object, object]]] = None,
+    shortcut_edges: set[tuple[object, object]] | None = None,
 ) -> set[object]:
     """BFS on G ∪ H where H is a shortcut set.
 

@@ -31,8 +31,8 @@ from __future__ import annotations
 from collections import deque
 from typing import Any
 
-from reachq.core.graph import Digraph
 from reachq.core.config import get_logger
+from reachq.core.graph import Digraph
 from reachq.core.reachability import bfs_reachability
 
 log = get_logger("reachq.sparsify_hop")

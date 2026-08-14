@@ -21,8 +21,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.generators import random_dag
 from reachq.core.config import get_logger
+from reachq.core.generators import random_dag
 from reachq.core.work_depth import (
     SpanProfiler,
     theoretical_shortcut_depth,
@@ -87,7 +87,7 @@ def main() -> int:
 
     out_path = Path(args.out)
     out_path.parent.mkdir(parents=True, exist_ok=True)
-    fields = sorted({k for r in rows for k in r.keys()})
+    fields = sorted({k for r in rows for k in r})
     with open(out_path, "w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=fields, extrasaction="ignore")
         w.writeheader()
