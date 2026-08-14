@@ -135,3 +135,14 @@ warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
+exclude = "build/|site/|dist/"
+namespace_packages = true
+
+[[tool.mypy.overrides]]
+# Tests, scripts, benchmarks, and examples are dev tooling, not the
+# shipped library API: untyped helper bodies are lenient, but any
+# annotated function in these trees is still strictly checked (see
+# scripts/cli.py, which is fully annotated and must stay clean).
+module = ["tests.*", "scripts.*", "benchmarks.*", "examples.*"]
+disallow_untyped_defs = false
+check_untyped_defs = false

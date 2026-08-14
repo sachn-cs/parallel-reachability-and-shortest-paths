@@ -99,7 +99,7 @@ def main() -> int:
     log.info("Speedup summary (vs sequential=1):")
     by_cfg: dict[tuple[int, float, int, int], dict[str, float]] = {}
     for r in rows:
-        key = (r["n"], r["density"], r["seed"], r["workers"])
+        key = (int(r["n"]), float(r["density"]), int(r["seed"]), int(r["workers"]))
         by_cfg[key] = r
     for (n, d, seed, w), r in sorted(by_cfg.items()):
         speedup = r.get("speedup_vs_seq", 1.0)

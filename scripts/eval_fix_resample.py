@@ -20,6 +20,7 @@ import csv
 import sys
 import time
 from pathlib import Path
+from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
@@ -190,18 +191,22 @@ def main() -> int:
 
     # Summary: aggregate ratios.
     if rows:
-        avg_size = sum(r["size_ratio_fr_over_jls"] for r in rows) / len(rows)
-        avg_hops = sum(r["hops_ratio_fr_over_jls"] for r in rows) / len(rows)
+        avg_size = sum(cast(float, r["size_ratio_fr_over_jls"]) for r in rows) / len(
+            rows
+        )
+        avg_hops = sum(cast(float, r["hops_ratio_fr_over_jls"]) for r in rows) / len(
+            rows
+        )
         log.info(
             "average |H|_fr / |H|_jls = %.2f (Fix/Resample smaller on %d / %d cases)",
             avg_size,
-            sum(1 for r in rows if r["size_ratio_fr_over_jls"] < 1.0),
+            sum(1 for r in rows if cast(float, r["size_ratio_fr_over_jls"]) < 1.0),
             len(rows),
         )
         log.info(
             "average hops_fr / hops_jls = %.2f (Fix/Resample looser on %d / %d cases)",
             avg_hops,
-            sum(1 for r in rows if r["hops_ratio_fr_over_jls"] > 1.0),
+            sum(1 for r in rows if cast(float, r["hops_ratio_fr_over_jls"]) > 1.0),
             len(rows),
         )
         log.info(

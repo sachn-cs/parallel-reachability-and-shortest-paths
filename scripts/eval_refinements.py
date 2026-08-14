@@ -68,7 +68,7 @@ def hopbound_actual(graph, source: object, shortcuts, beta: float) -> tuple[int,
                 dist[v] = dist[u] + 1
                 q.append(v)
     reachable = {v: d for v, d in dist.items() if d < float("inf")}
-    max_observed = max(reachable.values(), default=0)
+    max_observed = int(max(reachable.values(), default=0))
     return max_observed, sum(1 for d in reachable.values() if d > beta)
 
 

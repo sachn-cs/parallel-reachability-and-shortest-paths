@@ -11,7 +11,7 @@ from reachq.core.graph import Digraph, WeightedDigraph
 @pytest.fixture
 def small_dag() -> Digraph:
     """A small 10-vertex DAG for fast unit tests."""
-    return random_dag(10, edges_per_vertex=2, random_seed=42)
+    return random_dag(10, edge_probability=0.2, random_seed=42)
 
 
 @pytest.fixture
@@ -33,5 +33,5 @@ def weighted_path_5() -> WeightedDigraph:
     for i in range(5):
         g.add_vertex(i)
     for i in range(4):
-        g.add_edge(i, i + 1, float(i + 1))
+        g.add_edge(i, i + 1, i + 1)
     return g
