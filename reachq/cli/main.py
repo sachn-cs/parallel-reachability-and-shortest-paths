@@ -5,6 +5,7 @@ Provides subcommands:
 - shortest-paths: build hopset and query shortest paths
 - benchmark-reachability: run reachability benchmarks
 - benchmark-shortest-paths: run shortest-path benchmarks
+- benchmark-large: run large-graph benchmarks (SNAP + synthetic)
 - generate-graph: create and serialize a test graph
 """
 
