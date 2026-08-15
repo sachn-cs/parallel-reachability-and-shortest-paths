@@ -80,6 +80,17 @@ def rust_bfs_forward(
     Identical API to :func:`reachq.accel.cython.bfs.cy_bfs_forward`.
     Falls back to the pure-Python CSR BFS when the Rust extension
     is unavailable.
+
+    Args:
+        indptr: Forward CSR indptr array of length ``n + 1``.
+        indices: Forward CSR indices array of length ``m``.
+        source: Source vertex index (0 <= source < n).
+        n: Number of vertices.
+        max_depth: BFS expansion cap (default ``1 << 30``).
+
+    Returns:
+        Boolean mask of length ``n``; ``out[v]`` is True iff ``v`` is
+        reachable from ``source`` within ``max_depth`` hops.
     """
     if _ext_available:
         result_ext = _rust_bfs_forward_ext(indptr, indices, source, n, max_depth)
@@ -107,6 +118,17 @@ def rust_dijkstra(
     Identical API to :func:`reachq.accel.cython.dijkstra.cy_dijkstra`.
     Falls back to pure-Python Dijkstra when the Rust extension is
     unavailable.
+
+    Args:
+        indptr: Forward CSR indptr array of length ``n + 1``.
+        indices: Forward CSR indices array of length ``m``.
+        weights: Edge weights array of length ``m``.
+        source: Source vertex index (0 <= source < n).
+        n: Number of vertices.
+
+    Returns:
+        Float64 array of length ``n``; ``out[v]`` is the shortest
+        distance from ``source`` to ``v``, or ``inf`` if unreachable.
     """
     if _ext_available:
         result = _rust_dijkstra_ext(indptr, indices, weights, source, n)
@@ -136,7 +158,12 @@ def rust_dijkstra(
 
 
 def is_rust_available() -> bool:
-    """Return True if the compiled Rust extension is loaded."""
+    """Return True iff the compiled Rust extension is loaded.
+
+    Returns:
+        ``True`` if the Rust extension was successfully imported at
+        module load time; ``False`` otherwise.
+    """
     return _ext_available
 
 
