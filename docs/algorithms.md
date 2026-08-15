@@ -95,6 +95,35 @@ This pruning is what achieves the improved work bound: O~(m + n ρ^{2ω-2}).
 contraction automatically, then calls `jls_with_tc_pruning` on the condensed
 DAG. Returns (shortcut_set, beta) where beta is the target hopbound.
 
+#### Refinement flags
+
+The wrapper accepts a `flags: RefinementConfig` argument (also
+re-exported as `reachq.Flags`) that toggles the post-processing
+refinements described in `docs/PAPER.md`:
+
+| Flag | Effect |
+|---|---|
+| `skip_condense` | Skip the SCC-contraction step. Faster on dense graphs; unsafe on graphs with cycles. |
+| `skip_trivial_part` | Skip the trivial singleton parts at the recursion base. |
+| `degree_ordered_pivots` | Order pivots by degree (highest first). |
+| `label_compress` | Compress labels to consecutive integers before recursion. |
+| `hop_bounded_bfs` | Use a hop-bounded BFS kernel instead of the full BFS (currently no-op; reserved for the accel path). |
+| `enable_tc_pruning` | Apply TC-Pruning (Theorem 2's improvement). |
+
+The default `RefinementConfig` enables all of these. Use
+`RefinementConfig()` to get the baseline JLS construction; use
+`auto_tune(graph)` to get a density-aware preset.
+
+#### `parallel_workers` parameter
+
+The wrapper exposes a `parallel_workers: int = 1` argument that is
+accepted for API symmetry with the future multi-process path. The
+current implementation is sequential; the parameter is logged-and-
+ignored when set > 1 on the process path. The thread path is
+available via `ParallelContext` but is not wired into the
+shortcut-set construction because the per-pivot BFS is CPU-bound
+and GIL-bound.
+
 ## Hopset Construction
 
 ### CFR Hopset (Baseline)
@@ -132,6 +161,10 @@ inline `ASSUMPTION` markers.
 `build_hopset_for_sssp(graph, epsilon, random_seed)` handles SCC contraction
 automatically, then calls `cfr_with_truncsssp_pruning` on the condensed DAG.
 Returns (hopset, beta) where beta is the target hopbound.
+
+The hopset wrapper also accepts a `parallel_workers: int = 1`
+argument with the same semantics as the shortcut-set wrapper:
+accepted for API symmetry, currently sequential.
 
 ## Parameter Selection
 
