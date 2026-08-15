@@ -56,14 +56,25 @@ def iterative_shortcut_set(
     r"""Iteratively refine the shortcut set.
 
     Each iteration: H_{k+1} = jls_with_tc_pruning(G ∪ H_k, ...).
-    Uses the same parameter selection as build_shortcut_set_for_reachability
-    so iterations are comparable.
+    Uses the same parameter selection as
+    ``build_shortcut_set_for_reachability`` so iterations are
+    comparable.
 
     Returns the ROBUST CORE: H_1 ∩ H_2 ∩ ... ∩ H_n, the intersection
     of all iterations. Shortcuts in the intersection are those that
-    every iteration of the construction agrees are needed. Shortcuts in
-    H_1 \ H_2 are "self-redundant" -- JLS added them but wouldn't
+    every iteration of the construction agrees are needed. Shortcuts
+    in H_1 \ H_2 are "self-redundant" -- JLS added them but wouldn't
     re-add them given H_1 already in the graph.
+
+    Args:
+        graph: The input digraph G.
+        omega: Fast-matrix-multiplication exponent (default 3.0).
+        max_iterations: Hard cap on iterations.
+        random_seed: Optional seed for reproducibility.
+
+    Returns:
+        The robust core shortcut set (intersection of all iterations),
+        or the empty set if the intersection becomes empty.
     """
     import math
     import time

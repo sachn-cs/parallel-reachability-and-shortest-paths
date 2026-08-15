@@ -53,7 +53,11 @@ from reachq.core.graph import Digraph
 def barbell_graph(k: int) -> Digraph:
     """Two cliques of size k/2 connected by a path of length k.
 
-    Total n = k + k = 2k vertices, m = O(k^2) edges.
+    Args:
+        k: Number of vertices per clique.
+
+    Returns:
+        A Digraph with ``n = 2k`` vertices and ``m = O(k^2)`` edges.
     """
     g = Digraph()
     for i in range(k):
@@ -78,8 +82,13 @@ def barbell_graph(k: int) -> Digraph:
 def layered_dag(layers: int, layer_size: int) -> Digraph:
     """Layered DAG: L layers of size s, edges between adjacent layers.
 
-    Total n = L*s, m = (L-1)*s^2 edges.
-    Diameter: L-1.
+    Args:
+        layers: Number of layers.
+        layer_size: Vertices per layer.
+
+    Returns:
+        A Digraph with ``n = L * s`` vertices and ``m = (L-1) * s^2``
+        edges. Diameter ``L - 1``.
     """
     g = Digraph()
     layer = [[(i, j) for j in range(layer_size)] for i in range(layers)]
@@ -96,7 +105,11 @@ def layered_dag(layers: int, layer_size: int) -> Digraph:
 def long_path_dag(n: int) -> Digraph:
     """Long path: 0 -> 1 -> 2 -> ... -> n-1. Diameter n-1.
 
-    Edge count m = n - 1. Worst case for the bound (rho = sqrt(n)).
+    Args:
+        n: Number of vertices.
+
+    Returns:
+        A Digraph with ``n`` vertices and ``n - 1`` edges.
     """
     g = Digraph()
     for i in range(n):
@@ -109,7 +122,11 @@ def long_path_dag(n: int) -> Digraph:
 def cycle_graph_dag(n: int) -> Digraph:
     """Long cycle: 0 -> 1 -> 2 -> ... -> n-1 -> 0. Diameter n/2.
 
-    Single SCC. The JLS would add shortcuts to make this a clique.
+    Args:
+        n: Number of vertices.
+
+    Returns:
+        A Digraph with ``n`` vertices forming a single SCC.
     """
     g = Digraph()
     for i in range(n):

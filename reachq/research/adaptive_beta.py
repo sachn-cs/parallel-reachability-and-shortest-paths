@@ -39,7 +39,16 @@ log = get_logger("reachq.adaptive_beta")
 
 
 def bfs_depth(graph: Digraph, source: Any) -> int:
-    """Return the eccentricity of `source` in `graph` (max BFS distance)."""
+    """Return the eccentricity of ``source`` in ``graph`` (max BFS distance).
+
+    Args:
+        graph: The input digraph.
+        source: Source vertex.
+
+    Returns:
+        The maximum BFS distance from ``source`` to any reachable
+        vertex. Returns 0 if ``source`` has no outgoing edges.
+    """
     if source not in graph.out_edges:
         return 0
     visited = {source}
@@ -64,12 +73,21 @@ def adaptive_beta(
 ) -> float:
     """Estimate an adaptive beta from the graph's BFS structure.
 
-    beta_empirical = safety_factor * max(depth) over n_samples random
-    source vertices, where depth is the eccentricity.
+    ``beta_empirical = safety_factor * max(depth)`` over ``n_samples``
+    random source vertices, where depth is the eccentricity.
 
     The safety factor accounts for graphs where a few sample sources
     don't reach the worst-case vertices. Empirically, 1.5 is enough
     on tested random DAGs and SRGs.
+
+    Args:
+        graph: The input digraph.
+        n_samples: Number of random source vertices to sample.
+        safety_factor: Multiplier on the observed max depth.
+        random_seed: Optional seed for reproducibility.
+
+    Returns:
+        The estimated beta; 0.0 for an empty graph.
     """
     if graph.num_vertices() == 0:
         return 0.0
@@ -91,7 +109,15 @@ def adaptive_beta(
 
 
 def paper_beta(graph: Digraph, omega: float = 3.0) -> float:
-    """The paper's worst-case beta bound: (n^omega / m)^(1/(2*omega - 2))."""
+    """The paper's worst-case beta bound: ``(n^ω / m)^(1/(2ω - 2))``.
+
+    Args:
+        graph: The input digraph.
+        omega: Fast-matrix-multiplication exponent (default 3.0).
+
+    Returns:
+        The worst-case beta; ``float("inf")`` if the graph has no edges.
+    """
     n = graph.num_vertices()
     m = graph.num_edges()
     if m == 0:
