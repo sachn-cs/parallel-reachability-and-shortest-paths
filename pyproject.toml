@@ -91,9 +91,10 @@ include = ["reachq*"]
 [tool.cibuildwheel]
 # The user-side [6.x] commit uploads built wheels via GitHub Release
 # artifacts. This block configures what cibuildwheel will build.
+# Per-platform `[tool.cibuildwheel.<platform>]` sections override the
+# top-level keys; `build-platform` is a CLI option only and is rejected
+# if placed in a config file.
 build = ["cp310-*", "cp311-*", "cp312-*", "cp313-*"]
-build-platform = "linux"
-archs = ["auto64", "arm64"]  # amd64 + arm64 on Linux
 [tool.cibuildwheel.linux]
 archs = ["x86_64", "aarch64"]
 [tool.cibuildwheel.macos]
