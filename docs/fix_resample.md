@@ -33,7 +33,9 @@ The Fix/Resample variant:
   Hamming(3,3).
 - Random DAGs at n ∈ {50, 100}, density ∈ {0.1, 0.3}.
 
-Across 9/9 cases (so far):
+Across 9/9 cases (so far; see
+[`tests/test_fix_resample.py`](https://github.com/sachncs/parallel-reachability-and-shortest-paths/blob/master/tests/test_fix_resample.py)
+for the full parameter grid):
 
 | metric | Fix/Resample | JLS |
 |---|---|---|
