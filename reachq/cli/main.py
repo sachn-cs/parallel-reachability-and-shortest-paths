@@ -258,6 +258,12 @@ def cmd_generate_graph(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    """Console-script entry point for the ``reachq`` command.
+
+    Parses argv, dispatches to the matching subcommand handler, and
+    sets up verbose logging if requested. No return value; exits
+    via ``SystemExit`` on parse errors or subcommand failure.
+    """
     parser = argparse.ArgumentParser(
         prog="reachq",
         description="Parallel Reachability and Shortest Paths on Non-Sparse Digraphs",
@@ -388,6 +394,11 @@ def main() -> None:
 
 
 def cli_main() -> None:
+    """Entry point exposed by ``pyproject.toml`` ``[project.scripts]``.
+
+    Currently a thin wrapper over ``main()``; the indirection is
+    kept for symmetry with package conventions.
+    """
     main()
 
 
