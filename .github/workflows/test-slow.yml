@@ -19,3 +19,6 @@ jobs:
           pip install -e ".[dev]"
       - name: Run full test suite
         run: pytest --timeout=300 -q
+      - name: Run property tests at scale
+        timeout-minutes: 300
+        run: REACHQ_HYPOTHESIS=10000 pytest tests/test_properties.py -q
