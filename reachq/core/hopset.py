@@ -79,11 +79,11 @@ def cfr_recursive(
     rng: random.Random,
     flags: RefinementConfig,
     *,
-    prunning: bool,
+    pruning: bool,
 ) -> dict[tuple[object, object], float]:
     """Shared CFR-with-TruncSSSP-Pruning body used by both public entry points.
 
-    When ``prunning`` is False, runs the baseline CFR hopset (no TruncSSSP).
+    When ``pruning`` is False, runs the baseline CFR hopset (no TruncSSSP).
     """
     n = graph.num_vertices()
     if n == 0 or level >= max_level:
@@ -169,7 +169,7 @@ def cfr_recursive(
             else:
                 labels[v].add((pivot, "des"))
 
-        if prunning:
+        if pruning:
             d_ball = compute_d_ball(graph, pivot, d)
             if 0 < len(d_ball) <= truncsssp_threshold:
                 trunc_edges = compute_truncated_sssp_structure(graph, d_ball, d)
@@ -204,7 +204,7 @@ def cfr_recursive(
             level + 1,
             rng,
             flags,
-            prunning=prunning,
+            pruning=pruning,
         )
         for edge, w in sub_hopset.items():
             prev = hopset.get(edge)
@@ -256,7 +256,7 @@ def cfr_hopset(
         level=level,
         rng=rng,
         flags=f,
-        prunning=False,
+        pruning=False,
     )
 
 
@@ -292,7 +292,7 @@ def cfr_with_truncsssp_pruning(
         level=level,
         rng=rng,
         flags=f,
-        prunning=True,
+        pruning=True,
     )
 
 
