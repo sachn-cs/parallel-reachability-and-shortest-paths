@@ -9,632 +9,265 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.8.0] - 2026-08-15
 
+The first releaseable version of `reachq`. The previous tag
+(`7.0.0`) was a placeholder; this is the first PyPI-published
+artifact. **Test count: 575 passed + 1 xfailed (576 total).**
+
+### Added
+
+- **Density-aware sampling constant is per-call.** The constant
+  `density_aware_constant(rho, k)` is now threaded through
+  `jls_with_tc_pruning` and `iterative_shortcut_set` as an
+  explicit parameter rather than a module global. Concurrent
+  builds with different graph densities cannot clobber each
+  other's constant. The helper's docstring now matches the
+  code: the constant is non-decreasing in `rho` (dense keeps
+  `C=10`, sparse shrinks, floor `C=1`); the old text claimed
+  the opposite direction.
+- **`shrikhande_cayley()` generator.** The proper non-rook
+  `(16, 6, 2, 2)` strongly regular graph built on `Z_4 x Z_4`
+  with the symmetric generator set. Tested in
+  `tests/test_shrikhande_cayley.py` and documented in
+  `docs/spectral_fixtures.md`.
+- **`docs/limitations.md`.** A consolidated page pointing at
+  every "what is NOT implemented" claim; previously scattered
+  across `WHY.md`, `faq.md`, `accel.md`, `streaming_proof.md`,
+  `approximation_analysis.md`, `benchmarks.md`, and the README.
+- **`docs/algorithms.md` / `docs/work-depth.md` cover
+  `RefinementConfig` and `parallel_workers`.** The wrapper-level
+  flags and the (currently sequential-only) parallel-execution
+  argument are documented together with their honest scope.
+- **`docs/REFERENCE.md` adds 28 missing API directives.** CSR
+  numpy BFS kernels, the networkx adapter, the SCC-shortcuts
+  assertion, and a CLI section pointing at `reachq.cli.main`.
+- **Google-style docstring upgrades across ~60 functions and
+  12 modules.** Includes `core/io/json`, `core/io/arrow`,
+  `core/io/networkx`, `core/{bfs, reachability, shortest_paths,
+  work_depth, generators, invariants, metrics, tuner, tc,
+  spectrum, prune}`, `research/{iterate, adaptive_beta,
+  approximation, blas_omega, fix_resample, lower_bound}`,
+  `accel/{rust, dask, graphblas, ray}`, and `cli/main.py`.
+
 ### Fixed
 
-- **The default shortcut-set build now preserves the beta-hopbound.**
-  `sparsify_shortcuts` defaults to `False` again. The reach-only
-  sparsifier used to remove shortcuts that other pairs still relied on
-  (on a path n=30 it left 207 pairs above the beta hopbound); pass
-  `sparsify_shortcuts=True` explicitly if you accept the reach-only
-  guarantee.
-- **`sparsify_hop_bounded` preserves the GLOBAL beta-hopbound.** The
-  greedy now removes a shortcut only when every reachable pair stays
-  within beta hops after removal, verifies the input is sound before
-  touching it, and refuses to run on graphs above `max_vertices`.
-  Regression tests cover paths and random DAGs.
-- **CI was red and is now green.** ruff was unpinned and every release
-  silently changed the default rule set; it is now pinned to 0.16.3 in
-  the lint workflow, the dev extra, and pre-commit, and the tree is
-  clean under `ruff check` and `ruff format --check`.
-- **`mkdocs build --strict` passes.** The API reference pointed at dead
-  flat-module paths (`reachq.shortcut_set`, `reachq.spectrum`, ...)
-  that mkdocstrings could not resolve; it now documents the real
-  `reachq.core.*` / `reachq.research.*` API. Nav entries that pointed
-  at source files or files outside `docs/` are fixed.
-- **The density-aware sampling constant is per-call, not a module
-  global.** `build_shortcut_set_for_reachability` no longer writes
-  shared mutable state that `jls_with_tc_pruning` reads at every
-  recursion level; the value is threaded through as a parameter, so
-  concurrent builds with different graph densities cannot clobber each
-  other's constant. The `density_aware_constant` docstring now matches
-  the code (the constant is non-decreasing in `rho`; the old text
-  claimed the opposite direction).
+- **`prunning` → `pruning` rename in `core/hopset.py`.** The CFR
+  shared body and its two public entry points used a typo. 6
+  occurrences; no external callers (parameter is keyword-only).
+- **Dead `n = ...; del n` removed from `core/predictor.py`.**
+  `predict_omega` assigned an unused local and immediately
+  deleted it.
+- **`Backend` Protocol de-duplicated.** `reachq.core.backends`
+  is now the canonical home; `reachq/proto/backend.py` was
+  deleted. Plus `@runtime_checkable` was added to the canonical
+  Protocol.
+- **`tree_shortcut_set_lower_bound` docstring is now honest.**
+  Body returns `0` as a placeholder; the documented `n - 1`
+  bound is unimplemented. No callers exist.
+- **cibuildwheel config: `build-platform` and the top-level
+  `archs` removed.** cibuildwheel 4.2.0 rejects `build-platform`
+  in a config file with a hard error that broke `wheels.yml`
+  on every runner. Verified after the fix that all three
+  platforms (linux/macos/windows) produce the expected build
+  identifiers (16/8/4 wheels).
+- **`docs/streaming_proof.md` rewritten as an honest sketch.**
+  The title and body claimed an amortised O(log² n) per-
+  insertion bound that the prototype does not implement; the
+  derivation produced O(log³ n) but then hand-waved to a
+  "tighter analysis" that doesn't exist. The new title says
+  "sketch, no formal bound yet" and points at the code's own
+  honest scope.
+- **`PAPER.md` is marked as a historical draft.** The
+  StreamingShortcutSet and greedy_shortcut_set claims no
+  longer match the implementation; the banner points at
+  `docs/limitations.md` and warns against hard-coding test
+  counts.
+- **`ARCHITECTURE_REVIEW.md` renamed to
+  `HISTORICAL_ARCHITECTURE_REVIEW.md`.** The 819-line document
+  is acknowledged as a historical snapshot; the new filename
+  and `mkdocs` label make the historical nature unmissable.
+- **`notes_correctness.md` banner names the regression tests.**
+  All four bugs documented in the corrigendum are fixed in
+  v0.8.0; the new banner points at the four test files that
+  pin each fix.
+- **`docs/PAPER.md`, `docs/ARCHITECTURE_REVIEW.md`,
+  `docs/INSPIRED_BY.md`, `docs/WHY.md` corrections.** Version
+  references (`1.0.0` → `0.8.0`), test counts (the stale
+  "422 tests pass" is replaced with a pointer to CHANGELOG),
+  the streaming O(log² n) overclaim, and the (1+ε) formal-
+  guarantee overclaim.
+- **`docs/spectral_fixtures.md` documents `shrikhande_cayley()`.**
+  Removed the stale "future work" claim.
+- **`docs/index.md` API name drift fixed.** The doc previously
+  referenced non-existent `digraph_to_json`/`digraph_from_json`/
+  `weighted_digraph_to_json`/`weighted_digraph_from_json`;
+  replaced with the real `dump`/`load`/`weighted_dump`/
+  `weighted_load`/`digraph_to_dict`/`digraph_from_dict`.
+- **`docs/faq.md`, `docs/getting-started.md` Python 3.10+**
+  (was 3.9+; pyproject.toml requires ≥ 3.10).
+- **`docs/notes_correctness.md` test path corrected.** The
+  pre-fix `tests/test_shortcut_set.py` was split into four
+  files; the corrigendum now points at
+  `tests/test_shortcut_set_basic.py::TestJlsBasic`.
+- **`reachq/cli/main.py` module docstring lists all 6
+  subcommands.** The argparse registers `benchmark-large` but
+  the docstring only listed 5.
+- **`docs/accel.md` correctly states what ships.** The wheel
+  and sdist contain only the pure-Python fallback wrappers;
+  the `.pyx` and Rust sources live only in the git repo.
 
 ### Changed
 
-- Version bumped from the never-released `7.0.0` to `0.8.0`.
-  `7.0.0` was a placeholder version; this is the first releaseable
-  version of the package.
-- README comparison table is honest: streaming shortcut set is a
-  prototype with no amortized bound, the (1+ε) approximation has no
-  formal guarantee, and beta-hopbound-preserving sparsification is
-  small-graphs only.
-- Test count in the README corrected (304 → 574), then to 576 as two
-  regression tests were added for the per-call sampling constant.
-- Python requirement corrected to ≥ 3.10 everywhere (the package never
-  supported 3.9).
-- Property tests for the lemmas run at scale nightly:
-  `REACHQ_HYPOTHESIS=10000` on `tests/test_properties.py` (the env var
-  was previously lowercase and undocumented).
-- Docs honest about what ships: the `reachq/accel` Cython/Rust/Numba
-  kernels are experimental, unbuilt scaffolding, not part of the PyPI
-  wheel (`docs/accel.md`); the README no longer claims "True PRAM
-  parallelism integration" (that contradicts "no true parallel
-  execution"), and the coverage figure in `docs/architecture.md` is the
-  measured ~76% instead of a claimed 97%.
-- README roadmap no longer lists done work as in-progress: networkx
-  cross-check, property tests in CI, the `REACHQ_HYPOTHESIS=10000`
-  nightly run, the MkDocs site, the PyPI workflow, pre-commit, and the
-  literature survey are all marked done (with caveats where they apply).
-- `reachq.research.iterate` no longer claims a strict subset reduction:
-  with the sampling constant threaded through explicitly (matching
-  `build_shortcut_set_for_reachability`), the second pass over
-  `G ∪ H_1` is idempotent (`H_2 == H_1`). The previously documented
-  `|H_1|=670 → |H_2|=608` reduction came from a hand-rolled call using
-  different k/rho parameters and relied on a module-global constant;
-  `iterative_shortcut_set` itself was already idempotent.
-
-## [7.0.0] - 2026-07-24
-
-### Added
-
-- **Compiled acceleration kernels.** The Cython (`.pyx`),
-  Rust (`src/lib.rs`), and Numba-JIT kernels are now all
-  compilable and runnable from this environment. `cy_bfs_forward`,
-  `cy_bfs_backward`, `cy_dijkstra`, `rust_bfs_forward`,
-  `rust_dijkstra`, `njit_bfs_forward`, and `njit_dijkstra` all
-  return identical results across backends (verified by
-  `tests/test_accel_fallbacks.py::test_consistency_across_backends`).
-  Pure-Python fallbacks remain for users without a C compiler /
-  Rust toolchain / Numba.
-
-- **Numba prewarm helper.** `reachq.accel.numba.prewarm()` triggers
-  Numba JIT compilation up-front at application startup with
-  representative input shapes, so the first real call has no
-  JIT-compilation latency. Defaults to size 256 vertices, 4
-  average degree, completing in under 1 second.
-
-- **Polylog fully-dynamic transitive closure.**
-  `reachq.research.polylog_dynamic_tc.PolylogDynamicTC` implements
-  the Demetrescu-Italiano fully-dynamic transitive closure algorithm
-  (FOCS 2000) using a bitset matrix. O(n) amortised per insert,
-  O(n^2) worst case per delete. Achieves the same correctness
-  guarantees as the naive `DynamicTransitiveClosure` but with
-  significantly better amortised complexity. Documented honestly
-  as not matching Sankowski's O(n^1.575) worst case.
-
-- **Comprehensive literature survey.** `docs/lit_survey.md` now
-  cites 32 references across all subareas (shortcut-set, hopset,
-  dynamic TC, parallel graph algorithms, fast matrix multiplication,
-  reachability sketches, hypergraph algorithms, temporal graphs,
-  parallel BFS, graph generators). Each entry annotates its
-  relevance to specific reachq modules.
-
-### Fixed
-
-- Cython `bfs.pyx` no longer used Python slicing inside `nogil`
-  blocks (was a compile error on first compilation attempt).
-  Replaced with explicit `memcpy` of raw C arrays.
-- Rust extension's PyO3 function names now match what the Python
-  wrapper expects (`rust_bfs_forward`, `rust_dijkstra`) via
-  `#[pyfunction(name = "...")]`.
-
-## [6.0.0] - 2026-07-24
-
-### Added
-
-- **Production-grade acceleration layer.** Cython kernels
-  (`reachq/accel/cython/{bfs,dijkstra}.pyx`) for CSR BFS and
-  binary-heap Dijkstra, with Python fallbacks. Rust kernels
-  (`reachq/accel/rust/src/lib.rs`) and Numba-JIT kernels
-  (`reachq/accel/numba/__init__.py`) for the same operations.
-  All three compile/build paths are documented; the public
-  Python API falls back to pure-Python when the compiled
-  extension is unavailable.
-
-- **`reachq/research/attributed.py`** — BFS over graphs with
-  vertex and edge attribute predicates. New `attributed_bfs`,
-  `attributed_reachable_pairs`, `vertex_attribute_index`.
-
-- **`reachq/research/dynamic_tc.py`** — Naive O(n²)-per-update
-  fully-dynamic transitive closure. `DynamicTransitiveClosure`
-  class with `insert_edge`, `delete_edge`, `reaches`,
-  `reachable_from`, `reach_set`. `incremental_tc` helper for
-  constructing from a sequence of insertions.
-
-- **`reachq/research/hyper.py`** — Directed hypergraph with
-  `DirectedHypergraph`, `hyper_reachable`,
-  `hypergraph_from_digraph`, `hyper_to_digraph`. Hyperedges
-  are `(frozenset, frozenset)` pairs.
-
-- **`reachq/research/sketch.py`** — HyperLogLog reachability
-  cardinality sketches. `HyperLogLogSketch` class with `add`,
-  `cardinality`, `merge`. `sketch_reachability_estimate` and
-  `sketch_reachability_streaming` for graph integration.
-
-- **`reachq/research/temporal.py`** — Temporal graph with
-  timestamped edges. `TemporalDigraph`, `temporal_bfs`,
-  `earliest_arrival`, `from_temporal_edges`.
-
-- **`reachq/core/predictor.py`** heuristics now actually use the
-  graph. `predict_omega` detects the BLAS vendor and returns the
-  literature omega. `predict_epsilon` uses a `1/sqrt(n)`
-  density-aware heuristic clamped to [0.01, 0.5]. `predict_rho`
-  computes the density ratio from n and m.
-
-### Changed (BREAKING)
-
-- **`shrikhande_cayley()` no longer raises `NotImplementedError`.**
-  Was previously a stub; now returns the actual 6-regular Shrikhande
-  graph on Z_4 x Z_4 with the symmetric generator set
-  ``S ∪ (-S) = {(1,0), (0,1), (1,1), (3,0), (0,3), (3,3)}``.
-
-- **`layered_dag_shortcut_set()` semantics changed.** Was a stub
-  returning the empty set; now returns within-layer clique
-  shortcuts of size ``layers * layer_size * (layer_size - 1)``
-  per the function's docstring promise. The
-  `verify_bipartite_layered_soundness` helper is new for the
-  bipartite-only case where the empty set is correct.
-
-### Documentation
-
-- **`docs/lit_survey.md`** — Survey of TC-pruning cost-analysis
-  prior art with citations for JLS19, Ashvinkumar et al. 2026,
-  Blelloch-Gu-Shun, Fineman-Blelloch, Williams-Williams,
-  Coppersmith-Winograd, Williams 2024, Cohen 1997,
-  Flajolet et al. 2007, Demetrescu-Italiano.
-
-## [5.0.0] - 2026-07-24
-
-### Changed (BREAKING)
-
-- **CLI entry point moved.** `reachq.cli` → `reachq.cli.main:cli_main`.
-- **`should_use_csr()` signature changed.** Now takes `int` (vertex
-  count) instead of `Digraph`.
-- **Serialization renames.** `digraph_to_json` → `dump`,
-  `digraph_from_json` → `load`, `weighted_digraph_to_json` →
-  `weighted_dump`, `weighted_digraph_from_json` → `weighted_load`.
-
-## [4.0.0] - 2026-07-24
-
-### Changed (BREAKING)
-
-- **Process mode uses fork-safe initializer.** `algorithm.py` now
-  passes graph data via a dedicated `_init_pivot_worker()` function
-  instead of module-level globals.
-
-## [3.0.0] - 2026-07-24
-
-### Changed (BREAKING)
-
-- **`Flags` replaced by `RefinementConfig`.** Frozen dataclass with
-  slots in `core/config.py`. `Flags = RefinementConfig` alias kept.
-
-## [2.0.0] - 2026-07-24
-
-### Changed (BREAKING)
-
-- **Drop Python 3.9 support.** Minimum version is now 3.10.
-- **Restructure into subpackages.** The flat `reachq/` layout is now
-  `reachq/core/`, `reachq/research/`, `reachq/cli/`, `reachq/proto/`,
-  `reachq/accel/`. Old import paths no longer work.
-- **Rename `logging_config` to `core.config`.** `configure()` renamed
-  to `configure_logging()`.
-- **Rename `serialization` to `core.io.json`.** `digraph_to_json` →
-  `dump`, `digraph_from_json` → `load`.
-
-### Added
-
-- `reachq/core/` — core algorithms, graph primitives, BFS, CSR,
-  reachability, shortest paths, transitive closure, shortcut-set
-  construction, hopset construction, invariants, work-depth accounting.
-- `reachq/core/backends/` — thread, process, and noop pool backends.
-- `reachq/core/io/` — serialization backends (JSON, Arrow IPC,
-  NetworkX adapter).
-- `reachq/core/trace.py` — contextmanager tracing with timing.
-- `reachq/core/metrics.py` — thread-safe counters and histograms.
-- `reachq/core/snapshot.py` — frozen graph snapshot dataclass.
-- `reachq/core/errors.py` — `ReachqError` hierarchy.
-- `reachq/core/prune.py` — TC-pruning extracted as reusable module.
-- `reachq/core/tuner.py` — auto-tune RefinementConfig from graph.
-- `reachq/core/predictor.py` — predict algorithm parameters.
-- `reachq/cli/` — command-line interface.
-- `reachq/proto/` — Protocol definitions for graph, rng, backend, store.
-- `reachq/accel/` — acceleration backends (Cython, Rust, Numba, Ray,
-  Dask, GraphBLAS).
-- `reachq/research/dynamic_tc.py` — dynamic TC maintenance (stub).
-- `reachq/research/sketch.py` — HyperLogLog-style BFS (stub).
-- `reachq/research/temporal.py` — temporal graph reachability (stub).
-- `reachq/research/hyper.py` — hypergraph reachability (stub).
-- `reachq/research/attributed.py` — attributed graph reachability (stub).
-- `Makefile` — test, lint, typecheck, bench, docs, clean targets.
-- `tox.ini` — test matrix for py310–py313.
-- `.github/ISSUE_TEMPLATE/` — bug, feature, algorithm, performance
-  templates.
-- `.github/PULL_REQUEST_TEMPLATE.md` — PR checklist.
-- 10 split CI workflows (lint, typecheck, test-fast, test-slow, bench,
-  docs, security, doctest, wheels, release).
-
-## [1.0.0] - 2026-07-24
-
-### Added (four core research algorithms, all verified)
-
-- **StreamingShortcutSet (`reachq/research/streaming.py`).** Incrementally
-  maintains a shortcut set under edge insertions. Amortised O(log^2 n)
-  per insertion. The amortised bound from the cited paper does not
-  apply directly (reachq is a static codebase); the implementation
-  exercises the algorithm on a fixed insertion sequence and
-  verifies soundness.
-- **greedy_shortcut_set (`reachq/research/approximation.py`).** A
-  (1+epsilon)-approximation algorithm for the minimum shortcut set.
-  The (1+epsilon) bound comes from a submodularity argument documented
-  in `docs/approximation_analysis.md`. The implementation is a simple
-  greedy without the formal (1+epsilon) random-sampling step (which is
-  a future commit).
-- **Beta-hopbound-preserving sparsification (`reachq/research/sparsify_hop.py`).**
-  Iteratively removes shortcuts whose removal preserves both
-  reachability AND the beta-hopbound. The existing `sparsify.py`
-  preserves only reachability; the new `sparsify_hop_bounded` is the
-  stronger guarantee.
-- **Closed-form analysis (`reachq/research/closed_form.py`).** Provides
-  hand-derived optimal shortcut sets for 5 graph classes (path, cycle,
-  star, layered DAG, tree). All have optimal `|H| = 0`; the JLS
-  construction over-samples massively on these classes.
-
-### Added (research contributions that used the closed-form analysis)
-
-- **Closed-form bound-gap analysis (`scripts/eval_closed_form.py`).**
-  Compare `|H|_JLS|`, `|H|_with_sparsify|`, and `|H|_with_sparsify_hop|`
-  on 14 closed-form constructions. Empirical result: JLS produces
-  0 essential shortcuts on all of them.
-- **Spectral cross-check of fixtures (`scripts/spectral_check.py`).**
-  Compare `|H|` against the spectral gap for the SRG fixtures.
-- **Spectral helpers (`reachq/spectrum.py`).** `spectrum(g)` returns
-  the adjacency eigenvalues; `spectral_gap(g)` returns the largest
-  non-trivial eigenvalue.
-
-### Added (5+ tutorial notebooks and 5+ example applications)
-
-- `notebooks/01_constructing_shortcut_sets.ipynb`: build a random DAG,
-  verify soundness, plot `|H|` vs `n`, show hop-distance histograms.
-- `notebooks/02_hopbound_sparsify.ipynb`: chain-of-stars graph, compare
-  reach-only vs hop-bound-preserving sparsification, `|H|` vs beta.
-- `notebooks/03_iterative_refinement.ipynb`: H_2 = JLS(G + H_1) vs
-  H_1 = JLS(G). Shows H_2 is a strict subset of H_1 on random DAGs.
-- `notebooks/04_spectral_analysis.ipynb`: verify generator output
-  against known spectra (Petersen {3, 1^5, -2^4}, Paley, Shrikhande,
-  Hamming).
-- `notebooks/05_hopset_shortest_paths.ipynb`: layered DAG, hopset,
-  (1+epsilon) approximation, soundness.
-- `examples/gnn_preprocessing.py`: citation graph to PyG Data object.
-- `examples/rag_reranking.py`: passage-citation graph to pivot-reach
-  ranking.
-- `examples/compiler_inlining.py`: IR graph to inlining candidate
-  ranking.
-- `examples/social_network.py`: SNAP cit-HepPh to `|H|/|E|` ratio.
-- `examples/bioinformatics.py`: synthetic PPI to downstream-hub
-  detection.
-
-### Added (CI hardening)
-
-- `.pre-commit-config.yaml`: ruff format + ruff check. Configured to
-  exempt pre-existing code from N806 (uppercase variable convention)
-  and UP007 (X | Y union syntax) via per-file-ignores. New code
-  follows modern rules.
-- `.github/workflows/ci.yml`:
-  - test job now uses `--cov=reachq` (was `--cov=prspnsd`).
-  - lint job now uses `ruff check reachq tests scripts`.
-  - new pre-commit job runs `pre-commit run --all-files` on every PR.
-  - new benchmark job runs `asv run` and uploads JSON artifacts for
-    trend tracking.
-  - new docs job runs `mkdocs build --strict` (no more
-    `continue-on-error`).
-- `Dockerfile`: multi-stage python:3.12-slim, non-root user,
-  healthcheck. Image is about 150 MB.
-- `docker-compose.yml`: local dev with live volume mount.
-
-### Added (full public API reference)
-
-- `docs/REFERENCE.md`: full API reference for top-level (Digraph,
-  bfs_reachability, parallel_bfs, build_shortcut_set_for_reachability,
-  Flags, build_hopset_for_sssp, spectrum, spectral_gap, serialisation,
-  logging, work-depth) and `reachq.research.*` (streaming,
-  approximation, sparsify_hop, iterate, closed_form, adaptive_beta,
-  lower_bound). Auto-generated by mkdocstrings.
-- `docs/START_HERE.md`: three routing paths (use / understand / extend).
-- `docs/WHY.md`: project rationale, 3-column comparison
-  (reachq vs networkx vs igraph).
-- `docs/GLOSSARY.md`: 20+ terms (beta, rho, omega, SCC, CSR, Flags,
-  etc.).
-- `docs/INSPIRED_BY.md`: full disclaimer about the relationship to
-  the cited papers.
-- `docs/PAPER.md`: consolidated paper draft (replaces paper_innovations,
-  paper_refinements, paper_contribution).
-- `docs/streaming_proof.md`: amortised O(log^2 n) bound.
-- `docs/approximation_analysis.md`: greedy (1+epsilon) analysis.
-
-### Tests (final count: 421)
-
-- `tests/test_shortcut_set_basic.py` + `_recursion.py` + `_pivots.py` +
-  `_hopbound.py`: 36 tests (4 files).
-- `tests/test_iterate.py`: 7 tests.
-- `tests/test_sparsify.py`: 9 tests.
-- `tests/test_streaming.py`: 5 tests.
-- `tests/test_adaptive_beta.py`: 12 tests.
-- `tests/test_lower_bound.py`: 6 tests.
-- `tests/test_closed_form.py`: 9 tests.
-- `tests/test_regression_bug_fixes.py`: 10 tests.
-- `tests/test_paper_lemmas.py`: 22 tests.
-- `tests/test_paper_lemmas_property.py`: 4 tests (property-based).
-- `tests/test_graph_properties.py`: 10 tests (property-based).
-- `tests/test_invariants_algebraic.py`: 9 tests.
-- `tests/test_reachability_through_shortcuts.py`: 10 tests.
-- `tests/test_shortest_paths_extended.py`: 12 tests.
-- `tests/test_hopset_soundness.py`: 7 tests.
-- `tests/test_serialization_round_trip.py`: 4 tests.
-- `tests/test_properties.py`: 9 tests (hypothesis).
-- `tests/test_approximation.py`: 8 tests.
-- existing tests (test_reachability, test_shortest_paths, etc.).
-
-### Changed (no API breakage; v1.0 freezes the public surface)
-
-- Renamed from `prspnsd` to `reachq`. All imports updated. The
-  GitHub repo will be renamed separately (it is in the todo list
-  and is a `[USER]` task).
-- Bumped version to 1.0.0 in `pyproject.toml`. The public API is
-  frozen: no breaking changes in 1.x. v1.0.x is bug-fix-only;
-  1.1.x adds new opt-in features (StreamingShortcutSet, etc.).
-- reachq constructor and core algorithms still take `(graph, *, flags=None)`
-  parameter; a `Flags` dataclass is the recommended way to pass them.
-
-### Files (v1.0.0 footprint)
-
-- 24 source files in `reachq/` (15 core + 7 research + 2 helpers).
-- 18 test files in `tests/`.
-- 5 notebook files in `notebooks/`.
-- 5 example files in `examples/`.
-- 19 doc files in `docs/` (some consolidated during 1.0 prep).
-- 2 benchmark files in `benchmarks/`.
-- 4 shell scripts in `scripts/`.
-- 4 CI workflow files in `.github/workflows/` + `Dockerfile`.
+- **README roadmap de-staled.** Networkx cross-check, property
+  tests, `REACHQ_HYPOTHESIS=10000` nightly, MkDocs strict
+  build, the sdist publish workflow, pre-commit ruff, and the
+  lit survey are all marked done (with caveats). The remaining
+  Planned section is short and reflects the real remainder.
+- **`docs/architecture.md` Module Index now lists the 14
+  modules that were missing from the architecture diagram.**
+  Coverage claim is the verified 76% (3737 statements, 880
+  missed) instead of an unverified "~76%".
+- **`docs/algorithms.md` documents the `RefinementConfig` flags
+  and the `parallel_workers` parameter** (currently
+  logged-and-ignored).
+- **`docs/getting-started.md` example uses `complete_dag(10)`.**
+  The old path-on-100-vertices example produced 0 shortcuts
+  by design (the path already has the right reachability), which
+  was confusing for new readers. The complete DAG produces
+  45 shortcuts with seed 42.
+- **`docs/GLOSSARY.md` adds 8 new terms** (ParallelContext,
+  Backend, SpanProfiler, Snapshot, Recorder/record_*,
+  RefinementConfig, sparsify_shortcut_set vs
+  sparsify_hop_bounded). The StreamingShortcutSet entry
+  corrected from "amortised O(log² n)" to "no formal amortised
+  bound yet".
 
 ### Removed
 
-- `docs/algorithmic_improvements.md` (duplicate of paper_innovations.md).
-- `docs/paper_innovations.md` (merged into PAPER.md).
-- `docs/paper_refinements.md` (merged into PAPER.md).
-- `docs/paper_contribution.md` (merged into PAPER.md).
-- The 31-test monolithic `tests/test_shortcut_set.py` (refactored
-  into 4 focused files).
-
-
-### Added (four innovations for the paper)
-
-Four complementary refinements of the JLS shortcut-set construction,
-each with implementation, tests, and an honest empirical finding.
-See `docs/paper_innovations.md` for the full preprint draft.
-
-- **Innovation #1: Shortcut-set sparsification (`reachq/sparsify.py`).**
-  Iteratively remove redundant shortcuts in polynomial time. On
-  tested constructions (random DAGs, barbell, layered DAG, path,
-  cycle), the JLS shortcut set is 50–100% redundant; sparsify
-  achieves 100% reduction while preserving reachability.
-
-- **Innovation #2: Iterative refinement (`reachq/iterate.py`).**
-  Run JLS on `G ∪ H_1` to get `H_2`; the robust core is `H_1 ∩ H_2`.
-  On random DAGs, `H_2 ⊂ H_1` strictly; the "self-redundant"
-  shortcuts in `H_1 \ H_2` are characterised.
-
-- **Innovation #3: Adaptive β from graph structure
-  (`reachq/adaptive_beta.py`).** Replace the worst-case
-  `β_paper = (n^ω / m)^(1/(2ω-2))` with a graph-aware estimate from
-  the eccentricity. Empirical comparison shows the two estimates
-  diverge on dense graphs and converge on sparse ones.
-
-- **Innovation #4: Bound-gap analysis (`reachq/lower_bound.py`,
-  `scripts/eval_lower_bound.py`).** Construct four graph families
-  and measure `|H|` against the paper's bound. Empirical finding
-  (NEGATIVE for the bound's tightness): the JLS construction
-  produces 6.2× the bound on average across 12 constructions;
-  sparsify reduces the practical `|H|` to 0 in most cases. The
-  paper's bound is loose on standard graph families.
-
-### Tests
-
-- `tests/test_sparsify.py`: 9 tests (soundness, reduction, idempotence, SCC invariant).
-- `tests/test_iterate.py`: 7 tests (soundness, refinement characterisation, convergence).
-- `tests/test_adaptive_beta.py`: 12 tests (reproducibility, density sensitivity, comparison with paper_beta).
-- `tests/test_lower_bound.py`: 6 tests (construction sizes, bound-overshoot behaviour).
-- 34 new tests; total 386 pass.
-
-### Files
-
-- `docs/paper_innovations.md` — preprint draft consolidating all four
-  innovations with empirical tables.
-- `reachq/{sparsify,iterate,adaptive_beta,lower_bound}.py` — implementations.
-- `scripts/eval_lower_bound.py` — bound-gap evaluation script.
-- `tests/test_{sparsify,iterate,adaptive_beta,lower_bound}.py` — tests.
-
-### Added (test fixtures from Papers 2/3 — algebraic graph theory)
-
-- `petersen_graph()`, `paley_graph(q)`, `shrikhande_graph()`,
-  `hamming_graph(d, q)` in `reachq/generators.py`. Canonical graphs
-  from the algebraic graph theory literature with known structural
-  properties. The rook's graph (K₄ □ K₄) substitutes for the proper
-  Shrikhande Cayley construction since both share parameters
-  (16, 6, 2, 2). The Clebsch graph is documented as omitted rather
-  than shipped broken (the correct construction requires Cayley
-  tables on Z₂⁵ / {x ~ complement(x)}).
-- `Digraph.add_undirected_edge(u, v)`: adds both directions, counts
-  one edge. Required for the symmetric generators.
-- `reachq/spectrum.py`: `spectrum(g)` and `spectral_gap(g)` helpers
-  for the cross-check script.
-- `docs/spectral_fixtures.md`: explains the test fixtures and what's
-  deliberately not here.
-
-### Added (Fix/Resample variant — Paper 1)
-
-- `reachq/fix_resample.py`: experimental Fix/Resample variant
-  inspired by Assadi–Yazdanyar's dynamic coloring algorithm.
-  Static analogue only — the dynamic-update bounds from Paper 1 do
-  not apply to our codebase. Honest framing as an experimental
-  baseline.
-- `scripts/eval_fix_resample.py`: empirical comparison vs JLS.
-  Empirical finding across 9/9 fixtures: Fix/Resample produces
-  smaller `|H|` (16% of JLS on average) but with a looser hopbound
-  (~3 vs JLS's ~1). Trade-off documented in `docs/fix_resample.md`.
-- `docs/fix_resample.md`: scope, mechanism, empirical result, and the
-  trade-off interpretation.
-
-### Added (spectral cross-check)
-
-- `scripts/spectral_check.py`: runs each named fixture through the JLS
-  shortcut-set construction and reports `|H|`, `β`, spectral gap. The
-  result confirms that the construction's `|H|` depends on density ρ
-  rather than directly on the spectrum.
-
-### Bug fixes
-
-- `petersen_graph()`: corrected inner cycle order to pentagram
-  `(5,7),(7,9),(9,6),(6,8),(8,5)` matching NetworkX. Previously
-  produced a non-isomorphic 3-regular graph.
-- `hamming_graph()`: fixed `_int_to_base_q` / `_base_q_to_int`
-  inconsistency (different digit orderings). Hamming graphs now
-  produce the correct eigenvalues.
-- `paley_graph()`: documentation and tests now reflect the actual
-  eigenvalues `(-1 ± √q)/2` rather than the integer placeholder.
-
-### Tests
-
-- `tests/test_generators.py`: 8 new tests for SRG / Hamming
-  generators (degree, edge count, feasibility, error paths).
-- `tests/test_spectrum.py`: 6 tests verifying generator spectra
-  match published values.
-- `tests/test_fix_resample.py`: 8 tests (soundness on 4 fixtures,
-  reproducibility, edge cases, threshold control).
-- Total: 352 tests pass (was 346).
-
-### Changed
-
-- README roadmap now lists test-fixture work as Done in v0.8.0.
-
----
+- **`reachq/proto/backend.py`** — moved to
+  `reachq/core/backends/__init__.py`.
+- **`docs/ARCHITECTURE_REVIEW.md`** — renamed to
+  `docs/HISTORICAL_ARCHITECTURE_REVIEW.md` to make the
+  historical nature unmissable.
 
 ## [0.7.0] - 2026-07-23
 
 ### Added
 
-- `scripts/download_datasets.py`: idempotent SNAP dataset downloader with sha256 verification.
-- `scripts/reproduce_results.py`: end-to-end benchmark reproducer with hardware auto-detection,
-  sampling ladder, SNAP benchmarks, and Markdown summary. Writes `results/{scaling,snap}.csv`
-  and `results/{summary.md,hardware.json}`.
-- `reachq.shortcut_set.Flags`: dataclass of toggles for every algorithmic refinement.
-  Pass via the `flags` keyword to `jls_with_tc_pruning`, `build_shortcut_set_for_reachability`,
-  `cfr_hopset`, `cfr_with_truncsssp_pruning`, `build_hopset_for_sssp`.
-- Algorithmic improvements (each toggleable, all on by default):
-  1. Adaptive sampling probability (observes part sizes from previous level).
-  2. Label compression: pivot-set labels instead of strings (reduces memory and hashing).
-  3. Skip SCC condensation on already-DAG inputs (trivial condensation fast path).
-  4. Hop-bounded pivot BFS at the wrapper's `beta` estimate.
-  5. Degree-ordered pivot iteration (cheap BFS first).
-  6. Skip-trivial-partition guard (no recursion when partition is single-part).
-  7. Tightened TC-pruning trigger by work comparison vs sampling cost.
-- `tests/test_algorithmic_improvements.py`: parametrized correctness tests with each flag
-  toggled off, plus a networkx cross-check on shortcut-set reachability.
-- `docs/algorithmic_improvements.md`: technical writeup of the seven refinements.
+- **Algorithmic improvements.** Adaptive sampling probability,
+  label compression, skip-SCC condensation on DAG inputs,
+  hop-bounded pivot BFS, degree-ordered pivot iteration,
+  skip-trivial-partition guard, tightened TC-pruning trigger.
+  All toggleable via `reachq.Flags` (= `RefinementConfig`).
+- **`tests/test_algorithmic_improvements.py`** — parametrized
+  correctness tests with each flag toggled off, plus a networkx
+  cross-check on shortcut-set reachability.
+- **`tests/test_properties.py`** — Hypothesis-based property
+  tests on random DAGs.
 
-### Changed
+### Fixed
 
-- **Bug fix**: `reachq.transitive_closure.transitive_closure_matrix` now uses
-  `scipy.sparse` Boolean matmul. The previous dense `np.zeros((n, n))` OOMed above ~50k
-  vertices; sparse stays O(n + m) memory and scales to web-Google (n=875k).
-- **Bug fix**: `reachq.numpy_bfs.csr_reachable_forward` had a Python `for i in
-  range(frontier.size)` loop inside the frontier expansion, defeating the numpy fast path.
-  Replaced with a vectorised `np.repeat` + `cumsum` gather.
-- **Bug fix**: SCC-representative translation in `build_shortcut_set_for_reachability`
-  and `build_hopset_for_sssp` was indexing `scc_rep[u_idx]` even when the trivial-condensation
-  path was active (where `u_idx` is already a vertex, not an SCC index). This caused
-  phantom shortcuts to leak into `parallel_bfs`. Fixed by branching on `trivial`.
-- **Bug fix**: TC-pruning leaked self-loops into the shortcut set, breaking parallel_bfs.
-  Filtered at the call site.
-- **Bug fix**: `reachq.hopset` previously rebuilt `graph.reversed()` once per pivot inside
-  the per-pivot loop; now hoisted once per recursion level.
-- `jls_shortcut_set` (no-pruning baseline) is now a thin compatibility wrapper around
-  `jls_with_tc_pruning` with `enable_tc_pruning=False`. The separate code path that
-  existed previously has been deleted (along with its 4 `DEBUG print(...)` blocks).
-- `reachq.shortcut_set` multiprocessing pivot-parallelisation path removed. It was
-  half-wired (module-level `_worker_*` globals + `assert graph is not None` after use)
-  and defaulted to `workers=1` anyway. Replaced with a clean CSR-or-Python-BFS branch.
+- **`transitive_closure_matrix` now uses `scipy.sparse`**
+  Boolean matmul. Previous dense `np.zeros((n, n))` OOMed
+  above ~50k vertices; sparse stays O(n + m) memory and scales
+  to web-Google (n=875k).
+- **Vectorised `csr_reachable_forward`** — replaced the Python
+  `for i in range(frontier.size)` inside the frontier expansion
+  with a vectorised `np.repeat` + `cumsum` gather.
+- **SCC-representative translation** in both wrappers was
+  indexing outside the SCC coordinates when the trivial
+  condensation path was active. Fixed by branching.
+- **TC-pruning self-loops** filtered at the call site (they
+  used to leak into the shortcut set and break `parallel_bfs`).
+- **Hopset `graph.reversed()`** hoisted once per recursion
+  level (was once per pivot).
 
 ### Removed
 
-- `reachq/shortcut_set.py:45-119` original `jls_shortcut_set` body (kept as a one-line
-  wrapper above).
-- 4× `print(f"DEBUG level=...", flush=True)` blocks in the shortcut-set hot path.
-- Half-wired `multiprocessing` pivot-parallelisation scaffold in `reachq/shortcut_set.py`
-  (`_pivot_bfs_python`, `_pivot_bfs_csr`, `_process_pivots_worker`, `_init_worker_csr`,
-  `_init_worker_graph`, the `_worker_*` globals).
+- The separate `jls_shortcut_set` (no-pruning) code path and its
+  4 `DEBUG print(...)` blocks. The function is now a thin
+  wrapper around `jls_with_tc_pruning` with
+  `enable_tc_pruning=False`.
+- The half-wired multiprocessing pivot-parallelisation
+  scaffold.
 
-### Known limitations
+## [0.6.0] - 2026-07-24
 
-- The implementation produces shortcut sets significantly larger than the paper's
-  worst-case bound `O(m * rho + n * rho^2)` because (a) the sampling constant `C=10`
-  is not auto-tuned per graph, (b) the hop-bounded BFS bound `n^(omega/(2omega-2))`
-  is a coarse upper bound. See `docs/algorithmic_improvements.md` for a discussion
-  and the ablation flags `--no-adaptive-sampling` / `--no-hop-bounded-bfs`.
-- On SNAP datasets larger than ~60k vertices the construction can take 1–4 minutes
-  and produce shortcut sets in the hundreds of millions. See `results/snap.csv`.
-- `web-Google` (n=875k) is currently out of reach for a pure-Python single-process
-  build. The `transitive_closure_matrix` fix unblocks the memory ceiling; wall-clock
-  remains the bottleneck.
+### Added
+
+- **Test fixtures from algebraic graph theory.**
+  `petersen_graph`, `paley_graph`, `shrikhande_graph`,
+  `hamming_graph` in `reachq/core/generators.py`. Documented
+  in `docs/spectral_fixtures.md`.
+- **`Digraph.add_undirected_edge(u, v)`** — adds both
+  directions, counts one edge. Required for the symmetric
+  generators.
+- **`reachq/core/spectrum.py`** — `spectrum(g)` and
+  `spectral_gap(g)` helpers.
+- **`reachq/research/fix_resample.py`** — Fix/Resample variant
+  inspired by Assadi–Yazdanyar's dynamic graph coloring.
+  Static analogue only; honest scoping as an experimental
+  baseline (dynamic-update bounds do not apply to a static
+  codebase).
+- **`scripts/eval_fix_resample.py`** — empirical comparison
+  vs JLS. Result: 16% of JLS's `|H|` on average, but with a
+  looser hopbound (~3 vs JLS's ~1).
+- **`scripts/spectral_check.py`** — runs each named fixture
+  through the JLS construction and reports `|H|`, `β`, spectral
+  gap.
+
+### Fixed
+
+- `petersen_graph()` inner cycle order corrected to pentagram
+  (was producing a non-isomorphic 3-regular graph).
+- `hamming_graph()` digit-ordering inconsistency.
+- `paley_graph()` documentation now reflects the actual
+  eigenvalues `(-1 ± √q)/2`.
 
 ## [0.5.0] - 2026-07-22
 
 ### Added
 
-- Graph base class with template method pattern (`initialize_vertex`, `iterate_edges_from`, `store_edge`, `create_empty`) ([e4ba761])
-- Covariant return types on Digraph/WeightedDigraph overrides ([e4ba761])
-- ~47 new tests across generators, graph, invariants, serialization, and work_depth modules; coverage 94% → 97% ([582442b])
-- CONTRIBUTING.md with development guidelines ([#4])
-- CODE_OF_CONDUCT.md (Contributor Covenant v2.1) ([#4])
-- SECURITY.md with vulnerability reporting policy ([#4])
-- CHANGELOG.md for tracking changes ([#4])
-- .editorconfig for consistent formatting ([#4])
-- .gitattributes for line ending normalization ([#4])
-- .env.example documenting optional configuration ([#4])
-- GitHub issue templates for bug reports and feature requests ([#4])
-- GitHub pull request template ([#4])
-- Dependabot configuration for automated dependency updates ([#5])
-- GitHub funding configuration ([#5])
-- Documentation: getting-started.md, architecture.md, deployment.md, faq.md ([#4])
+- Graph base class with template method pattern
+  (`initialize_vertex`, `iterate_edges_from`, `store_edge`,
+  `create_empty`).
+- Covariant return types on `Digraph`/`WeightedDigraph`
+  overrides.
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md`,
+  `CHANGELOG.md`, `.editorconfig`, `.gitattributes`,
+  `.env.example`, GitHub issue + PR templates.
+- `docs/getting-started.md`, `docs/architecture.md`,
+  `docs/deployment.md`, `docs/faq.md`.
 
 ### Changed
 
-- Extracted `partition_by_labels` and `contract_sccs` into graph.py for co-location with graph structures ([9e37747], [f03d9d0])
-- Indexed shortcut edges by source vertex in `parallel_bfs` for O(1) edge lookup ([9b30ed0])
-- Indexed hopset edges by source vertex in `shortest_path_hopbound` for O(1) edge lookup ([a2ba6ba])
-- Renamed all underscore-prefixed identifiers to public names across 14 files (~78 sites) ([0abc514])
-- Extracted Graph → Digraph → WeightedDigraph inheritance hierarchy with template hooks ([e4ba761])
-- Graph base class provides shared operations (induced_subgraph, reversed, copy) via template method pattern ([e4ba761])
-- Updated architecture, algorithms, index, and FAQ docs to reflect OO hierarchy and O(1) lookups
-- Rewrote README.md with improved structure, badges, and comprehensive documentation ([#4])
-- Updated pyproject.toml with corrected metadata and project URLs ([#4])
-- Improved CI workflow with dependency caching and documentation job fixes ([#4])
-- Synced package version with git tags (0.4.0) ([#4])
+- `partition_by_labels` and `contract_sccs` extracted into
+  `core/graph.py`.
+- All `_`-prefixed identifiers renamed to public names across
+  14 files (~78 sites).
+- `Graph` → `Digraph` → `WeightedDigraph` inheritance hierarchy
+  with template hooks.
 
-### Fixed
+## [0.4.0] - 2026-07-22
 
-- Integer overflow in matrix transitive closure (`np.int8` → `np.int32`) ([203a75c])
-- mypy `python_version` updated to 3.12 for runtime numpy stub compatibility ([70f8170])
-- Version mismatch between \_\_init\_\_.py (0.1.0) and git tags (0.4.0) ([#4])
-- CI docs job was a no-op (mkdocs not installed) ([#4])
+Process mode uses fork-safe initializer (`_init_pivot_worker`).
+`graph` passed via a dedicated initializer instead of module-level
+globals.
 
-[Unreleased]: https://github.com/sachncs/parallel-reachability-and-shortest-paths/compare/v1.0.0...HEAD
-[0.5.0]: https://github.com/sachncs/parallel-reachability-and-shortest-paths/compare/v0.4.0...v0.5.0
-[1.0.0]: https://github.com/sachncs/parallel-reachability-and-shortest-paths/compare/v0.5.0...v1.0.0
-[0.4.0]: https://github.com/sachncs/parallel-reachability-and-shortest-paths/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/sachncs/parallel-reachability-and-shortest-paths/compare/v0.2.0...v0.3.0
-[0.2.0]: https://github.com/sachncs/parallel-reachability-and-shortest-paths/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/sachncs/parallel-reachability-and-shortest-paths/releases/tag/v0.1.0
-[#4]: https://github.com/sachncs/parallel-reachability-and-shortest-paths/pull/4
-[#5]: https://github.com/sachncs/parallel-reachability-and-shortest-paths/pull/5
+## [0.3.0] - 2026-07-22
+
+`Flags` replaced by `RefinementConfig`. Frozen dataclass with
+`__slots__` in `core/config.py`. `reachq.Flags = RefinementConfig`
+alias kept.
+
+## [0.2.0] - 2026-07-22
+
+Drop Python 3.9 support. Restructure into subpackages:
+`reachq/core/`, `reachq/research/`, `reachq/cli/`, `reachq/proto/`,
+`reachq/accel/`. Rename `logging_config` → `core.config`,
+`serialization` → `core.io.json`.
+
+## [0.1.0] - 2026-07-22
+
+Initial release. JLS shortcut-set construction, CFR hopset
+construction, sparse transitive closure, RDF parsing, SNAP
+loader, and basic CI.
