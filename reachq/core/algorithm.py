@@ -52,7 +52,11 @@ from reachq.core.trace import trace
 
 log = get_logger("reachq.core.algorithm")
 
-# Backward-compatible alias.
+# Backward-compatible alias. The canonical definition of ``Flags``
+# lives in ``reachq/__init__.py`` (where it is publicly re-exported
+# as part of the top-level API); this duplicate preserves the
+# ``from reachq.core.algorithm import Flags`` import path for
+# callers that prefer the submodule.
 Flags = RefinementConfig
 
 SAMPLING_CONSTANT = 10
