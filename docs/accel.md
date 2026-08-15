@@ -7,18 +7,19 @@ package with no JIT and no native extensions.
 
 ## What ships vs what does not
 
-| Component | In the PyPI wheel? |
+| Component | In the PyPI wheel / sdist? |
 |---|---|
 | `reachq.core.*` pure-Python algorithms | yes |
-| `reachq.accel` wrapper modules + pure-Python fallbacks | yes |
-| Cython `.pyx` kernels (`reachq/accel/cython`) | yes, as source files only |
+| `reachq.accel` wrapper modules + pure-Python fallbacks (`bfs.py`, `dijkstra.py`, `setup.py`) | yes |
+| Cython `.pyx` kernels (`reachq/accel/cython`) | **no** (git repo only) |
 | Compiled `_cy_*.so` / Rust `.so` extensions | **no** |
-| Rust source (`reachq/accel/rust`) | no (source lives only in the repo) |
+| Rust source (`reachq/accel/rust`, `Cargo.toml`, `src/lib.rs`) | **no** (git repo only) |
 
-The `.pyx` sources ship only so the modules can be imported without error;
-they are never compiled during install. There is **no build hook**: even
-`pip install "reachq[accel-cython]"` only installs build dependencies
-(`cython`), it does not compile anything.
+The shipped wheel and sdist contain only the pure-Python fallback
+wrappers. The `.pyx` and Rust sources live only in the git repository,
+so the kernels cannot be compiled from an installed package. There is
+**no build hook**: `pip install "reachq[accel-cython]"` only installs
+build dependencies (`cython`), it does not compile anything.
 
 ## Status and support
 
@@ -35,7 +36,9 @@ they are never compiled during install. There is **no build hook**: even
 
 ## If you build them anyway
 
-Building the Cython kernels requires a C compiler and numpy headers:
+This requires a **git checkout** of the repo — the kernel sources are
+not in the PyPI wheel or sdist. Building the Cython kernels requires a C
+compiler and numpy headers:
 
 ```bash
 cd reachq/accel/cython
