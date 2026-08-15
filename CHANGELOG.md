@@ -31,6 +31,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   that mkdocstrings could not resolve; it now documents the real
   `reachq.core.*` / `reachq.research.*` API. Nav entries that pointed
   at source files or files outside `docs/` are fixed.
+- **The density-aware sampling constant is per-call, not a module
+  global.** `build_shortcut_set_for_reachability` no longer writes
+  shared mutable state that `jls_with_tc_pruning` reads at every
+  recursion level; the value is threaded through as a parameter, so
+  concurrent builds with different graph densities cannot clobber each
+  other's constant. The `density_aware_constant` docstring now matches
+  the code (the constant is non-decreasing in `rho`; the old text
+  claimed the opposite direction).
 
 ### Changed
 
@@ -44,6 +52,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Test count in the README corrected (304 → 574).
 - Python requirement corrected to ≥ 3.10 everywhere (the package never
   supported 3.9).
+- Property tests for the lemmas run at scale nightly:
+  `REACHQ_HYPOTHESIS=10000` on `tests/test_properties.py` (the env var
+  was previously lowercase and undocumented).
+- Docs honest about what ships: the `reachq/accel` Cython/Rust/Numba
+  kernels are experimental, unbuilt scaffolding, not part of the PyPI
+  wheel (`docs/accel.md`); the README no longer claims "True PRAM
+  parallelism integration" (that contradicts "no true parallel
+  execution"), and the coverage figure in `docs/architecture.md` is the
+  measured ~76% instead of a claimed 97%.
+- README roadmap no longer lists done work as in-progress: networkx
+  cross-check, property tests in CI, the `REACHQ_HYPOTHESIS=10000`
+  nightly run, the MkDocs site, the PyPI workflow, pre-commit, and the
+  literature survey are all marked done (with caveats where they apply).
 
 ## [7.0.0] - 2026-07-24
 

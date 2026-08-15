@@ -371,6 +371,7 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 - [x] Parallel pivot processing — `ParallelContext` with threads + processes modes, 1.8–2.9× speedup
 - [x] Fast matrix multiplication support (ω < 3) — runtime omega detection (`reachq/research/blas_omega.py`)
 - [x] Empirical span profiling — `SpanProfiler` (times sequential phases; a lower bound on true PRAM span, not a PRAM measurement)
+- [x] Literature survey with 32 confirmed references (`docs/lit_survey.md`)
 
 ### Done (v0.8.0 — Papers 1, 2, 3 ideas)
 - [x] SRG + Hamming graph test fixtures (Papers 2/3) — `petersen_graph`,
@@ -390,17 +391,19 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
   static), and Papers 2/3 contribute test inputs rather than
   algorithmic novelty.
 
-### In progress (v0.7.x)
-- [ ] Networkx cross-check in CI for every PR
-- [ ] Hypothesis-based property tests in CI (currently run locally)
-- [ ] Property-based tests for the lemmas at scale (REACHQ_HYPOTHESIS=10000)
+### Done (v0.8.0 — PyPI readiness)
+- [x] Networkx reachability cross-check runs in CI (was skip-gated; `networkx` added to the dev extra)
+- [x] Hypothesis-based property tests run in CI (part of every suite)
+- [x] Property-based tests for the lemmas at scale — nightly job runs `REACHQ_HYPOTHESIS=10000` on `tests/test_properties.py`
+- [x] MkDocs documentation site — `mkdocs build --strict` is green, built in CI (`docs.yml`); not yet deployed to GitHub Pages
+- [x] PyPI publishing workflow (`release.yml` publishes the sdist via trusted publishing on `v*` tags; `wheels.yml` builds wheels but does not publish them)
+- [x] Pre-commit hooks — ruff (format + lint) pinned in `.pre-commit-config.yaml`; mypy and pytest run in CI instead
+- [x] Version metadata aligned for 0.8.0 (`pyproject.toml`, `reachq/__init__.py`, CHANGELOG)
 
 ### Planned (v0.8+)
-- [ ] Cython port of the per-pivot BFS inner loop (for web-Google-scale inputs)
-- [ ] Online documentation site (MkDocs)
-- [ ] PyPI publishing workflow
-- [ ] Pre-commit hooks (ruff + mypy + pytest)
-- [ ] Fill in literature survey citations (`docs/lit_survey.md`)
+- [ ] Cython port of the per-pivot BFS inner loop (for web-Google-scale inputs) — scaffolding exists under `reachq/accel/` but is not built or shipped (see `docs/accel.md`)
+- [ ] Deploy the MkDocs site to GitHub Pages
+- [ ] Publish the cibuildwheel wheels to PyPI (`release.yml` currently publishes only the sdist)
 - [ ] Star / sponsor / contributor recognition
 
 ### Deferred
