@@ -4,12 +4,13 @@ from __future__ import annotations
 
 from collections.abc import Callable, Iterable
 from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
-from typing import Any, Protocol, TypeVar
+from typing import Any, Protocol, TypeVar, runtime_checkable
 
 T = TypeVar("T")
 R = TypeVar("R")
 
 
+@runtime_checkable
 class Backend(Protocol):
     """Protocol for parallel-execution backends."""
 
