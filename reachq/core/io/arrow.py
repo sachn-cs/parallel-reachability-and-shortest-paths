@@ -15,7 +15,15 @@ if TYPE_CHECKING:
 
 
 def dump_arrow(graph: Digraph, path: str) -> None:
-    """Serialize a Digraph to Arrow IPC format."""
+    """Serialize a Digraph to Arrow IPC format.
+
+    Args:
+        graph: The input digraph.
+        path: Output file path.
+
+    Raises:
+        ImportError: If ``pyarrow`` is not installed.
+    """
     try:
         import pyarrow as pa
         from pyarrow import ipc
@@ -45,7 +53,18 @@ def dump_arrow(graph: Digraph, path: str) -> None:
 
 
 def load_arrow(path: str) -> Digraph:
-    """Deserialize a Digraph from Arrow IPC format."""
+    """Deserialize a Digraph from Arrow IPC format.
+
+    Args:
+        path: Input file path (must be an Arrow IPC file written by
+            ``dump_arrow``).
+
+    Returns:
+        The reconstructed Digraph.
+
+    Raises:
+        ImportError: If ``pyarrow`` is not installed.
+    """
     try:
         from pyarrow import ipc
     except ImportError as e:
