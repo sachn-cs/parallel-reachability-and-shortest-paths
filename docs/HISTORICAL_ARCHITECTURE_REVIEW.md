@@ -1,4 +1,4 @@
-# 1. Executive Summary
+# Historical: 1. Executive Summary
 
 > **Historical snapshot.** This review describes the repository *as it
 > was* at review time (466 tests passing, flat module layout). It is
