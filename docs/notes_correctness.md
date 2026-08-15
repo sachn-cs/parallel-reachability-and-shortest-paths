@@ -127,7 +127,7 @@ unconditionally unioned the TC result into the shortcut set.
 **Fix.** Filter out `(u, u)` pairs at the call site before unioning
 into `shortcuts`.
 
-**Verification.** `tests/test_shortcut_set.py::TestBuildShortcutSetForReachability`
+**Verification.** `tests/test_shortcut_set_basic.py::TestJlsBasic`
 asserts no self-loops in `shortcuts` (implicitly, via the correctness
 property $R^+(G, s) = R^+(G \cup H, s)$).
 
