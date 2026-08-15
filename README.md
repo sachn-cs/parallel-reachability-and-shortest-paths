@@ -23,19 +23,22 @@ about the relationship between `reachq` and the cited papers.
 
 It also contains contributions layered on top of the cited work:
 
-1. **[`docs/PAPER.md`](docs/PAPER.md)** — The unified paper draft: sparsification
-   with hopbound preservation, adaptive β, and bound-gap analysis.
-2. **[`docs/notes_correctness.md`](docs/notes_correctness.md)** — A
-   corrigendum documenting four bugs found and fixed in the reference
-   implementation.
-3. **[`docs/spectral_fixtures.md`](docs/spectral_fixtures.md)** — Test
-   fixtures from Papers 2/3 (SRG, Hamming, Paley, Petersen).
-4. **[`docs/fix_resample.md`](docs/fix_resample.md)** — Experimental
-   Fix/Resample variant from Paper 1.
+- **[`docs/PAPER.md`](docs/PAPER.md)** — the unified paper draft
+  (historical; current claims about StreamingShortcutSet and
+  greedy_shortcut_set do not match the implementation; see
+  [`docs/limitations.md`](docs/limitations.md)).
+- **[`docs/notes_correctness.md`](docs/notes_correctness.md)** — a
+  corrigendum documenting four bugs found and fixed in the reference
+  implementation.
+- **[`docs/spectral_fixtures.md`](docs/spectral_fixtures.md)** — test
+  fixtures from Papers 2/3 (SRG, Hamming, Paley, Petersen).
+- **[`docs/fix_resample.md`](docs/fix_resample.md)** — experimental
+  Fix/Resample variant from Paper 1.
 
 ## When to use reachq
 
 Use reachq when you want a Python library that:
+
 - Computes shortcut sets for parallel reachability.
 - Computes hopsets for approximate shortest paths.
 - Has reproducible benchmarks and tests.
@@ -53,8 +56,8 @@ reachq only for the specific parallel-reachability shortcuts.
 | JLS shortcut set | yes | no | no |
 | CFR hopset | yes | no | no |
 | beta-hopbound-preserving sparsification | yes (small graphs) | no | no |
-| streaming shortcut set | prototype (no amortized bound) | no | no |
-| (1+ε) approximation | no formal guarantee | no | no |
+| streaming shortcut set | experimental prototype (no formal bound) | no | no |
+| (1+ε) approximation | vanilla greedy (no formal guarantee) | no | no |
 | full graph library | no (focused) | yes | yes |
 | reproducible benchmarks | yes | partial | no |
 
@@ -65,12 +68,13 @@ reachq only for the specific parallel-reachability shortcuts.
 ```bash
 pip install reachq
 # or
-git clone https://github.com/sachncs/parallel-reachability-and-shortest-paths.git
+git clone https://github.com/sachncs/parallel-reachability-and-shortest-paths
 cd parallel-reachability-and-shortest-paths
 pip install -e ".[dev]"
 ```
 
-**Requirements:** Python ≥ 3.10, `numpy` ≥ 1.21, `scipy` ≥ 1.10. No JIT, no native extensions.
+**Requirements:** Python ≥ 3.10, `numpy` ≥ 1.21, `scipy` ≥ 1.10.
+No JIT, no native extensions; the wheel is pure-Python.
 
 ---
 
@@ -91,15 +95,17 @@ assert bfs_reachability(g, src) == parallel_bfs(g, src, shortcuts)
 Disable any refinement:
 
 ```python
+from reachq import RefinementConfig
+
 shortcuts, beta = build_shortcut_set_for_reachability(
     g,
     omega=3.0,
     random_seed=42,
-    flags={"enable_tc_pruning": False, "tight_tc_trigger": True},
+    flags=RefinementConfig(enable_tc_pruning=False, tight_tc_trigger=True),
 )
 ```
 
-End-to-end applications live in [`examples/`](examples/):
+Five more end-to-end applications live in [`examples/`](examples/):
 
 - `gnn_preprocessing.py` — citation graph → PyG Data object.
 - `rag_reranking.py` — passage-citation graph → pivot-reach ranking.
@@ -109,61 +115,51 @@ End-to-end applications live in [`examples/`](examples/):
 
 ---
 
-## Algorithmic refinements (paper contribution)
+## Algorithmic refinements
 
-## Algorithmic refinements (paper contribution)
+The seven toggles on `RefinementConfig` (re-exported as
+`reachq.Flags`); all default to on except `parallel`.
 
-Two are formalised with proofs in [`docs/PAPER.md`](docs/PAPER.md):
+| Flag | Effect |
+|---|---|
+| `adaptive_sampling` | Adapt per-level sampling probability from observed part sizes. |
+| `label_compress` | Store labels as `frozenset[int]` instead of `set[str]`. |
+| `skip_condense` | Skip SCC condensation on DAG inputs. |
+| `hop_bounded_bfs` | Use a hop-bounded BFS kernel in the pivot loop. |
+| `degree_ordered_pivots` | Process pivots in ascending out-degree order. |
+| `tight_tc_trigger` | Tighten the TC-pruning trigger by work comparison. |
+| `skip_trivial_part` | Skip recursion when the partition is a single part. |
+| `enable_tc_pruning` | Enable TC-pruning (Theorem 2's improvement). |
+| `parallel` | Reserved; the current implementation is sequential. |
 
-| # | Refinement | Lemma | Default |
-|---|---|---|---|
-| 1 | Tightened TC-pruning trigger | Lemma 2.1 (soundness), Lemma 2.2 (size contribution) | on |
-| 2 | Hop-bounded pivot BFS | Lemma 3.1 (hopbound preservation), Lemma 3.2 (work bound) | on |
-
-Five more (data-structure and engineering wins) are documented in [`docs/PAPER.md`](docs/PAPER.md) §3: adaptive sampling, label compression, trivial-condensation fast path, degree-ordered pivots, skip-trivial-partition guard.
-
----
-
-## Reproducing results
-
-```bash
-# 1. Fetch SNAP datasets (idempotent, sha256-verified).
-python scripts/download_datasets.py
-
-# 2. Sampling ladder + SNAP benchmarks.
-python scripts/reproduce_results.py
-# Produces: results/scaling.csv, results/snap.csv, results/hardware.json, results/summary.md
-
-# 3. Ablation over refinement flags.
-python scripts/run_ablation.py --sizes 500 1000 --densities 0.1
-# Produces: results/ablation.csv
-
-# 4. Empirical tables for the paper (Lemmas 2 and 3).
-python scripts/eval_refinements.py --sizes 500 1000 2000 --densities 0.05 0.1
-# Produces: results/refinements.csv
-```
-
-Every script auto-detects hardware (CPU, RAM, Python, BLAS) and writes it to `results/hardware.json`. Each refinement can be disabled individually via `--no-*` flags.
+The `parallel_workers` parameter on both wrappers is accepted for
+API symmetry; the current implementation is sequential.
+See [`docs/algorithms.md`](docs/algorithms.md) §"Refinement flags"
+and [`docs/limitations.md`](docs/limitations.md).
 
 ---
 
 ## Tests
 
 ```bash
-pytest                        # 576 tests (1 xfailed)
+pytest                        # 575 passed + 1 xfailed (576 total)
 pytest -m "not slow"          # skip slow tests
-pytest --cov=reachq          # with coverage
-pytest tests/test_paper_lemmas.py -v   # the 22 empirical lemma tests
+pytest --cov=reachq          # with coverage (currently 76%)
 ```
 
-The lemma tests run 50 random seeds per invariant claim; failures would indicate the lemmas don't hold empirically on the tested graph class.
+The lemma tests run 50 random seeds per invariant claim; failures
+would indicate the lemmas don't hold empirically on the tested
+graph class.
+
+The current test count is in [`CHANGELOG.md`](CHANGELOG.md); do
+not hard-code counts in user-facing docs.
 
 ---
 
 ## API summary
 
 ```python
-from reachq import Flags, Digraph, WeightedDigraph
+from reachq import RefinementConfig as Flags, Digraph, WeightedDigraph
 from reachq.core.algorithm import (
     build_shortcut_set_for_reachability,  # Theorem-2 wrapper
     jls_with_tc_pruning,  # direct recursion
@@ -204,6 +200,7 @@ from reachq.core.generators import (
     petersen_graph,
     paley_graph,
     shrikhande_graph,
+    shrikhande_cayley,
     hamming_graph,
 )
 from reachq.core.io.json import (
@@ -214,7 +211,8 @@ from reachq.core.io.json import (
 )
 ```
 
-Full API reference: [`docs/algorithms.md`](docs/algorithms.md).
+Full API reference: [`docs/REFERENCE.md`](docs/REFERENCE.md) (auto-
+generated by mkdocstrings from the actual signatures).
 
 ---
 
@@ -225,70 +223,36 @@ parallel-reachability-and-shortest-paths/
 ├── reachq/                          # Main package
 │   ├── __init__.py                  # Public API + __version__
 │   ├── core/                        # Always-imported library layer
+│   │   ├── algorithm.py             # JLS + TC-pruning (Theorem 2)
+│   │   ├── bfs.py                   # Vectorised CSR BFS
+│   │   ├── config.py                # RefinementConfig + logging
+│   │   ├── csr.py                   # CSR pair builder
+│   │   ├── generators.py            # Deterministic generators + SNAP loader
 │   │   ├── graph.py                 # Digraph, WeightedDigraph
+│   │   ├── hopset.py                # CFR + TruncSSSP-pruning (Theorem 4)
+│   │   ├── invariants.py            # Theorem-oriented validators
+│   │   ├── io/                      # JSON + Arrow + NetworkX
+│   │   ├── metrics.py               # Opt-in counters and histograms
+│   │   ├── predictor.py             # Heuristic graph-property estimators
+│   │   ├── prune.py                 # TC-pruning (extracted)
 │   │   ├── reachability.py          # BFS, SCC, topological sort
 │   │   ├── shortest_paths.py        # Dijkstra, A*, truncated SSSP
-│   │   ├── algorithm.py             # JLS + TC-pruning (Theorem 2)
-│   │   ├── hopset.py                # CFR + TruncSSSP-pruning (Theorem 4)
-│   │   ├── generators.py            # Deterministic generators + SNAP loader
+│   │   ├── snapshot.py              # Frozen graph snapshot dataclass
+│   │   ├── spectrum.py              # Eigenvalues and spectral gap
 │   │   ├── tc.py                    # Sparse Boolean matmul TC
-│   │   ├── bfs.py                   # Vectorised CSR BFS
-│   │   ├── io/                      # JSON + Arrow serialisation
+│   │   ├── trace.py                 # Contextmanager tracing
+│   │   ├── tuner.py                 # auto_tune RefinementConfig
 │   │   ├── work_depth.py            # PRAM work/depth accounting
-│   │   └── invariants.py            # Theorem-oriented validators
-│   └── research/                    # Opt-in refinements (off-paper)
+│   │   └── backends/                # Backend Protocol + ParallelContext
+│   ├── research/                    # Opt-in refinements (off-paper)
+│   ├── accel/                       # Experimental Cython/Rust/Numba (see docs/accel.md)
+│   ├── cli/                         # Console-script entry point
+│   └── proto/                       # Duck-typed Protocols
 ├── tests/                            # 576 tests
-│   ├── test_paper_lemmas.py          # Empirical support for paper lemmas
-│   ├── test_algorithmic_improvements.py   # Per-flag ablation tests
-│   ├── test_numpy_bfs.py             # Vectorised BFS equivalence
-│   ├── test_shortcut_set.py
-│   ├── test_hopset.py
-│   ├── test_reachability.py
-│   ├── test_shortest_paths.py
-│   ├── test_transitive_closure.py
-│   ├── test_generators.py
-│   ├── test_graph.py
-│   ├── test_invariants.py
-│   ├── test_serialization.py
-│   ├── test_work_depth.py
-│   └── test_benchmark_sanity.py
 ├── scripts/                          # CLI / benchmark / reproduction
-│   ├── cli.py                        # argparse CLI
-│   ├── download_datasets.py          # SNAP downloader
-│   ├── reproduce_results.py          # Main benchmark reproducer
-│   ├── run_ablation.py               # Per-flag ablation
-│   ├── eval_refinements.py           # Empirical paper tables
-│   ├── benchmark_large.py            # Original large-graph benchmark
-│   ├── benchmark_reachability.py
-│   ├── benchmark_shortest_paths.py
-│   └── demo.py
-├── docs/                             # Research + user documentation
-│   ├── PAPER.md                      # Consolidated paper draft
-│   ├── notes_correctness.md          # Corrigendum on 4 bugs found
-│   ├── algorithms.md                 # Algorithm descriptions
-│   ├── architecture.md
-│   ├── invariants.md
-│   ├── work-depth.md
-│   ├── benchmarks.md
-│   ├── deployment.md
-│   ├── getting-started.md
-│   ├── faq.md
-│   └── index.md
-├── examples/                         # End-to-end applications
-│   ├── gnn_preprocessing.py
-│   ├── rag_reranking.py
-│   ├── compiler_inlining.py
-│   ├── social_network.py
-│   └── bioinformatics.py
+├── docs/                             # 24 docs (see docs/index.md)
+├── examples/                         # 5 end-to-end applications
 ├── benchmarks/                       # asv micro-benchmarks
-├── results/                          # Auto-generated, gitignored
-│   ├── scaling.csv                   # Synthetic ladder
-│   ├── snap.csv                      # SNAP datasets
-│   ├── ablation.csv                  # Per-flag ablation
-│   ├── refinements.csv               # Empirical paper tables
-│   ├── hardware.json                 # Detected hardware
-│   └── summary.md                    # Markdown summary
-├── data/                             # SNAP downloads, gitignored
 ├── pyproject.toml
 ├── CHANGELOG.md
 ├── CONTRIBUTING.md
@@ -298,122 +262,84 @@ parallel-reachability-and-shortest-paths/
 └── LICENSE
 ```
 
----
-
-## Hardware
-
-Reported numbers were generated on:
-
-| | |
-|---|---|
-| CPU | Apple M3 Pro (12 cores) |
-| RAM | 18 GB |
-| OS | macOS 26.6 (Darwin 25.6.0, arm64) |
-| Python | 3.12.7 (clang) |
-| numpy | 1.26.4 (BLAS: OpenBLAS 0.3.23) |
-| scipy | 1.13.1 |
-
-`scripts/reproduce_results.py` auto-detects the local hardware and writes it to `results/hardware.json`.
+The docs list is in [`docs/index.md`](docs/index.md). See also
+[`docs/architecture.md`](docs/architecture.md) for the per-module
+responsibility table.
 
 ---
 
-## Headline numbers
+## Documentation
 
-| Configuration | n | \|H\| | wall-clock | β |
-|---|---|---|---|---|
-| Synthetic random DAG | 1000 | 358,975 | 0.4s | 11.9 |
-| Synthetic weighted DAG | 1000 | 416,202 (hopset) | 8.4s | 11.9 |
-| SNAP cit-HepPh | 34,546 | 178M | 93s | 99.4 |
-| SNAP p2p-Gnutella31 | 62,586 | 201M | 191s | 201.8 |
+```bash
+pip install -e ".[dev]"
+mkdocs build --strict        # verify the docs build cleanly
+mkdocs serve                  # preview at http://127.0.0.1:8000
+```
 
-The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
+The documentation site is built by CI on every PR but is not yet
+deployed to GitHub Pages (see the Roadmap).
 
-| | hopset time |
-|---|---|
-| All refinements on (production) | 1.02s |
-| All refinements off (paper baseline) | 9.17s |
-| Only degree-ordered pivots | 1.07s |
+Notable entry points:
 
-**~9× speedup**, almost entirely from the degree-ordered pivots heuristic. The two formalised refinements (Lemmas 2 and 3) reduce wall-clock modestly but change *what shortcuts get added*, not just the order. See [`results/ablation.csv`](results/ablation.csv) for the full table.
+- [`docs/START_HERE.md`](docs/START_HERE.md) — three routing paths
+  (use / understand / extend).
+- [`docs/getting-started.md`](docs/getting-started.md) — install +
+  first construction.
+- [`docs/algorithms.md`](docs/algorithms.md) — algorithm
+  descriptions, parameter selection, RefinementConfig flags.
+- [`docs/architecture.md`](docs/architecture.md) — module responsibilities
+  + dependencies.
+- [`docs/REFERENCE.md`](docs/REFERENCE.md) — full API reference.
+- [`docs/limitations.md`](docs/limitations.md) — what is NOT implemented.
+- [`docs/GLOSSARY.md`](docs/GLOSSARY.md) — terminology.
 
 ---
 
 ## Known limitations
 
-- `|H|` on SNAP is **330–680×** the paper's worst-case bound $O(m\rho + n\rho^2)$. The asymptotic bound is correct; the constants in the paper's analysis (sampling rate, TC trigger threshold, β estimate) are loose on real-world graphs. A tighter sampling constant and per-graph auto-tuning would close this gap. **See [`results/summary.md`](results/summary.md) for the honest breakdown.**
-- `web-Google` (n=875,713) is out of reach for single-process Python: memory is unblocked (sparse TC), but wall-clock is dominated by Python's per-edge overhead. The improvement to break this is a Cython/numba port of the BFS and Dijkstra inner loops. Kernel scaffolding exists under [`reachq/accel/`](reachq/accel/), but it is **not** built or shipped: the wheel is pure-Python only (no JIT, no native extensions), and the kernels are not wired into the algorithm. See [`docs/accel.md`](docs/accel.md).
-- All randomised algorithms use seeded `random.Random` instances for reproducibility. No true parallel execution; parallel span bounds are not measured.
+See [`docs/limitations.md`](docs/limitations.md) for the consolidated
+list. The short version:
+
+- **No true parallel execution.** Single-threaded; `parallel_workers`
+  is accepted for API symmetry but logged-and-ignored on the process
+  path.
+- **No JIT / no native extensions.** Pure-Python wheel; the
+  experimental Cython/Rust kernels in `reachq/accel/` are not
+  built or shipped.
+- **No formal (1+ε) approximation.** `greedy_shortcut_set` is a
+  vanilla greedy.
+- **No amortised streaming bound.** `StreamingShortcutSet` is a
+  prototype; the O(log² n) per-insertion bound is not implemented.
+- **`web-Google` (n=875k) is out of reach** for single-process
+  Python.
 
 ---
 
 ## Roadmap
 
-### Done (v0.6.0)
-- [x] Faithful reimplementation of JLS shortcut set + CFR hopset
-- [x] Two formalised algorithmic refinements with proofs (`docs/PAPER.md`)
-- [x] Corrigendum on four correctness bugs found (`docs/notes_correctness.md`)
-- [x] Five engineering refinements documented (`docs/PAPER.md` §3)
-- [x] Toggleable per-refinement flags (`reachq.Flags`)
-- [x] Sparse Boolean transitive closure (scipy.sparse)
-- [x] Vectorised CSR BFS (numpy)
-- [x] SNAP dataset loader + sha256 verification
-- [x] Reproducible benchmark suite (`scripts/reproduce_results.py`)
-- [x] Per-flag ablation (`scripts/run_ablation.py`)
-- [x] Empirical paper tables (`scripts/eval_refinements.py`)
-- [x] Logging-based output (no prints in scripts)
+### Planned
 
-### Done (v0.7.0)
-- [x] Hypothesis-based property testing on random DAGs (`tests/test_properties.py`)
-- [x] SpanProfiler for empirical parallel span (`reachq/core/work_depth.py`)
-- [x] Formalise Lemma 2.2 for dense graphs — strengthened Corollary 2.3 to ALL regimes
-- [x] Counterexample search for Lemma 2.2 — no counterexample found in 24 cases
-- [x] Auto-tuned sampling constant per graph density (`density_aware_constant`)
-- [x] Parallel pivot processing — `ParallelContext` with threads + processes modes, 1.8–2.9× speedup
-- [x] Fast matrix multiplication support (ω < 3) — runtime omega detection (`reachq/research/blas_omega.py`)
-- [x] Empirical span profiling — `SpanProfiler` (times sequential phases; a lower bound on true PRAM span, not a PRAM measurement)
-- [x] Literature survey with 32 confirmed references (`docs/lit_survey.md`)
-
-### Done (v0.8.0 — Papers 1, 2, 3 ideas)
-- [x] SRG + Hamming graph test fixtures (Papers 2/3) — `petersen_graph`,
-  `paley_graph`, `shrikhande_graph`, `hamming_graph` in
-  `reachq/core/generators.py`.
-- [x] Spectrum helpers + cross-check script (Paper 2) — `reachq/core/spectrum.py`,
-  `scripts/spectral_check.py`. Verifies generator spectra match published
-  values; documents `|H|/n` correlation with density rather than spectrum.
-- [x] Fix/Resample experimental variant (Paper 1) —
-  `reachq/research/fix_resample.py`, `scripts/eval_fix_resample.py`. Empirical
-  finding across 9/9 fixtures: Fix/Resample produces smaller `|H|`
-  (16% of JLS on average) but with looser hopbound. Trade-off
-  documented in `docs/fix_resample.md`.
-- [x] Honest documentation of each paper's contribution — `docs/spectral_fixtures.md`,
-  `docs/fix_resample.md`. The user explicitly asked for honest
-  framing: Paper 1's algorithm targets the dynamic setting (we're
-  static), and Papers 2/3 contribute test inputs rather than
-  algorithmic novelty.
-
-### Done (v0.8.0 — PyPI readiness)
-- [x] Networkx reachability cross-check runs in CI (was skip-gated; `networkx` added to the dev extra)
-- [x] Hypothesis-based property tests run in CI (part of every suite)
-- [x] Property-based tests for the lemmas at scale — nightly job runs `REACHQ_HYPOTHESIS=10000` on `tests/test_properties.py`
-- [x] MkDocs documentation site — `mkdocs build --strict` is green, built in CI (`docs.yml`); not yet deployed to GitHub Pages
-- [x] PyPI publishing workflow (`release.yml` publishes the sdist via trusted publishing on `v*` tags; `wheels.yml` builds wheels but does not publish them)
-- [x] Pre-commit hooks — ruff (format + lint) pinned in `.pre-commit-config.yaml`; mypy and pytest run in CI instead
-- [x] Version metadata aligned for 0.8.0 (`pyproject.toml`, `reachq/__init__.py`, CHANGELOG)
-
-### Planned (v0.8+)
-- [ ] Cython port of the per-pivot BFS inner loop (for web-Google-scale inputs) — scaffolding exists under `reachq/accel/` but is not built or shipped (see `docs/accel.md`)
-- [ ] Deploy the MkDocs site to GitHub Pages
-- [ ] Publish the cibuildwheel wheels to PyPI (`release.yml` currently publishes only the sdist)
-- [ ] Star / sponsor / contributor recognition
+- [ ] Cython port of the per-pivot BFS inner loop (for
+      web-Google-scale inputs) — scaffolding exists under
+      `reachq/accel/` but is not built or shipped (see
+      [`docs/accel.md`](docs/accel.md)).
+- [ ] Deploy the MkDocs site to GitHub Pages.
+- [ ] Publish the cibuildwheel wheels to PyPI (`release.yml`
+      currently publishes only the sdist).
 
 ### Deferred
-- [ ] PRAM span for the *actual* parallel runtime (requires real PRAM model; SpanProfiler measures sequential phases only)
+
+- [ ] PRAM span for the *actual* parallel runtime (requires a
+      real PRAM model; `SpanProfiler` measures sequential phases
+      only).
 
 ---
 
 ## Contributing
 
-See [CONTRIBUTING.md](CONTRIBUTING.md). For research questions, see [`docs/PAPER.md`](docs/PAPER.md) for what's been proved and what's empirical.
+See [CONTRIBUTING.md](CONTRIBUTING.md). For research questions, see
+[`docs/PAPER.md`](docs/PAPER.md) for what's been proved and what's
+empirical.
 
 ## Citation
 
