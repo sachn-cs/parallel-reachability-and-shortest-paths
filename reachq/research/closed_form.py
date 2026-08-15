@@ -112,13 +112,19 @@ def binary_tree_dag(depth: int) -> Digraph:
 def tree_shortcut_set_lower_bound(depth: int) -> int:
     """Lower bound on |H| for a binary tree of given depth.
 
-    For the tree to be β-hop-bounded with β=1, we need every pair of
-    vertices at distance ≤ 1 to have a direct edge OR a shortcut. The
-    tree's diameter is 2·depth, so we need O(n) shortcuts at minimum
-    (one per leaf-to-internal-ancestor edge).
+    Notes:
+        Placeholder. The body returns 0; the documented ``n - 1``
+        lower bound is unimplemented. The docstring's analysis
+        (diameter 2·depth, one shortcut per leaf-to-ancestor edge)
+        is retained as design intent, but no closed-form expression
+        is currently produced. See TODO.
 
-    The simple lower bound is n - 1 (matching the tree's own edges).
-    For β=1, we'd need O(n^2) shortcuts. For β=2·depth, 0 shortcuts.
+    Args:
+        depth: Depth of the binary tree (root at depth 0); the tree
+            has n = 2^(depth+1) - 1 vertices.
+
+    Returns:
+        The lower bound on |H|. Currently returns 0 (placeholder).
     """
     return 0
 
