@@ -4,7 +4,7 @@ This guide walks you through setting up and using reachq for the first time.
 
 ## Prerequisites
 
-- Python 3.9 or higher
+- Python 3.10 or higher
 - pip (Python package manager)
 
 ## Installation
@@ -122,7 +122,7 @@ pip install numpy>=1.21.0
 
 **Tests failing**
 
-Make sure you're using Python 3.9+ and have all dev dependencies installed:
+Make sure you're using Python 3.10+ and have all dev dependencies installed:
 ```bash
 pip install -e ".[dev]"
 pytest

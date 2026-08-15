@@ -29,7 +29,7 @@ Saranurak (2026).
 
 ### What Python versions are supported?
 
-Python 3.9 through 3.13.
+Python 3.10 through 3.13.
 
 ## Installation
 
@@ -142,7 +142,7 @@ TC may be faster for sparse graphs.
 
 ### Tests are failing
 
-1. Ensure you're using Python 3.9+
+1. Ensure you're using Python 3.10+
 2. Reinstall dependencies: `pip install -e ".[dev]"`
 3. Check for version conflicts: `pip check`
 
