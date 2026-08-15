@@ -198,8 +198,9 @@ python -m scripts.cli benchmark-reachability --sizes 20 50 100 --densities 0.2 0
 
 ### Serialization
 
-- `digraph_to_json(graph)` / `digraph_from_json(text)` — JSON for Digraph.
-- `weighted_digraph_to_json(graph)` / `weighted_digraph_from_json(text)` — JSON for WeightedDigraph.
+- `dump(graph)` / `load(text)` — JSON for Digraph.
+- `weighted_dump(graph)` / `weighted_load(text)` — JSON for WeightedDigraph.
+- `digraph_to_dict(graph)` / `digraph_from_dict(data)` — dict form for Digraph.
 
 ### Work/Depth Simulation
 
