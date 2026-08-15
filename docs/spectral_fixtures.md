@@ -21,8 +21,9 @@ particularly clean structure:
 - **Shrikhande / rook's graph** (srg(16, 6, 2, 2)): the 4×4 rook's
   graph (Cartesian product K₄ □ K₄); used as the standard SRG with
   parameters (16, 6, 2, 2). The OTHER non-isomorphic srg(16, 6, 2, 2)
-  graph (the proper Shrikhande Cayley construction) is left as future
-  work.
+  graph, the proper Shrikhande Cayley construction, is provided by
+  `shrikhande_cayley()` in `reachq/core/generators.py` and is
+  tested in `tests/test_shrikhande_cayley.py`.
 - **Hamming graphs H(d, q)**: Cayley graphs on `Z_q^d` with
   one-coordinate Hamming-distance adjacency. Algebraically tractable:
   eigenvalues are sums of d Fourier-mode eigenvalues.
@@ -34,6 +35,7 @@ particularly clean structure:
 | `petersen_graph()` | Petersen | n=10, k=3 |
 | `paley_graph(q)` | Paley | q prime, q ≡ 1 mod 4 |
 | `shrikhande_graph()` | Rook's (= K₄ □ K₄) | n=16, k=6 |
+| `shrikhande_cayley()` | Proper Shrikhande Cayley | n=16, k=6 |
 | `hamming_graph(d, q)` | Hamming | d ≥ 1, q ≥ 2 |
 
 ## Spectral cross-check
