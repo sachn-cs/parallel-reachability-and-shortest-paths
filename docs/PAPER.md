@@ -85,8 +85,11 @@ Both are distinct from the cited papers.
 
 ### 5.1. StreamingShortcutSet
 
-Maintains a shortcut set under edge insertions. Amortised O(log^2 n)
-per insertion. Distinct from the paper's batch construction.
+Maintains a shortcut set under edge insertions. **Experimental
+prototype; no formal bound yet** (the design intent is amortised
+O(log² n) per insertion, but the current implementation does not
+achieve it). See [`docs/streaming_proof.md`](streaming_proof.md)
+for the honest sketch. Distinct from the paper's batch construction.
 (`reachq.research.streaming.StreamingShortcutSet`)
 
 ### 5.2. greedy_shortcut_set
@@ -99,7 +102,7 @@ most (1+ε) times the optimal. Polynomial time in n and 1/ε.
 
 ```bash
 python -m pytest tests/ -q
-# 422 tests pass
+# current test count is in CHANGELOG.md; do not hard-code here
 python scripts/eval_lower_bound.py
 # results in results/lower_bound.csv
 ```
