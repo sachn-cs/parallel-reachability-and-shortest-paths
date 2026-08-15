@@ -1,7 +1,13 @@
 """Shortest path algorithms for weighted directed graphs.
 
-Implements Dijkstra's algorithm, A* search, truncated SSSP, and d-ball
-computations as used in the hopset construction (Section 6).
+Implements Dijkstra's algorithm, A* search, truncated SSSP, and the
+``d_plus`` / ``d_minus`` / ``d_ball`` claim-style sets used by the
+CFR hopset construction (Section 6). All algorithms are
+deterministic.
+
+The hopset-aware ``shortest_path_hopbound`` simulates the parallel
+shortest-path primitive: it expands edges from ``G ∪ H`` but does
+NOT determine PRAM span bounds.
 """
 
 import heapq
@@ -13,7 +19,15 @@ from reachq.core.graph import WeightedDigraph
 def dijkstra(graph: WeightedDigraph, source: object) -> dict[object, float]:
     """Compute exact shortest-path distances from source.
 
-    Time: O(m log n). Space: O(n).
+    Args:
+        graph: The input weighted digraph.
+        source: Source vertex.
+
+    Returns:
+        Mapping ``vertex -> distance`` for every vertex reachable
+        from ``source``. Unreachable vertices are absent.
+
+    Complexity: O(m log n) time, O(n) space.
     """
     distances: dict[object, float] = {v: float("inf") for v in graph.vertices()}
     distances[source] = 0
@@ -42,11 +56,22 @@ def astar(
 ) -> int | None:
     """A* search from source to target with an admissible heuristic.
 
-    Returns the shortest distance from source to target, or None if unreachable.
-    The heuristic h(v) must be admissible: 0 ≤ h(v) ≤ dist(v, target) for all v.
+    The heuristic ``h(v)`` must be admissible: ``0 <= h(v) <= dist(v, target)``
+    for all ``v``, otherwise the result may not be optimal.
 
-    Time: O(m log n) worst case, but typically much faster than Dijkstra
-    when the heuristic is informative.
+    Args:
+        graph: The input weighted digraph.
+        source: Source vertex.
+        target: Target vertex.
+        heuristic: Callable mapping a vertex to a non-negative
+            lower bound on the distance to ``target``.
+
+    Returns:
+        The shortest distance from ``source`` to ``target``, or
+        ``None`` if ``target`` is unreachable.
+
+    Complexity: O(m log n) worst case; typically much faster than
+        Dijkstra when the heuristic is informative.
     """
     if source == target:
         return 0
@@ -81,7 +106,18 @@ def truncated_dijkstra(
 ) -> dict[object, float]:
     """Compute distances from source, truncated at max_distance.
 
-    Returns vertices v with dist(source, v) ≤ max_distance.
+    Args:
+        graph: The input weighted digraph.
+        source: Source vertex.
+        max_distance: Maximum distance to expand. Vertices with
+            distance ``> max_distance`` are not returned.
+
+    Returns:
+        Mapping ``vertex -> distance`` for vertices ``v`` with
+        ``dist(source, v) <= max_distance``.
+
+    Complexity: O(m log n) in the worst case, but typically much
+        less because the search stops at ``max_distance``.
     """
     distances: dict[object, float] = {source: 0}
     heap: list[tuple[float, object]] = [(0, source)]
@@ -104,14 +140,34 @@ def truncated_dijkstra(
 def compute_d_descendants(
     graph: WeightedDigraph, vertex: object, distance: int
 ) -> set[object]:
-    """Compute R^+_d(G, v) = {t : v ⪯_d t}."""
+    """Compute R^+_d(G, v) = {t : v ⪯_d t}.
+
+    Args:
+        graph: The input weighted digraph.
+        vertex: Pivot vertex.
+        distance: Maximum distance threshold ``d``.
+
+    Returns:
+        Set of vertices within distance ``d`` of ``vertex`` along
+        outgoing edges (inclusive).
+    """
     return set(truncated_dijkstra(graph, vertex, distance).keys())
 
 
 def compute_d_ancestors(
     graph: WeightedDigraph, vertex: object, distance: int
 ) -> set[object]:
-    """Compute R^-_d(G, v) = {s : s ⪯_d v}."""
+    """Compute R^-_d(G, v) = {s : s ⪯_d v}.
+
+    Args:
+        graph: The input weighted digraph.
+        vertex: Pivot vertex.
+        distance: Maximum distance threshold ``d``.
+
+    Returns:
+        Set of vertices that can reach ``vertex`` within distance
+        ``d`` (inclusive).
+    """
     rev = graph.reversed()
     return set(truncated_dijkstra(rev, vertex, distance).keys())
 
@@ -119,7 +175,16 @@ def compute_d_ancestors(
 def compute_d_ball(
     graph: WeightedDigraph, vertex: object, distance: int
 ) -> set[object]:
-    """Compute R_d(G, v) = R^+_d(G, v) ∪ R^-_d(G, v)."""
+    """Compute R_d(G, v) = R^+_d(G, v) ∪ R^-_d(G, v).
+
+    Args:
+        graph: The input weighted digraph.
+        vertex: Pivot vertex.
+        distance: Maximum distance threshold ``d``.
+
+    Returns:
+        Union of d-descendants and d-ancestors of ``vertex``.
+    """
     return compute_d_descendants(graph, vertex, distance) | compute_d_ancestors(
         graph, vertex, distance
     )
@@ -131,9 +196,19 @@ def shortest_path_hopbound(
     source: object,
     max_hops: int,
 ) -> dict[object, float]:
-    """Compute shortest paths using at most max_hops hops in G ∪ H.
+    """Compute shortest paths using at most ``max_hops`` hops in G ∪ H.
 
-    Sequential simulation; span bounds are NOT DETERMINED.
+    **Sequential simulation; span bounds are NOT DETERMINED.**
+
+    Args:
+        graph: The input weighted digraph.
+        hopset_edges: Hopset H as a ``(u, v) -> weight`` mapping.
+        source: Source vertex.
+        max_hops: Maximum number of hops (edges) allowed.
+
+    Returns:
+        Mapping ``vertex -> distance`` for every vertex reachable
+        from ``source`` within ``max_hops`` hops in ``G ∪ H``.
     """
     distances: dict[object, float] = {v: float("inf") for v in graph.vertices()}
     distances[source] = 0
@@ -169,8 +244,14 @@ def shortest_path_tree(
 ) -> dict[object, object | None]:
     """Compute a shortest path tree from source using Dijkstra.
 
-    Returns a parent map where parent[v] is the predecessor of v, or None
-    for the source itself.
+    Args:
+        graph: The input weighted digraph.
+        source: Source vertex.
+
+    Returns:
+        Parent map ``parent[v]`` where ``parent[v]`` is the
+        predecessor of ``v`` on a shortest path from ``source``, or
+        ``None`` for ``source`` itself and unreachable vertices.
     """
     distances: dict[object, float] = {v: float("inf") for v in graph.vertices()}
     parent: dict[object, object | None] = dict.fromkeys(graph.vertices())
@@ -196,9 +277,19 @@ def shortest_path_tree(
 def shortest_path(graph: WeightedDigraph, source: object, target: object) -> float:
     """Return the shortest distance from source to target.
 
-    Returns ``float("inf")`` if target is unreachable from source.
-    Equivalent to ``dijkstra(graph, source).get(target, float("inf"))``
-    but avoids the full SSSP when only one target is needed.
+    Returns ``float("inf")`` if ``target`` is unreachable from
+    ``source``. Equivalent to
+    ``dijkstra(graph, source).get(target, float("inf"))`` but
+    avoids the full SSSP when only one target is needed.
+
+    Args:
+        graph: The input weighted digraph.
+        source: Source vertex.
+        target: Target vertex.
+
+    Returns:
+        Shortest distance from ``source`` to ``target``, or
+        ``float("inf")`` if ``target`` is unreachable.
     """
     distances = dijkstra(graph, source)
     return distances.get(target, float("inf"))
