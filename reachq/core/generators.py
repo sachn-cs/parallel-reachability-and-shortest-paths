@@ -13,7 +13,14 @@ from reachq.core.graph import Digraph, WeightedDigraph
 
 
 def path_graph(n: int) -> Digraph:
-    """Create a directed path on n vertices: 0 → 1 → ... → n-1."""
+    """Create a directed path on n vertices: 0 → 1 → ... → n-1.
+
+    Args:
+        n: Number of vertices.
+
+    Returns:
+        A Digraph with ``n`` vertices and ``n - 1`` edges.
+    """
     g = Digraph()
     for i in range(n):
         g.add_vertex(i)
@@ -23,7 +30,15 @@ def path_graph(n: int) -> Digraph:
 
 
 def cycle_graph(n: int) -> Digraph:
-    """Create a directed cycle on n vertices: 0 → 1 → ... → n-1 → 0."""
+    """Create a directed cycle on n vertices: 0 → 1 → ... → n-1 → 0.
+
+    Args:
+        n: Number of vertices (must be >= 1).
+
+    Returns:
+        A Digraph with ``n`` vertices and ``n`` edges forming a
+        single SCC of size ``n``.
+    """
     g = Digraph()
     for i in range(n):
         g.add_vertex(i)
@@ -35,7 +50,11 @@ def cycle_graph(n: int) -> Digraph:
 def complete_dag(n: int) -> Digraph:
     """Create a complete DAG: edges i → j for all i < j.
 
-    This graph has m = n(n-1)/2 edges and diameter n-1.
+    Args:
+        n: Number of vertices.
+
+    Returns:
+        A Digraph with ``n(n-1)/2`` edges and diameter ``n-1``.
     """
     g = Digraph()
     for i in range(n):
@@ -92,6 +111,10 @@ def random_dag(
         n: Number of vertices.
         edge_probability: Probability of edge i → j for i < j.
         random_seed: Optional seed.
+
+    Returns:
+        A Digraph with ``n`` vertices; edges are sampled independently
+        from the upper-triangular ordered pairs.
     """
     rng = random.Random(random_seed)
     g = Digraph()
@@ -111,8 +134,16 @@ def erdos_renyi_digraph(
 ) -> Digraph:
     """Create a random directed graph (not necessarily acyclic).
 
-    Each ordered pair (u, v) with u != v is included independently with
-    probability edge_probability.
+    Each ordered pair (u, v) with u != v is included independently
+    with probability ``edge_probability``.
+
+    Args:
+        n: Number of vertices.
+        edge_probability: Edge probability per ordered pair.
+        random_seed: Optional seed.
+
+    Returns:
+        A Digraph that may contain cycles.
     """
     rng = random.Random(random_seed)
     g = Digraph()
@@ -205,8 +236,16 @@ def graph_with_sccs(
 def grid_graph(n: int, m: int) -> WeightedDigraph:
     """Create an n × m grid graph with unit weights.
 
-    Vertices are (i, j) for 0 ≤ i < n, 0 ≤ j < m.
+    Vertices are ``(i, j)`` for ``0 <= i < n``, ``0 <= j < m``.
     Edges go right and down with weight 1.
+
+    Args:
+        n: Number of rows.
+        m: Number of columns.
+
+    Returns:
+        A WeightedDigraph with ``n * m`` vertices and unit-weight
+        edges from each cell to its right and down neighbour.
     """
     g = WeightedDigraph()
     for i in range(n):
@@ -226,7 +265,15 @@ def weighted_path_graph(
 ) -> WeightedDigraph:
     """Create a weighted directed path on n vertices.
 
-    Edge i → i+1 gets a random integer weight in weight_range.
+    Edge ``i → i+1`` gets a random integer weight in ``weight_range``.
+
+    Args:
+        n: Number of vertices.
+        weight_range: Inclusive ``(lo, hi)`` range for integer weights.
+        random_seed: Optional seed.
+
+    Returns:
+        A WeightedDigraph with ``n`` vertices and ``n - 1`` edges.
     """
     rng = random.Random(random_seed)
     lo, hi = weight_range
@@ -247,8 +294,19 @@ def weighted_random_dag(
 ) -> WeightedDigraph:
     """Create a weighted random DAG.
 
-    Edges i → j for i < j are sampled with probability edge_probability.
-    Weights are uniform integers in weight_range.
+    Edges ``i → j`` for ``i < j`` are sampled with probability
+    ``edge_probability``. Weights are uniform integers in
+    ``weight_range``.
+
+    Args:
+        n: Number of vertices.
+        edge_probability: Probability of edge i → j for i < j.
+        weight_range: Inclusive ``(lo, hi)`` range for integer weights.
+        random_seed: Optional seed.
+
+    Returns:
+        A WeightedDigraph with ``n`` vertices and a random subset of
+        upper-triangular ordered pairs as edges.
     """
     rng = random.Random(random_seed)
     lo, hi = weight_range
@@ -268,7 +326,21 @@ def weighted_dense_graph(
     weight_range: tuple[int, int] = (1, 10),
     random_seed: int | None = None,
 ) -> WeightedDigraph:
-    """Create a dense weighted digraph with exactly edge_count edges."""
+    """Create a dense weighted digraph with exactly ``edge_count`` edges.
+
+    Args:
+        n: Number of vertices.
+        edge_count: Number of edges (must be ``<= n * (n - 1)``).
+        weight_range: Inclusive ``(lo, hi)`` range for integer weights.
+        random_seed: Optional seed.
+
+    Returns:
+        A WeightedDigraph with ``n`` vertices and ``edge_count`` edges,
+        each with a uniform-integer weight in ``weight_range``.
+
+    Raises:
+        ValueError: If ``edge_count > n * (n - 1)``.
+    """
     max_edges = n * (n - 1)
     if edge_count > max_edges:
         raise ValueError(f"edge_count {edge_count} exceeds max {max_edges} for n={n}")
@@ -410,7 +482,15 @@ def paley_graph(q: int) -> Digraph:
     """The Paley graph of order q (q prime, q ≡ 1 mod 4).
 
     Vertex set Z_q; u ~ v iff u - v is a quadratic residue mod q.
-    Requires q to be a prime with q ≡ 1 (mod 4); otherwise raises.
+
+    Args:
+        q: A prime with ``q ≡ 1 (mod 4)``.
+
+    Returns:
+        A Digraph with ``q`` vertices.
+
+    Raises:
+        ValueError: If ``q`` is not a prime or ``q ≢ 1 (mod 4)``.
     """
     if q <= 0 or (q - 1) % 4 != 0:
         raise ValueError(f"Paley graph requires q ≡ 1 (mod 4), got q={q}")
@@ -468,10 +548,19 @@ def is_prime(n: int) -> bool:
 def hamming_graph(d: int, q: int) -> Digraph:
     """The Hamming graph H(d, q).
 
-    |V| = q^d, degree = d * (q-1), |E| = d * q^d * (q-1) / 2 (undirected pairs)
-    = d * q^d * (q-1) (directed edges). Vertex labels are tuples
-    (x_1, ..., x_d) -- but since Digraph labels are integers, we use
-    the natural mapping (x_1, ..., x_d) -> sum x_i * q^(i-1).
+    ``|V| = q^d``, degree = ``d * (q - 1)``. Vertex labels are
+    tuples ``(x_1, ..., x_d)`` mapped to integers via the natural
+    mapping ``(x_1, ..., x_d) -> sum x_i * q^(i-1)``.
+
+    Args:
+        d: Number of dimensions (>= 1).
+        q: Alphabet size (>= 2).
+
+    Returns:
+        A Digraph with ``q^d`` vertices.
+
+    Raises:
+        ValueError: If ``d < 1`` or ``q < 2``.
     """
     if d < 1:
         raise ValueError(f"hamming_graph: d must be >= 1, got {d}")
@@ -497,7 +586,16 @@ def hamming_graph(d: int, q: int) -> Digraph:
 
 
 def int_to_base_q(v: int, q: int, d: int) -> list[int]:
-    """Convert integer to base-q representation with d digits (LSB at index 0)."""
+    """Convert integer to base-q representation with d digits (LSB at index 0).
+
+    Args:
+        v: Integer to convert.
+        q: Base (must be >= 2).
+        d: Number of digits to emit.
+
+    Returns:
+        A list of ``d`` base-q digits, least-significant at index 0.
+    """
     out = [0] * d
     for i in range(d):
         out[i] = v % q
@@ -506,7 +604,15 @@ def int_to_base_q(v: int, q: int, d: int) -> list[int]:
 
 
 def base_q_to_int(coords: list[int], q: int) -> int:
-    """Convert base-q digit list (LSB at index 0) back to integer."""
+    """Convert base-q digit list (LSB at index 0) back to integer.
+
+    Args:
+        coords: List of base-q digits, least-significant at index 0.
+        q: Base (must be >= 2).
+
+    Returns:
+        The reconstructed integer.
+    """
     v = 0
     for i, x in enumerate(coords):
         v += x * (q**i)
@@ -555,7 +661,17 @@ SNAP_DATASETS: dict[str, dict[str, str | int]] = {
 
 
 def parse_snap_file(path: str) -> Digraph:
-    """Parse a SNAP edge list file into a Digraph."""
+    """Parse a SNAP edge list file into a Digraph.
+
+    Each non-comment line is interpreted as ``u v`` (whitespace-
+    separated); the resulting graph has directed edges ``u → v``.
+
+    Args:
+        path: Path to a SNAP edge list file (optionally ``.gz``).
+
+    Returns:
+        A Digraph with integer vertex labels.
+    """
     import gzip
 
     g = Digraph()
@@ -605,7 +721,15 @@ def load_dataset(name: str, cache_dir: str = "data") -> Digraph:
 
 
 def graph_stats(graph: Digraph) -> dict[str, int]:
-    """Return basic statistics for a graph."""
+    """Return basic statistics for a graph.
+
+    Args:
+        graph: The input digraph.
+
+    Returns:
+        Mapping with keys ``n`` (vertices), ``m`` (edges),
+        ``max_out_degree``, ``max_in_degree``.
+    """
     return {
         "n": graph.num_vertices(),
         "m": graph.num_edges(),
