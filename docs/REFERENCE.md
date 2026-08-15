@@ -78,6 +78,20 @@ docstrings, so they should never lie about the API.
     options:
       show_root_heading: true
 
+## CSR numpy BFS kernels
+
+::: reachq.core.bfs.csr_reachable_forward
+    options:
+      show_root_heading: true
+
+::: reachq.core.bfs.csr_reachable_backward
+    options:
+      show_root_heading: true
+
+::: reachq.core.bfs.csr_bfs_layered
+    options:
+      show_root_heading: true
+
 ## TC-pruning internals
 
 ::: reachq.core.prune.compute_tc_pruning_threshold
@@ -177,10 +191,38 @@ docstrings, so they should never lie about the API.
     options:
       show_root_heading: true
 
+::: reachq.core.io.networkx.to_networkx
+    options:
+      show_root_heading: true
+
+::: reachq.core.io.networkx.from_networkx
+    options:
+      show_root_heading: true
+
 ::: reachq.core.snapshot.Snapshot
     options:
       show_root_heading: true
       show_symbol_class_toc: true
+
+## Invariants
+
+::: reachq.core.invariants.assert_reachability_preserved
+    options:
+      show_root_heading: true
+
+::: reachq.core.invariants.assert_hopbound
+    options:
+      show_root_heading: true
+
+::: reachq.core.invariants.assert_scc_shortcuts_form_cliques
+    options:
+      show_root_heading: true
+
+## CLI
+
+The CLI is exposed via the `reachq` console-script entry point
+(declared in `pyproject.toml`). See [`docs/getting-started.md`](getting-started.md)
+for usage; the handlers live in `reachq.cli.main`.
 
 ## Protocols
 
