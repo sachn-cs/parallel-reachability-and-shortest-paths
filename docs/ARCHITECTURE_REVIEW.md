@@ -39,7 +39,7 @@ The dominant engineering contradictions are:
 | Parallelism | `parallel_workers` parameter is exposed on `build_shortcut_set_for_reachability` but the CFR path has no equivalent. ProcessPool mode silently won't work because of a module-global `_PIVOT_STATE` dict. |
 | Performance | No GPU, no SIMD, no compiled extensions. The recursion's per-pivot BFS rebuilds Python sets even when CSR is available. `sparsify.py` rebuilds a `shortcut_index` from scratch on every check (O(\|H\|) per call, O(\|H\|²) total). |
 | Observability | No metrics, no traces, no counters. The `WorkDepthAccountant` is a manual, opt-in cost recorder — useful for verification but not for production telemetry. |
-| Packaging | `pyproject.toml` declares version 1.0.0; no `console_scripts` (now added); no wheels built; no SBOM; no `requires-python` upper bound; no `tests` extra. |
+| Packaging | `pyproject.toml` declares version 0.8.0; no `console_scripts` (now added); no wheels built; no SBOM; no `requires-python` upper bound; no `tests` extra. |
 | CI | Single matrix; no caching of test results; no coverage diff; benchmark job runs one trivial benchmark; pre-commit is separate from lint. |
 | Reproducibility | `pip install reachq` works (post-fix), but `python -m scripts.cli` requires `scripts/__init__.py` (now added). SNAP "sha256 verification" is a misnomer — the script computes a hash but never compares it. |
 | Memory | `sparsify.py` allocates a fresh `dict[Any, list[Any]]` per call. `transitive_closure_matrix` reallocates a COO pair set every iteration. `numpy_bfs.csr_reachable_forward` reallocates `positions` arrays per BFS step. |
@@ -622,7 +622,7 @@ via `reachq.core.metrics.snapshot()`.
 
 - **LTS policy:** Document a 2-year LTS for `reachq_core` stable API.
 - **Deprecation policy:** Use `DeprecationWarning`; `__deprecated__ = ("use X instead",)` markers; `reachq.compat` shims.
-- **API stability:** Semver; `pyproject.toml` declares `version = "1.0.0"`; `reachq/__init__.py` re-exports the stable surface.
+- **API stability:** Semver; `pyproject.toml` declares `version = "0.8.0"`; `reachq/__init__.py` re-exports the stable surface.
 - **Compatibility matrix:** Document CPython 3.9–3.13, numpy ≥ 1.21, scipy ≥ 1.10.
 - **SLI/SLO:** "All paper-lemma tests pass on `tests/test_paper_lemmas.py` with ≥ 95% confidence over 100 seeds."
 - **Compliance:** License (MIT), SECURITY.md, SBOM.
