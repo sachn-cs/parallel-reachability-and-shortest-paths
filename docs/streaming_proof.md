@@ -1,34 +1,46 @@
-# StreamingShortcutSet: amortised O(log² n) per insertion
+# StreamingShortcutSet (sketch, no formal bound yet)
 
-**Claim.** Inserting an edge into the graph and updating the streaming
-shortcut set takes O(log² n) amortised time.
+**Status.** This document describes a design goal, not the current
+implementation. The `StreamingShortcutSet` prototype in
+`reachq/research/streaming.py` is **honest about its scope**: the
+prototype does NOT achieve the amortised O(log² n) per-insertion
+bound that the original paper citation suggests. The prototype
+serves as a structural scaffold for future work.
 
-**Proof sketch.** Fix a pivot p. The pivot's r_ball changes only when
-a new edge enters the ball — that is, when a new edge (u, v) has
-either endpoint inside the ball, or when the pivot itself becomes
-reachable from a new vertex.
+## Design intent
 
-The number of edges inside the r_ball is at most |r_ball| · β (each
-vertex in the ball has at most β outgoing edges inside the ball,
-since the ball has β-hop diameter). On a β-hop-bounded graph with
-n vertices, the r_ball has at most n vertices and at most
-β · |r_ball| = O(β · n) edges. For β = O(log n) (e.g., random
-graphs), this is O(n log n).
+Maintain a shortcut set under edge insertions. Each new edge should
+trigger a localised update of the affected pivots, without rebuilding
+the set from scratch.
 
-A pivot p is sampled once; it is then updated at most |r_ball| · β
-times. Since each update takes O(|r_ball|) time (BFS to depth β),
-the total work over the life of a pivot is O(|r_ball|² · β) =
-O(β³ · n) on a graph with n vertices. For β = O(log n), this is
-O(n log³ n) per pivot.
+The intended analysis:
+- Each pivot's r-ball changes only when a new edge enters the ball.
+- The number of edges inside the r-ball is at most |r_ball| · β
+  (each vertex has at most β outgoing edges inside the ball, since
+  the ball has β-hop diameter).
+- A pivot is sampled once and updated at most |r_ball| · β times.
+  Each update takes O(|r_ball|) time (BFS to depth β).
+- Amortising over the lifetime of a pivot, the per-insertion work
+  is O(β³) = O(log³ n) for β = O(log n).
 
-**Amortisation.** The construction samples a constant number of
-pivots per edge insertion. So the amortised cost per insertion
-is O((β³ · n) / n) = O(β³) = O(log³ n). The log² n bound comes
-from a tighter analysis: the BFS in a β-hop graph visits at most
-β · |r_ball| nodes, and the number of new shortcuts added is at
-most β per pivot per insertion. Amortising over the lifetime of a
-pivot gives the bound.
+The tighter O(log² n) bound would require a more careful
+amortisation argument (likely paired with a different pivot-sampling
+rule) that has not been worked out and is not implemented.
 
-**Honest scope.** The proof is a sketch. The actual amortised
-constant depends on the sampling rate and the graph structure.
-A graph-by-graph tight bound requires a per-class analysis.
+## Honest scope
+
+- The prototype is a scaffold. It does not achieve the O(log² n)
+  bound.
+- The amortised constant depends on the sampling rate and the
+  graph structure; a graph-by-graph tight bound requires a per-class
+  analysis that is out of scope.
+- The complexity claim on the class docstring (`O(log² n) per
+  edge insertion`) is the optimistic design intent, not the current
+  implementation's behaviour.
+
+## What to expect
+
+If you call `StreamingShortcutSet` in the current state, you get
+correctness (the set is consistent with the graph) but no
+performance guarantee. Future work would tighten the analysis and
+implement the matching sampling rule.
