@@ -45,8 +45,8 @@ reachq only for the specific parallel-reachability shortcuts.
 | full graph library | no (focused) | yes | yes |
 | reproducible benchmarks | yes | partial | no |
 | hop-bound-preserving sparsification | yes | no | no |
-| streaming shortcut set | yes (reachq.research) | no | no |
-| (1+ε) approximation | yes (reachq.research) | no | no |
+| streaming shortcut set | prototype only, no formal bound (reachq.research) | no | no |
+| (1+ε) approximation | prototype only, no formal (1+ε) bound (reachq.research) | no | no |
 
 ## Where to look next
 

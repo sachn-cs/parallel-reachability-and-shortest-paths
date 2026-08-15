@@ -75,3 +75,17 @@ python -m scripts.cli benchmark-shortest-paths \
 All benchmark scripts accept `--seed` for deterministic graph generation and
 algorithm execution. Reported results should be reproducible on the same
 hardware and Python version.
+
+## AIRS-bench / ASV
+
+The `benchmarks/` directory at the repo root contains an
+[AIRS-bench](https://github.com/airs-bench/airs-bench) suite driven by
+[asv](https://asv.readthedocs.io/) (configuration:
+`asv.conf.json`). Use `asv run` to track the construction time of
+the JLS shortcut-set and CFR hopset across commits. The bench
+suite is orthogonal to the ad-hoc CLI benchmarks above; it
+automates the runs and emits an HTML report.
+
+The ASV suite produces a configurable list of inputs (n, density, ω)
+and benchmarks each algorithm once per revision. Useful for
+regression detection across releases.

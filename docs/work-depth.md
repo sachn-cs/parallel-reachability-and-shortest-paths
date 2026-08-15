@@ -67,8 +67,38 @@ observed construction times.
 ## Limitations
 
 - The simulated work is a coarse asymptotic estimate, not an exact operation
-count.
+  count.
 - The simulated depth does not reflect actual parallel execution because Python
-is sequential.
+  is sequential.
 - We do not claim PRAM equivalence. The instrumentation is for traceability
-and educational purposes only.
+  and educational purposes only.
+
+## SpanProfiler
+
+For an *empirical* parallel-span lower bound, `reachq/core/work_depth.py`
+also exposes `SpanProfiler`. The construction is run sequentially on
+one process and each coarse phase (sample, partition, recursion) is
+timed. The sum of phase times is a lower bound on the true PRAM
+span: real parallelism can only be faster than sequential per-phase
+work. The `summary()` method returns both the measured span and
+the theoretical bounds side by side, so you can compare observed
+span against the bound for your hardware.
+
+```python
+from reachq.core.work_depth import SpanProfiler, theoretical_shortcut_work
+
+sp = SpanProfiler()
+sp.theoretical_work = theoretical_shortcut_work(n=1000, m=5000, rho=2.0)
+sp.begin_phase("sample_pivots")
+# ...
+sp.end_phase()
+print(sp.summary())
+```
+
+## `parallel_workers` parameter
+
+Both `build_shortcut_set_for_reachability` and `build_hopset_for_sssp`
+accept a `parallel_workers: int = 1` argument. The current
+implementation is sequential; the parameter is accepted for API
+symmetry with the future multi-process path. See
+[`docs/algorithms.md`](algorithms.md) for the full semantic note.
