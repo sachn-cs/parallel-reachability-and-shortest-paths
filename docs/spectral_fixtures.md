@@ -1,6 +1,6 @@
 # Test fixtures from algebraic graph theory (Papers 2/3)
 
-This note explains the test fixtures added in `reachq/generators.py`
+This note explains the test fixtures added in `reachq/core/generators.py`
 from Papers 2 (Krupnik, "Contributions in Algebraic Graph Theory") and 3
 (Salarian, "Algebraic Graph Theory"). These graphs have known
 structural properties that make them useful benchmarks for
@@ -27,7 +27,7 @@ particularly clean structure:
   one-coordinate Hamming-distance adjacency. Algebraically tractable:
   eigenvalues are sums of d Fourier-mode eigenvalues.
 
-## What's in `reachq/generators.py`
+## What's in `reachq/core/generators.py`
 
 | Function | Family | Parameters |
 |---|---|---|
@@ -38,7 +38,7 @@ particularly clean structure:
 
 ## Spectral cross-check
 
-`reachq/spectrum.py` provides `spectrum(g)` and `spectral_gap(g)`
+`reachq/core/spectrum.py` provides `spectrum(g)` and `spectral_gap(g)`
 helpers. `scripts/spectral_check.py` runs each fixture through the
 JLS shortcut-set construction and reports `|H|`, `β`, and the
 spectral gap. The result is sanity-checked against known published
