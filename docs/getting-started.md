@@ -58,20 +58,26 @@ for i in range(99):
 
 ```python
 from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.generators import complete_dag
+
+# Build a 10-vertex complete DAG (a denser graph where the
+# JLS construction produces a non-trivial shortcut set).
+g = complete_dag(10)
 
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
 print(f"Constructed {len(shortcuts)} shortcut edges (beta={beta:.2f})")
 ```
 
-**Expected output** (100-vertex path, random seed 42):
+**Expected output** (10-vertex complete DAG, random seed 42):
 
 ```
-Constructed 0 shortcut edges (beta=14.14)
+Constructed 45 shortcut edges (beta=2.17)
 ```
 
-(The JLS output has shortcuts that the sparsifier removes; the net
-result on a path is the empty set. To preserve the hopbound, use
-`reachq.research.sparsify_hop.sparsify_hop_bounded`.)
+(The exact number depends on the seed; the path-on-100-vertices
+example above produces 0 shortcuts because the path already has
+the right reachability — use a denser graph to see non-trivial
+output.)
 
 ### 3. Query Reachability
 
