@@ -45,7 +45,8 @@ shortcuts whose removal does not break the β-hopbound for any
 source-target pair. (reachq.research.sparsify_hop.sparsify_hop_bounded)
 
 **StreamingShortcutSet.** Incrementally-maintained shortcut set
-under edge insertions. Amortised O(log^2 n) per insertion.
+under edge insertions. Experimental prototype; no formal
+amortised O(log² n) per insertion bound is implemented yet.
 (reachq.research.streaming)
 
 **greedy_shortcut_set.** A (1+ε)-approximation algorithm for the
@@ -87,3 +88,44 @@ denotes the mixing time of an expander. reachq uses only the former.
 each `Flags.<field> = True` enables the corresponding refinement.
 The wrapper `build_shortcut_set_for_reachability` reads the flags
 and dispatches them to the JLS recursion.
+
+**RefinementConfig.** The canonical name of the `Flags` toggle
+structure. `reachq.Flags = reachq.core.config.RefinementConfig`;
+the `Flags` alias is preserved for backward compatibility.
+
+**ParallelContext.** A selector for the parallel-execution mode
+(`sequential`, `threads`, or `processes`). The two shorthand
+helpers `threads(n)` and `processes(n)` live in
+`reachq.core.backends.{threads,processes}`. The current
+shortcut-set construction is sequential; the `parallel_workers`
+parameter is accepted for API symmetry.
+
+**Backend.** The `Backend` Protocol that `ParallelContext`
+satisfies. `Backend` is the duck-typed extension point for
+third-party dispatchers (Ray, Dask, GraphBLAS). Canonical
+location: `reachq.core.backends.Backend`.
+
+**SpanProfiler.** A coarse wall-clock profiler used to estimate
+the *empirical* parallel span of a sequential run. Wraps
+each phase of the shortcut-set construction in `begin_phase` /
+`end_phase`. The sum of phase times is a lower bound on the
+true PRAM span. (reachq.core.work_depth.SpanProfiler)
+
+**Snapshot.** A dataclass (`reachq.core.snapshot.Snapshot`) that
+captures per-call inputs and outputs. Useful for
+regression-testing where you want to compare exact constructor
+behaviour across versions.
+
+**Recorder / `record_*`.** The 14 `record_*` helpers in
+`reachq.core.work_depth` (`record_bfs`, `record_dijkstra`,
+`record_matrix_multiply`, `record_tc_pruning`, …) that add
+asymptotic work/depth estimates to a `WorkDepthAccountant`. Each
+accepts `accountant=None` for a no-op.
+
+**sparsify_shortcut_set** vs. **sparsify_hop_bounded.** Two
+sparsification post-processing steps. The first removes
+shortcuts that are not on the unique β-hop path of any
+source-target pair (reachbound-preserving). The second does
+the same but additionally preserves the hopbound for every
+source-target pair (hopbound-preserving). The latter is the
+"β-sparsification" referenced in the paper.
