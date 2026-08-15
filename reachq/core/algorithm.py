@@ -56,10 +56,6 @@ log = get_logger("reachq.core.algorithm")
 Flags = RefinementConfig
 
 SAMPLING_CONSTANT = 10
-# Density-aware override: when the wrapper passes a C value derived
-# from graph density (rho), it lands here. See density_aware_constant()
-# for the formula and rationale.
-DENSITY_AWARE_CONSTANT: float | None = None
 
 # Module-level pivot-processing state for parallel pivot dispatch.
 # Workers read these globals; the main thread fills them before dispatch.
@@ -154,20 +150,22 @@ def pivot_worker(pivot: Any) -> dict[str, Any]:
 def density_aware_constant(rho: float, k: float) -> float:
     """Return a sampling constant C chosen by graph density.
 
-    Rationale: the paper's analysis is worst-case over all (n, m);
-    C=10 is conservative for sparse graphs (we can sample more
-    aggressively) and wasteful for dense graphs (we should sample less).
+    The paper's analysis is worst-case over all (n, m); C=10 is the
+    default. This helper scales C by ``min(1, max(0.1, rho/k))``:
 
-    Simple formula: scale the constant inversely with rho so that the
-    expected number of pivots at level 0 (n_global * p_0) is held to a
-    constant fraction of n_global:
+        scale = min(1.0, max(0.1, rho / k))
+        C     = 10.0 * scale
 
-        p_0 = C * k * log n / n
-        E[#pivots] = C * k * log n
+    so the effective constant is *non-decreasing* in ``rho``: dense
+    graphs (rho >= k) keep the default C=10, while sparse graphs
+    (rho < k) get a smaller C, floored at 1.0. ``rho = sqrt(n)/beta``
+    grows with graph density.
 
-    For the paper's worst case (rho small, C=10) this gives ~10*k*log n
-    pivots, which is more than needed. We scale C by min(1, max(0.1, rho))
-    so dense graphs get smaller C and sparse graphs keep the default.
+    Note: this direction is the inverse of the design note that used to
+    live here ("dense graphs should sample less to control |H|"). We
+    document the implemented behaviour as-is; changing the direction
+    would alter adaptive-sampling results and is left as a deliberate
+    future decision.
     """
     if rho <= 0 or k <= 1:
         return 10.0
@@ -251,6 +249,7 @@ def jls_with_tc_pruning(
     random_seed: int | None = None,
     flags: dict[str, bool] | None = None,
     parallel_workers: int = 1,
+    sampling_constant: float | None = None,
 ) -> set[tuple[object, object]]:
     """Construct the JLS shortcut set with TC-Pruning (Section 4.2, Theorem 5).
 
@@ -268,6 +267,12 @@ def jls_with_tc_pruning(
             threading helps when the per-pivot bottleneck is the numpy
             CSR frontier expansion (which releases the GIL on large
             arrays).
+        sampling_constant: Sampling constant C for the pivot probability
+            p_r = C * k^(r+1) * log n / n. Defaults to SAMPLING_CONSTANT.
+            The wrapper passes the density-aware value (see
+            :func:`density_aware_constant`) explicitly so the value is
+            threaded through the recursion instead of living in a module
+            global, which would be unsafe under concurrent builds.
 
     Returns:
         A set of shortcut edges H ⊆ V × V.
@@ -286,11 +291,8 @@ def jls_with_tc_pruning(
         return set()
 
     log_n = math.log2(n_global) if n_global > 1 else 0.0
-    sampling_constant = (
-        DENSITY_AWARE_CONSTANT
-        if DENSITY_AWARE_CONSTANT is not None
-        else SAMPLING_CONSTANT
-    )
+    if sampling_constant is None:
+        sampling_constant = SAMPLING_CONSTANT
     base_prob = min(1.0, sampling_constant * (k ** (level + 1)) * log_n / n_global)
 
     # Improvement 6: skip recursion if sampling produces zero pivots.
@@ -418,6 +420,7 @@ def jls_with_tc_pruning(
             level + 1,
             random_seed=sub_seed,
             flags=flags,
+            sampling_constant=sampling_constant,
         )
         shortcuts |= sub_shortcuts
 
@@ -567,10 +570,9 @@ def build_shortcut_set_for_reachability(
         max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
 
         if f.adaptive_sampling:
-            global DENSITY_AWARE_CONSTANT
-            DENSITY_AWARE_CONSTANT = density_aware_constant(rho, k)
+            sampling_constant = density_aware_constant(rho, k)
         else:
-            DENSITY_AWARE_CONSTANT = None
+            sampling_constant = None
 
         dag_shortcuts = jls_with_tc_pruning(
             dag,
@@ -582,6 +584,7 @@ def build_shortcut_set_for_reachability(
             random_seed=random_seed,
             flags=flags,
             parallel_workers=parallel_workers,
+            sampling_constant=sampling_constant,
         )
 
         shortcuts: set[tuple[object, object]] = set()

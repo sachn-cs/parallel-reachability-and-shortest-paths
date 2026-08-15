@@ -67,6 +67,63 @@ def test_flags_dataclass_rejects_unknown_names() -> None:
         Flags.from_dict({"does_not_exist": True})
 
 
+def test_density_aware_constant_scales_with_rho() -> None:
+    """The density-aware sampling constant is non-decreasing in rho."""
+    from reachq.core.algorithm import SAMPLING_CONSTANT, density_aware_constant
+
+    assert density_aware_constant(rho=10.0, k=4.0) == SAMPLING_CONSTANT
+    sparse_c = density_aware_constant(rho=1.0, k=4.0)
+    dense_c = density_aware_constant(rho=100.0, k=4.0)
+    assert dense_c == SAMPLING_CONSTANT
+    assert 0.0 < sparse_c < dense_c
+    assert density_aware_constant(rho=0.1, k=4.0) == 1.0  # floored at C=1
+
+
+def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
+    """Regression: the density-aware constant is per-call, not a module global.
+
+    A direct ``jls_with_tc_pruning`` call after an adaptive wrapper build
+    must use SAMPLING_CONSTANT, not the constant the wrapper computed for
+    its own graph. This used to live in a module-level global that the
+    wrapper wrote as a side effect.
+    """
+    import math
+
+    from reachq.core.algorithm import (
+        SAMPLING_CONSTANT,
+        jls_with_tc_pruning,
+    )
+
+    g = random_dag(n=60, edge_probability=0.4, random_seed=7)
+    build_shortcut_set_for_reachability(
+        g,
+        random_seed=7,
+        flags={"adaptive_sampling": True},
+    )
+
+    k = max(2.0, math.log2(g.num_vertices()))
+    baseline = jls_with_tc_pruning(
+        g,
+        k=k,
+        rho=1.0,
+        max_level=3,
+        n_global=g.num_vertices(),
+        random_seed=7,
+        flags={"adaptive_sampling": True},
+        sampling_constant=SAMPLING_CONSTANT,
+    )
+    explicit_default = jls_with_tc_pruning(
+        g,
+        k=k,
+        rho=1.0,
+        max_level=3,
+        n_global=g.num_vertices(),
+        random_seed=7,
+        flags={"adaptive_sampling": True},
+    )
+    assert explicit_default == baseline
+
+
 def test_all_on_matches_dataclass_default() -> None:
     """All *algorithmic* refinements default on; parallel is opt-in."""
     flags = Flags.from_dict(None)
