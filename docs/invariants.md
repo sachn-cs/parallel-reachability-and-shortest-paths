@@ -1,13 +1,13 @@
 # Invariants and Theorem-Oriented Validation
 
-The `reachq.invariants` module provides assertion helpers that encode the
+The `reachq.core.invariants` module provides assertion helpers that encode the
 structural properties required by the paper's theorems. These are intended
 for testing and debugging, not for production hot paths.
 
 ## Reachability Preservation
 
 ```python
-from reachq.invariants import assert_reachability_preserved
+from reachq.core.invariants import assert_reachability_preserved
 
 assert_reachability_preserved(graph, shortcuts)
 ```
@@ -18,7 +18,7 @@ defining property of a shortcut set (Section 2).
 ## Hopbound Checking
 
 ```python
-from reachq.invariants import assert_hopbound
+from reachq.core.invariants import assert_hopbound
 
 assert_hopbound(graph, source, shortcuts, beta=5.0)
 ```
@@ -29,7 +29,7 @@ it is ≤ beta. Raises `AssertionError` if the bound is violated.
 ## SCC Cliques
 
 ```python
-from reachq.invariants import assert_scc_shortcuts_form_cliques
+from reachq.core.invariants import assert_scc_shortcuts_form_cliques
 
 assert_scc_shortcuts_form_cliques(graph, shortcuts)
 ```
@@ -40,7 +40,7 @@ so the condensed DAG is preserved.
 ## Partition Correctness
 
 ```python
-from reachq.invariants import assert_partition_correctness
+from reachq.core.invariants import assert_partition_correctness
 
 assert_partition_correctness(graph, parts)
 ```
@@ -51,7 +51,7 @@ are pairwise disjoint.
 ## Distance Approximation
 
 ```python
-from reachq.invariants import assert_distance_approximation
+from reachq.core.invariants import assert_distance_approximation
 
 ratios = assert_distance_approximation(
     graph, hopset, source=0, epsilon=0.1, max_hops=1000
@@ -74,7 +74,7 @@ distance or if a reachable vertex is missing from the hop-bounded result.
 ## Size Bounds
 
 ```python
-from reachq.invariants import (
+from reachq.core.invariants import (
     assert_shortcut_set_size_bound,
     assert_hopset_size_bound,
 )
@@ -92,7 +92,7 @@ These are not tight proofs; they catch gross violations.
 ## Equivalence Classes
 
 ```python
-from reachq.invariants import check_equivalence_classes
+from reachq.core.invariants import check_equivalence_classes
 
 check_equivalence_classes(labels, parts)
 ```

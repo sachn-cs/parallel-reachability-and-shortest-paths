@@ -51,7 +51,7 @@ This installs pytest, mypy, ruff, and other development tools.
 ### How do I build a graph?
 
 ```python
-from reachq.graph import Digraph
+from reachq.core.graph import Digraph
 
 g = Digraph()
 g.add_edge(0, 1)
@@ -61,7 +61,7 @@ g.add_edge(1, 2)
 ### How do I construct a shortcut set?
 
 ```python
-from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
 ```
@@ -69,7 +69,7 @@ shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=
 ### How do I query reachability?
 
 ```python
-from reachq.reachability import parallel_bfs
+from reachq.core.reachability import parallel_bfs
 
 reachable = parallel_bfs(g, source=0, shortcuts=shortcuts)
 ```
@@ -77,7 +77,7 @@ reachable = parallel_bfs(g, source=0, shortcuts=shortcuts)
 ### How do I compute shortest paths?
 
 ```python
-from reachq.shortest_paths import dijkstra
+from reachq.core.shortest_paths import dijkstra
 
 distances = dijkstra(g, source=0)
 ```
@@ -85,8 +85,8 @@ distances = dijkstra(g, source=0)
 ### How do I use hopsets for approximate shortest paths?
 
 ```python
-from reachq.hopset import build_hopset_for_sssp
-from reachq.shortest_paths import shortest_path_hopbound
+from reachq.core.hopset import build_hopset_for_sssp
+from reachq.core.shortest_paths import shortest_path_hopbound
 
 hopset, beta = build_hopset_for_sssp(g, epsilon=0.1, random_seed=42)
 approx_distances = shortest_path_hopbound(g, hopset, source=0, max_hops=1000)
@@ -104,7 +104,7 @@ hopset, _ = build_hopset_for_sssp(g, random_seed=42)
 ### How do I generate test graphs?
 
 ```python
-from reachq.generators import random_dag, dense_graph, grid_graph
+from reachq.core.generators import random_dag, dense_graph, grid_graph
 
 g1 = random_dag(n=50, edge_probability=0.2, random_seed=1)
 g2 = dense_graph(n=20, edge_count=150, random_seed=2)

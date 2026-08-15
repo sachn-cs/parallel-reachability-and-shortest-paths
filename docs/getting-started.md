@@ -39,7 +39,7 @@ python scripts/demo.py
 ### 1. Build a Graph
 
 ```python
-from reachq.graph import Digraph
+from reachq.core.graph import Digraph
 
 g = Digraph()
 for i in range(100):
@@ -57,7 +57,7 @@ for i in range(99):
 ### 2. Construct a Shortcut Set
 
 ```python
-from reachq.shortcut_set import build_shortcut_set_for_reachability
+from reachq.core.algorithm import build_shortcut_set_for_reachability
 
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
 print(f"Constructed {len(shortcuts)} shortcut edges (beta={beta:.2f})")
@@ -71,12 +71,12 @@ Constructed 0 shortcut edges (beta=14.14)
 
 (The JLS output has shortcuts that the sparsifier removes; the net
 result on a path is the empty set. To preserve the hopbound, use
-`reachq.sparsify_hop.sparsify_hop_bounded`.)
+`reachq.research.sparsify_hop.sparsify_hop_bounded`.)
 
 ### 3. Query Reachability
 
 ```python
-from reachq.reachability import parallel_bfs, bfs_reachability
+from reachq.core.reachability import parallel_bfs, bfs_reachability
 
 source = 0
 reachable = parallel_bfs(g, source, shortcuts)

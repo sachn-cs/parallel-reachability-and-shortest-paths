@@ -43,25 +43,32 @@ The dominant engineering contradictions are:
 
 | Module | Functions/classes | Stability |
 |---|---|---|
-| `reachq.graph` | `Digraph`, `WeightedDigraph`, `Graph`, `partition_by_labels`, `contract_sccs` | stable |
-| `reachq.reachability` | `bfs_reachability`, `parallel_bfs`, `strongly_connected_components`, `topological_sort`, `compute_*` | stable |
-| `reachq.shortest_paths` | `dijkstra`, `astar`, `truncated_dijkstra`, `shortest_path`, `shortest_path_hopbound`, `shortest_path_tree` | stable |
-| `reachq.shortcut_set` | `build_shortcut_set_for_reachability`, `jls_shortcut_set`, `jls_with_tc_pruning`, `Flags` | stable |
-| `reachq.hopset` | `build_hopset_for_sssp`, `cfr_hopset`, `cfr_with_truncsssp_pruning` | stable |
-| `reachq.transitive_closure` | `transitive_closure_matrix`, `transitive_closure_brute_force`, `transitive_closure_on_subset` | stable |
-| `reachq.generators` | 17 generators incl. SRG/Hamming fixtures | stable |
-| `reachq.serialization` | `digraph_to/from_json`, `weighted_digraph_to/from_json` | stable |
-| `reachq.work_depth` | `WorkDepthAccountant`, `SpanProfiler`, recording fns | stable |
-| `reachq.spectrum` | `spectrum`, `spectral_gap` | stable |
-| `reachq.adaptive_beta` | `adaptive_beta`, `paper_beta` | research |
-| `reachq.iterate` | `iterative_shortcut_set` | research |
-| `reachq.sparsify`, `reachq.sparsify_hop` | `sparsify_shortcut_set`, `sparsify_hop_bounded`, `verify_hopbound_preserved` | research |
-| `reachq.fix_resample` | `fix_resample_shortcut_set` | research |
-| `reachq.lower_bound` | constructions + `barbell_graph`, `layered_dag` | research |
-| `reachq.closed_form` | closed-form shortcut sets + `binary_tree_dag` | research |
-| `reachq.research.{streaming,approximation}` | the only modules in `reachq/research/` | research |
+| `reachq.core.graph` | `Digraph`, `WeightedDigraph`, `Graph`, `partition_by_labels`, `contract_sccs` | stable |
+| `reachq.core.reachability` | `bfs_reachability`, `parallel_bfs`, `strongly_connected_components`, `topological_sort`, `compute_*` | stable |
+| `reachq.core.shortest_paths` | `dijkstra`, `astar`, `truncated_dijkstra`, `shortest_path`, `shortest_path_hopbound`, `shortest_path_tree` | stable |
+| `reachq.core.algorithm` | `build_shortcut_set_for_reachability`, `jls_shortcut_set`, `jls_with_tc_pruning` | stable |
+| `reachq.core.config` | `RefinementConfig` (exported as `reachq.Flags`) | stable |
+| `reachq.core.hopset` | `build_hopset_for_sssp`, `cfr_hopset`, `cfr_with_truncsssp_pruning` | stable |
+| `reachq.core.tc` | `transitive_closure_matrix`, `transitive_closure_brute_force`, `transitive_closure_on_subset` | stable |
+| `reachq.core.generators` | 17 generators incl. SRG/Hamming fixtures | stable |
+| `reachq.core.io.json` | `dump`, `load`, `weighted_dump`, `weighted_load`, `digraph_to/from_dict` | stable |
+| `reachq.core.work_depth` | `WorkDepthAccountant`, `SpanProfiler`, recording fns | stable |
+| `reachq.core.spectrum` | `spectrum`, `spectral_gap` | stable |
+| `reachq.core.bfs` | vectorised CSR BFS | stable |
+| `reachq.core.metrics` | `enable_metrics`, `inc_counter`, `record_histogram`, `snapshot` | stable |
+| `reachq.core.trace` | `trace` | stable |
+| `reachq.research.adaptive_beta` | `adaptive_beta`, `paper_beta` | research |
+| `reachq.research.iterate` | `iterative_shortcut_set` | research |
+| `reachq.research.sparsify`, `reachq.research.sparsify_hop` | `sparsify_shortcut_set`, `sparsify_hop_bounded`, `verify_hopbound_preserved` | research |
+| `reachq.research.fix_resample` | `fix_resample_shortcut_set` | research |
+| `reachq.research.lower_bound` | constructions + `barbell_graph`, `layered_dag` | research |
+| `reachq.research.closed_form` | closed-form shortcut sets + `binary_tree_dag` | research |
+| `reachq.research.streaming`, `reachq.research.approximation` | prototype streaming shortcut set, (1+ε) approximation | research |
 
-The split is broken: 11 "research" modules live at top-level; 2 live in `reachq/research/`. Renaming any of the top-level ones would silently break `from reachq.iterate import iterative_shortcut_set`.
+The split is now consistent: the always-imported library layer lives in
+`reachq.core.*`; every opt-in/experimental algorithm lives in
+`reachq.research.*`. The top-level `reachq` package re-exports the stable
+surface (`__all__` in `reachq/__init__.py`).
 
 # 3. Ideal Final Result (IFR)
 
@@ -526,7 +533,7 @@ class RefinementConfig:
 
 ### Error handling
 
-All public functions raise specific exceptions:
+All public functions raise specific exceptions (defined in `reachq.core.errors`):
 - `ReachqValueError` for invalid input.
 - `ReachqTypeError` for type mismatches.
 - `ReachqGraphError` for invalid graph state (cycles in DAG-only construction, etc.).
@@ -537,7 +544,7 @@ All public functions raise specific exceptions:
 Centralised `logging_config` (already exists). Add per-call tracing via `contextvars`:
 
 ```python
-with reachq.trace("shortcut_set", n=graph.num_vertices()):
+with reachq.core.trace.trace("shortcut_set", n=graph.num_vertices()):
     H, beta = build_shortcut_set_for_reachability(g)
 ```
 
@@ -545,12 +552,17 @@ with reachq.trace("shortcut_set", n=graph.num_vertices()):
 
 ### Telemetry
 
-Counter interface: `reachq.metrics.COUNTERS[name].inc()`. Default: no-op. Backend: `prometheus_client.Counter`. Users opt in via `reachq.enable_metrics("prometheus")`.
+Counter interface: `reachq.core.metrics.inc_counter(name)` and
+`record_histogram(name, value)`. No-ops by default; call
+`reachq.core.metrics.enable_metrics()` to activate, and read current values
+via `reachq.core.metrics.snapshot()`.
 
 ### Observability
 
-- `SpanProfiler` already exists; rename to `trace()` context manager; pluggable backend.
-- Add `reachq.snapshot(graph)` returns `(n, m, max_in_deg, max_out_deg, num_sccs, n_strongly_regular, ...)` for dashboards.
+- `reachq.core.trace.trace` already exists as the entry/exit context manager.
+- `reachq.core.metrics.snapshot()` already returns counter/histogram stats;
+  a future `snapshot(graph)` variant could add graph stats `(n, m,
+  max_in_deg, max_out_deg, num_sccs, n_strongly_regular, ...)` for dashboards.
 
 # 10. Performance Optimization Plan
 
@@ -656,10 +668,10 @@ Counter interface: `reachq.metrics.COUNTERS[name].inc()`. Default: no-op. Backen
 25. Add `Backend` protocol and refactor `parallel.py` around it.
 26. Add Cython/Numba kernels in `reachq_accel/`.
 27. Replace `sparsify.py`'s O(|H|²) implementation.
-28. Add `metrics` + `trace()` telemetry plumbing.
-29. Add `reachq.snapshot()` for observability.
+28. Add `metrics` + `trace()` telemetry plumbing (already landed in `reachq.core.metrics` / `reachq.core.trace`).
+29. Add `reachq.core.metrics.snapshot(graph)` with graph stats for observability (current `snapshot()` returns counter/histogram stats).
 30. Add GraphBLAS backend behind `reachq[accel]`.
-31. Add `reachq.io.arrow` for binary serialisation.
+31. Add `reachq.core.io.arrow` binary serialisation (already landed: `dump_arrow` / `load_arrow`).
 32. Migrate CI to `tox` matrix.
 33. Add property-based test coverage for `sparsify` invariants.
 
@@ -711,7 +723,7 @@ Counter interface: `reachq.metrics.COUNTERS[name].inc()`. Default: no-op. Backen
 - Implement (1+ε) approximation.
 - Parallelise CFR properly.
 - Cython kernel for per-pivot BFS (behind `reachq[accel]`).
-- Add `reachq.io.arrow` for binary I/O.
+- `reachq.core.io.arrow` (`dump_arrow` / `load_arrow`) already provides binary I/O.
 - Add `reachq-accel` package on PyPI.
 - Issue a 1.0.0 release.
 - Add benchmark regression tracking (asv + GitHub Action).
@@ -764,7 +776,7 @@ Counter interface: `reachq.metrics.COUNTERS[name].inc()`. Default: no-op. Backen
 | Cython/Numba dependency breaks `pip install reachq` for users without a compiler | Medium | Optional `[accel]` extra; pure Python is the default. |
 | Parallelising CFR changes the RNG order, breaking seed-dependent tests | High | Add explicit per-pivot RNG seeding; update tests. |
 | Property-based tests with `max_examples=200` slow CI to minutes | Low | Run in nightly job; `pytest -m "not slow"` for PRs. |
-| Breaking change to `Flags` API | Medium | Deprecation shim `from reachq.shortcut_set import Flags` → re-export `RefinementConfig` as `Flags`. |
+| Breaking change to `Flags` API | Medium | Keep `reachq.Flags` as a re-export of `RefinementConfig` (`Flags = RefinementConfig` in `reachq/__init__.py`). |
 | Repository churn confuses existing contributors | Low | Clear `CONTRIBUTING.md`, `docs/START_HERE.md` rewrite, single-source-of-truth `docs/PAPER.md`. |
 | Long-term maintenance burden of multiple sub-packages | Medium | Each sub-package has its own `pyproject.toml`; CI matrix; fewer cycles for the maintainer. |
 | Research-grade code (TRIZ Inventive Principles 38, 39) requires Rust/Cython expertise | High | Document the requirement; recruit a co-maintainer; or accept performance ceiling. |
