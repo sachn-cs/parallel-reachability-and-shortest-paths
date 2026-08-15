@@ -192,7 +192,7 @@ docstrings, so they should never lie about the API.
     options:
       show_root_heading: true
 
-::: reachq.proto.backend.Backend
+::: reachq.core.backends.Backend
     options:
       show_root_heading: true
 
