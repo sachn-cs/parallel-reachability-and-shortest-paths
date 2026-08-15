@@ -1,5 +1,14 @@
 # 1. Executive Summary
 
+> **Historical snapshot.** This review describes the repository *as it
+> was* at review time (466 tests passing, flat module layout). It is
+> kept for the record; it does not describe the current package. Since
+> then the tree moved to `reachq.core.*` / `reachq.research.*`, CI is
+> green (lint, typecheck, docs, tests), mypy is clean, mkdocs builds
+> `--strict`, and the sampling constant is threaded per-call rather
+> than through a module global. Where this review contradicts current
+> docs, the current docs win.
+
 `reachq` is a pure-Python reimplementation of the JLS shortcut-set and CFR hopset constructions from a parallel-reachability paper, plus four post-processing refinements and a few research-only extensions. The core algorithms are theoretically sound and the public API is small (~25 functions). However, the repository has accumulated the typical growth-pain profile of a research codebase stretched toward production: **no packaging discipline, no parallel execution actually validated, no observability, no reproducibility guarantees, and a research/extension layer mixed into the core namespace.**
 
 - **Today:** 6,791 LOC of `reachq/`, 5,313 LOC of tests, 84 Python files. 466 tests pass, 14 fail (pre-existing), 1 xfailed. Pure Python with numpy/scipy. Sequential except for one half-wired `ParallelContext` that only works for the JLS path.
