@@ -77,9 +77,9 @@ pip install -e ".[dev]"
 ## Quick start
 
 ```python
-from reachq.generators import random_dag
-from reachq.shortcut_set import build_shortcut_set_for_reachability
-from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.generators import random_dag
+from reachq.core.reachability import bfs_reachability, parallel_bfs
 
 g = random_dag(n=1000, edge_probability=0.1, random_seed=42)
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
@@ -164,23 +164,23 @@ The lemma tests run 50 random seeds per invariant claim; failures would indicate
 
 ```python
 from reachq import Flags, Digraph, WeightedDigraph
-from reachq.shortcut_set import (
+from reachq.core.algorithm import (
     build_shortcut_set_for_reachability,  # Theorem-2 wrapper
     jls_with_tc_pruning,  # direct recursion
     jls_shortcut_set,  # wrapper, TC pruning off
 )
-from reachq.hopset import (
+from reachq.core.hopset import (
     build_hopset_for_sssp,  # Theorem-4 wrapper
     cfr_with_truncsssp_pruning,  # direct recursion
     cfr_hopset,  # wrapper, TruncSSSP off
 )
-from reachq.reachability import (
+from reachq.core.reachability import (
     bfs_reachability,
     parallel_bfs,
     strongly_connected_components,
     topological_sort,
 )
-from reachq.shortest_paths import (
+from reachq.core.shortest_paths import (
     dijkstra,
     shortest_path_hopbound,
     truncated_dijkstra,
@@ -188,11 +188,11 @@ from reachq.shortest_paths import (
     compute_d_ancestors,
     compute_d_descendants,
 )
-from reachq.transitive_closure import (
+from reachq.core.tc import (
     transitive_closure_matrix,
     transitive_closure_brute_force,
 )
-from reachq.generators import (
+from reachq.core.generators import (
     random_dag,
     weighted_random_dag,
     layered_dag,
@@ -206,11 +206,11 @@ from reachq.generators import (
     shrikhande_graph,
     hamming_graph,
 )
-from reachq.serialization import (
-    digraph_to_json,
-    digraph_from_json,
-    weighted_digraph_to_json,
-    weighted_digraph_from_json,
+from reachq.core.io.json import (
+    dump,  # digraph -> JSON string
+    load,  # JSON string -> digraph
+    weighted_dump,
+    weighted_load,
 )
 ```
 
@@ -223,18 +223,20 @@ Full API reference: [`docs/algorithms.md`](docs/algorithms.md).
 ```
 parallel-reachability-and-shortest-paths/
 ├── reachq/                          # Main package
-│   ├── logging_config.py             # Centralised logging setup
-│   ├── graph.py                      # Digraph, WeightedDigraph
-│   ├── reachability.py               # BFS, SCC, topological sort
-│   ├── shortest_paths.py             # Dijkstra, A*, truncated SSSP
-│   ├── transitive_closure.py         # Sparse Boolean matmul TC
-│   ├── shortcut_set.py               # JLS + TC-Pruning (Theorem 2)
-│   ├── hopset.py                     # CFR + TruncSSSP-Pruning (Theorem 4)
-│   ├── generators.py                 # Deterministic generators + SNAP loader
-│   ├── numpy_bfs.py                  # Vectorised CSR BFS
-│   ├── serialization.py              # JSON serialisation
-│   ├── work_depth.py                 # PRAM work/depth accounting
-│   └── invariants.py                 # Theorem-oriented validators
+│   ├── __init__.py                  # Public API + __version__
+│   ├── core/                        # Always-imported library layer
+│   │   ├── graph.py                 # Digraph, WeightedDigraph
+│   │   ├── reachability.py          # BFS, SCC, topological sort
+│   │   ├── shortest_paths.py        # Dijkstra, A*, truncated SSSP
+│   │   ├── algorithm.py             # JLS + TC-pruning (Theorem 2)
+│   │   ├── hopset.py                # CFR + TruncSSSP-pruning (Theorem 4)
+│   │   ├── generators.py            # Deterministic generators + SNAP loader
+│   │   ├── tc.py                    # Sparse Boolean matmul TC
+│   │   ├── bfs.py                   # Vectorised CSR BFS
+│   │   ├── io/                      # JSON + Arrow serialisation
+│   │   ├── work_depth.py            # PRAM work/depth accounting
+│   │   └── invariants.py            # Theorem-oriented validators
+│   └── research/                    # Opt-in refinements (off-paper)
 ├── tests/                            # 574 tests
 │   ├── test_paper_lemmas.py          # Empirical support for paper lemmas
 │   ├── test_algorithmic_improvements.py   # Per-flag ablation tests
