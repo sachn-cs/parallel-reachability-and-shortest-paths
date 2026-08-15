@@ -1,5 +1,14 @@
 # Correctness notes from a faithful reimplementation
 
+> **Historical corrigendum.** All four bugs documented here are
+> fixed in v0.8.0. The regression tests that pin the fixes are:
+> `tests/test_shortcut_set_basic.py` (self-loop filter),
+> `tests/test_shortcut_set_hopbound.py` (hopbound),
+> `tests/test_shortcut_set_pivots.py` (pivot sampling),
+> `tests/test_algorithmic_improvements.py` (TC-pruning).
+> This page is kept for the historical record; the original
+> corrigendum text follows below.
+
 > **Status: corrigendum draft.** Documents correctness bugs found and
 > fixed in the public Python reference implementation of the JLS
 > shortcut-set construction. All bugs are reproducible from the
