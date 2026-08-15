@@ -341,7 +341,7 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 ## Known limitations
 
 - `|H|` on SNAP is **330–680×** the paper's worst-case bound $O(m\rho + n\rho^2)$. The asymptotic bound is correct; the constants in the paper's analysis (sampling rate, TC trigger threshold, β estimate) are loose on real-world graphs. A tighter sampling constant and per-graph auto-tuning would close this gap. **See [`results/summary.md`](results/summary.md) for the honest breakdown.**
-- `web-Google` (n=875,713) is out of reach for single-process Python: memory is unblocked (sparse TC), but wall-clock is dominated by Python's per-edge overhead. The improvement to break this is a Cython/numba port of the BFS and Dijkstra inner loops — explicitly out of scope per the user's design constraint.
+- `web-Google` (n=875,713) is out of reach for single-process Python: memory is unblocked (sparse TC), but wall-clock is dominated by Python's per-edge overhead. The improvement to break this is a Cython/numba port of the BFS and Dijkstra inner loops. Kernel scaffolding exists under [`reachq/accel/`](reachq/accel/), but it is **not** built or shipped: the wheel is pure-Python only (no JIT, no native extensions), and the kernels are not wired into the algorithm. See [`docs/accel.md`](docs/accel.md).
 - All randomised algorithms use seeded `random.Random` instances for reproducibility. No true parallel execution; parallel span bounds are not measured.
 
 ---
