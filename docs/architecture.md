@@ -160,8 +160,9 @@ Input Graph
    via the work/depth model.
 
 5. **Testability**: Every public function has corresponding tests with both
-   positive and negative cases. Test coverage is ~76% (measured with
-   `pytest --cov=reachq`).
+   positive and negative cases. Test coverage is 76% (last measured
+   during the v0.8.0 release with `pytest --cov=reachq` — 3737
+   statements, 880 missed, 76% line coverage).
 
 6. **Extensibility**: New graph types can be added by subclassing `Graph`
    and implementing the four template hooks.
@@ -190,6 +191,30 @@ core/graph.py       (no internal dependencies; contract_sccs lazily imports
     │
     └── core/invariants.py
 ```
+
+## Module Index
+
+The above diagram lists the algorithm-graph dependency roots. The
+following modules are part of the implementation but not on the
+critical path of the API:
+
+| Module | Responsibility |
+|---|---|
+| `core/csr.py` | Build forward/reverse CSR arrays from a `Digraph`. |
+| `core/predictor.py` | Heuristic graph-property estimators (`predict_omega`, `predict_epsilon`). |
+| `core/tuner.py` | `auto_tune` — pick a `RefinementConfig` based on graph density. |
+| `core/spectrum.py` | Eigenvalues and spectral-gap helpers for the SRG fixtures. |
+| `core/snapshot.py` | `@dataclass` snapshots for per-call inputs/outputs. |
+| `core/trace.py` | `trace()` context manager for opt-in timing logs. |
+| `core/metrics.py` | Opt-in counter and histogram collectors. |
+| `core/errors.py` | The exception hierarchy. |
+| `core/backends/` | `Backend` Protocol and `ParallelContext` (sequential / threads / processes). |
+| `core/io/arrow.py` | Arrow IPC serialization (optional, requires `pyarrow`). |
+| `core/io/networkx.py` | `to_networkx` / `from_networkx` (optional, requires `networkx`). |
+| `proto/graph.py` | The `Graph` duck-typed Protocol. |
+| `proto/rng.py` | The `RNG` Protocol. |
+| `proto/store.py` | The `Store` Protocol. |
+| `cli/main.py` | The `reachq` console-script entry point. |
 
 ## Future Considerations
 
