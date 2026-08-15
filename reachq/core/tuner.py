@@ -17,8 +17,14 @@ def auto_tune(graph: Digraph) -> RefinementConfig:
     """Select RefinementConfig based on graph properties.
 
     Heuristic: dense graphs benefit from label compression and
-    skip_condense; sparse graphs benefit from hop-bounded BFS
-    and TC pruning.
+    skip_condense; sparse graphs benefit from hop-bounded BFS and
+    TC pruning.
+
+    Args:
+        graph: The input digraph.
+
+    Returns:
+        A ``RefinementConfig`` tuned for the graph's density.
     """
     n = graph.num_vertices()
     m = graph.num_edges()

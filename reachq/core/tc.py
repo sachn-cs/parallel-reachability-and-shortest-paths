@@ -18,8 +18,14 @@ from reachq.core.graph import Digraph
 def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]:
     """Compute TC(G) using BFS from every vertex.
 
-    Returns all pairs (u, v) such that there is a path from u to v in G.
-    Time complexity: O(n * m) which is O(n^3) in the worst case.
+    Args:
+        graph: The input digraph.
+
+    Returns:
+        Set of all pairs ``(u, v)`` such that there is a path from
+        ``u`` to ``v`` in G (including ``u == v``).
+
+    Complexity: O(n * m) time, O(n^2) space in the worst case.
     """
     from reachq.core.reachability import compute_r_plus
 
@@ -32,7 +38,15 @@ def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]
 
 
 def vertex_to_index(graph: Digraph) -> tuple[dict[object, int], list[object]]:
-    """Create a bijection between vertices and indices [0, n-1]."""
+    """Create a bijection between vertices and indices [0, n-1].
+
+    Args:
+        graph: The input digraph.
+
+    Returns:
+        Tuple ``(index_map, vertices)`` where ``index_map[v] = i`` and
+        ``vertices[i] = v``.
+    """
     vertices = list(graph.vertices())
     index_map = {v: i for i, v in enumerate(vertices)}
     return index_map, vertices
@@ -41,17 +55,29 @@ def vertex_to_index(graph: Digraph) -> tuple[dict[object, int], list[object]]:
 def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
     """Compute TC(G) using Boolean matrix multiplication (repeated squaring).
 
-    Sparse memory: O(n + m) for the CSR adjacency; repeated squaring does
-    O(log n) sparse matmuls whose intermediate sizes stay bounded by |TC|.
-    Previously this allocated a dense n x n int32 matrix, which OOMs for
-    graphs above ~50k vertices on a laptop.
+    Sparse memory: O(n + m) for the CSR adjacency; repeated squaring
+    does O(log n) sparse matmuls whose intermediate sizes stay bounded
+    by ``|TC|``. Previously this allocated a dense n x n int32 matrix,
+    which OOMs for graphs above ~50k vertices on a laptop.
 
-    Implementation note: scipy.sparse ``@`` between two CSR matrices returns
-    integer counts (path multiplicities) stored at every (i, j) reached,
-    but the set of *reached* positions is exactly what we want. We extract
-    the COO pairs from each iteration and accumulate them in a Python set.
-    This sidesteps the buggy ``maximum`` behaviour for sparse matrices with
-    different sparsity patterns.
+    Implementation note: scipy.sparse ``@`` between two CSR matrices
+    returns integer counts (path multiplicities) stored at every
+    (i, j) reached, but the set of *reached* positions is exactly
+    what we want. We extract the COO pairs from each iteration and
+    accumulate them in a Python set. This sidesteps the buggy
+    ``maximum`` behaviour for sparse matrices with different sparsity
+    patterns.
+
+    Args:
+        graph: The input digraph.
+
+    Returns:
+        Set of all pairs ``(u, v)`` such that there is a path from
+        ``u`` to ``v`` in G.
+
+    Raises:
+        ImportError: If ``scipy`` is not installed. (In practice scipy
+            is a declared dependency, so this branch is dead code.)
     """
     import numpy as np
 
@@ -91,11 +117,11 @@ def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
         (int(i), int(j)) for i, j in zip(adj.tocoo().row, adj.tocoo().col)
     }
 
-    # Repeated squaring. The dtype of the CSR data must be wide enough to
-    # hold the maximum path count between any pair, which grows as
-    # O(n!) in dense graphs; int32 is enough for n up to a few thousand.
-    # We pre-build a 0/1 boolean CSR per iteration from the current
-    # ``reach`` set so squaring stays in the Boolean semiring.
+    # Repeated squaring. The dtype of the CSR data must be wide enough
+    # to hold the maximum path count between any pair, which grows as
+    # O(n!) in dense graphs; int32 is enough for n up to a few
+    # thousand. We pre-build a 0/1 boolean CSR per iteration from the
+    # current ``reach`` set so squaring stays in the Boolean semiring.
     max_iterations = max(1, (n - 1).bit_length())
     for _ in range(max_iterations):
         rows_arr = np.fromiter((r for r, _ in reach), dtype=np.int32, count=len(reach))
@@ -105,8 +131,9 @@ def transitive_closure_matrix(graph: Digraph) -> set[tuple[object, object]]:
             shape=(n, n),
         )
         # Boolean matmul: clip to bool AFTER squaring so any positive
-        # entry (regardless of path count) becomes 1. Using a wide dtype
-        # (int32) avoids overflow for graphs up to n ~= a few thousand.
+        # entry (regardless of path count) becomes 1. Using a wide
+        # dtype (int32) avoids overflow for graphs up to n ~= a few
+        # thousand.
         squared = tc_csr @ tc_csr
         # Threshold via COO: gather (row, col) where data > 0 directly.
         sq_coo = squared.tocoo()
@@ -129,6 +156,13 @@ def transitive_closure_on_subset(
     """Compute TC(G[subset]): transitive closure of the induced subgraph.
 
     Used by TC-Pruning (Section 4.2): "add all edges in TC(G[R(G, p)]) to H."
+
+    Args:
+        graph: The input digraph G.
+        subset: The subset of vertices to take the induced subgraph on.
+
+    Returns:
+        Set of reachable pairs in ``graph.induced_subgraph(subset)``.
     """
     subgraph = graph.induced_subgraph(subset)
     return transitive_closure_matrix(subgraph)
