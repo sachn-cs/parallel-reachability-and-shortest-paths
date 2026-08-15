@@ -1,4 +1,14 @@
-"""Parallel-execution backends for reachq."""
+"""Parallel-execution backends for reachq.
+
+Defines the ``Backend`` Protocol (a minimal ``imap_unordered`` shape)
+and the concrete ``ParallelContext`` selector. The default is
+``SEQUENTIAL`` (single-threaded). Thread and process pools are
+available via ``reachq.core.backends.threads.threads(n)`` and
+``reachq.core.backends.processes.processes(n)``.
+
+The experimental distributed backends (Ray, Dask, GraphBLAS) live
+in ``reachq/accel/`` and are not part of the default build.
+"""
 
 from __future__ import annotations
 
