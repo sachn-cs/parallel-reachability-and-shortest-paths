@@ -30,7 +30,7 @@ nav:
   - Paper: PAPER.md
   - Benchmarks: benchmarks.md
   - Architecture: architecture.md
-  - Architecture review: ARCHITECTURE_REVIEW.md
+  - Architecture review: HISTORICAL_ARCHITECTURE_REVIEW.md
   - Acceleration backends: accel.md
   - Correctness: notes_correctness.md
   - Invariants: invariants.md

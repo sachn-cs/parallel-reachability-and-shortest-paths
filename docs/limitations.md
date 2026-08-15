@@ -7,7 +7,7 @@ the doc that explains the limitation in detail.
 
 | Capability | Status | Where to look |
 |---|---|---|
-| True parallel execution (PRAM / threads / processes) | Not implemented. The current code is single-threaded; the `parallel_workers` parameter is logged-and-ignored on the process path. The CFR path exposes it but the underlying map is not picklable. | [`docs/algorithms.md`](algorithms.md), [`docs/ARCHITECTURE_REVIEW.md`](ARCHITECTURE_REVIEW.md) |
+| True parallel execution (PRAM / threads / processes) | Not implemented. The current code is single-threaded; the `parallel_workers` parameter is logged-and-ignored on the process path. The CFR path exposes it but the underlying map is not picklable. | [`docs/algorithms.md`](algorithms.md), [`docs/HISTORICAL_ARCHITECTURE_REVIEW.md`](HISTORICAL_ARCHITECTURE_REVIEW.md) |
 | JIT / native C extensions | Not implemented. The wheel and sdist ship only pure-Python fallbacks; the Cython `.pyx` and Rust `.rs` sources live in the git repo only. | [`docs/accel.md`](accel.md) |
 | Distributed execution (Ray, Dask, GraphBLAS) | Stub only. The Backend Protocol shape is provided but the implementations are not wired into the JLS construction. | [`reachq/accel/`](https://github.com/sachncs/parallel-reachability-and-shortest-paths/tree/master/reachq/accel) |
 | GPU acceleration | Not implemented. | This page. |
