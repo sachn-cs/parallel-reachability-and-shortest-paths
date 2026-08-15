@@ -38,8 +38,6 @@ def predict_omega(graph: Digraph) -> float:
     """
     from reachq.research.blas_omega import runtime_omega
 
-    n = graph.num_vertices()
-    del n
     return runtime_omega()
 
 
