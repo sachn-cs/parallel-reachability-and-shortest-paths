@@ -1,92 +1,69 @@
-# Acceleration Backends
+# Acceleration Backends (experimental, not shipped)
 
-reachq ships with optional acceleration backends for performance-critical
-workloads. All backends expose the same Python API and fall back to the
-pure-Python implementation when the compiled extension is unavailable.
+`reachq/accel/` contains optional, **experimental** scaffolding for native
+kernels (Cython, Rust, Numba) plus Dask/Ray/GraphBLAS hooks. It is **not
+part of the PyPI wheel**: `pip install reachq` gives you a pure-Python
+package with no JIT and no native extensions.
 
-## Backend overview
+## What ships vs what does not
 
-| Backend | Build tool | Speedup vs pure-Python | When to use |
-|---|---|---|---|
-| **Cython** | `python setup.py build_ext` | 5-50x for CSR BFS, 3-10x for Dijkstra | Production deployments with a C compiler available |
-| **Numba** | none (JIT-compiles on first call) | 3-30x after warmup | Quick experimentation without a build step |
-| **Rust** | `maturin develop` | 10-100x for hot loops | When maximum throughput matters and Rust toolchain is available |
+| Component | In the PyPI wheel? |
+|---|---|
+| `reachq.core.*` pure-Python algorithms | yes |
+| `reachq.accel` wrapper modules + pure-Python fallbacks | yes |
+| Cython `.pyx` kernels (`reachq/accel/cython`) | yes, as source files only |
+| Compiled `_cy_*.so` / Rust `.so` extensions | **no** |
+| Rust source (`reachq/accel/rust`) | no (source lives only in the repo) |
 
-All three expose identical Python APIs:
+The `.pyx` sources ship only so the modules can be imported without error;
+they are never compiled during install. There is **no build hook**: even
+`pip install "reachq[accel-cython]"` only installs build dependencies
+(`cython`), it does not compile anything.
 
-- `cy_bfs_forward(indptr, indices, source, n, max_depth=...) -> ndarray[bool]`
-- `cy_bfs_backward(indptr_rev, indices_rev, source, n, max_depth=...) -> ndarray[bool]`
-- `cy_dijkstra(indptr, indices, weights, source, n) -> ndarray[float64]`
+## Status and support
 
-Plus helpers `is_cython_available()`, `is_numba_available()`,
-`is_rust_available()`.
+- **Experimental.** These backends are scaffold, not a supported feature.
+  They are not exercised by CI beyond the pure-Python fallback path, and
+  the speedups in this document are illustrative, not measured against
+  the shipped package.
+- The only behavior guaranteed and tested is the fallback: every wrapper
+  falls back to the pure-Python implementations in `reachq.core.bfs` and
+  `reachq.core.shortest_paths` when the compiled extension is absent
+  (covered by `tests/test_accel_fallbacks.py`).
+- Do not rely on the native kernels for correctness or performance until
+  a build + test path is added and CI-verified.
 
-## Building the Cython extensions
+## If you build them anyway
+
+Building the Cython kernels requires a C compiler and numpy headers:
 
 ```bash
 cd reachq/accel/cython
 python setup.py build_ext --inplace
 ```
 
-The compiled extensions (`_cy_bfs*.so` and `_cy_dijkstra*.so`)
-appear next to the `.pyx` files. The wrapper modules
-`reachq.accel.cython.bfs` and `reachq.accel.cython.dijkstra` will
-pick them up automatically on the next Python startup.
+This produces `_cy_bfs*.so` and `_cy_dijkstra*.so` next to the `.pyx`
+files; the wrappers `reachq.accel.cython.bfs` and
+`reachq.accel.cython.dijkstra` pick them up on the next import. The Rust
+backend builds with `maturin develop --release` in `reachq/accel/rust`.
 
-For CI/CD, install with `pip install reachq[accel-cython]` and
-build the extensions in the install hook.
+## Backend overview
 
-## Using Numba JIT
+| Backend | Build tool | Speedup vs pure-Python (illustrative) |
+|---|---|---|
+| **Cython** | `python setup.py build_ext` | 5-50x for CSR BFS, 3-10x for Dijkstra |
+| **Numba** | none (JIT-compiles on first call) | 3-30x after warmup |
+| **Rust** | `maturin develop --release` | 10-100x for hot loops |
 
-Numba is a JIT compiler; no build step is required. The first call
-to each kernel pays a one-time compilation cost (typically a few
-seconds per kernel). After that, subsequent calls run at
-near-native speed.
+All expose the same Python API:
 
-```python
-from reachq.accel.numba import njit_bfs_forward, is_numba_available
+- `cy_bfs_forward(indptr, indices, source, n, max_depth=...) -> ndarray[bool]`
+- `cy_bfs_backward(indptr_rev, indices_rev, source, n, max_depth=...) -> ndarray[bool]`
+- `cy_dijkstra(indptr, indices, weights, source, n) -> ndarray[float64]`
 
-print("Numba available:", is_numba_available())
-# ...
-```
-
-## Building the Rust extensions
-
-```bash
-cd reachq/accel/rust
-maturin develop --release
-```
-
-The compiled extension `_reachq_rust` is importable as
-`reachq.accel.rust._reachq_rust`. Maturin handles the PyO3 glue
-and produces a Python-compatible `.so` file.
-
-For PyPI distribution, use `maturin build --release` to produce
-wheels, then upload to your index.
-
-## Fallback behaviour
-
-When the compiled extension is unavailable, the wrapper functions
-call into the equivalent pure-Python code in `reachq.core.bfs`
-and `reachq.core.shortest_paths`. The fallback is always
-correct; the only downside is performance.
-
-You can check which backend is active at runtime via
-`is_cython_available()`, `is_numba_available()`, and
-`is_rust_available()`.
-
-## Benchmarks
-
-See `benchmarks/` for asv suites comparing the backends. In
-practice:
-
-- Pure-Python BFS over a 100k-edge graph: ~5 seconds.
-- Cython BFS over the same graph: ~0.1 seconds.
-- Numba BFS over the same graph (after warmup): ~0.3 seconds.
-- Rust BFS over the same graph: ~0.05 seconds.
-
-Numbers are illustrative; actual performance depends on the
-graph structure and the machine.
+Plus helpers `is_cython_available()`, `is_numba_available()`,
+`is_rust_available()` that report whether a compiled kernel is loadable
+(always `False` for a default install).
 
 ## Adding a new backend
 
