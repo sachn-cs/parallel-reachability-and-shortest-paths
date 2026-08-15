@@ -31,14 +31,24 @@ def greedy_shortcut_set(
     epsilon: float = 0.1,
     max_iterations: int = 1_000,
 ) -> set[tuple[Any, Any]]:
-    """Greedy (1+ε)-approximation to the minimum β-hop-bounded shortcut
-    set.
+    """Greedy (1+ε)-approximation to the minimum β-hop-bounded shortcut set.
 
     Algorithm: at each step, pick the shortcut (u, v) whose inclusion
     reduces the most "essential reach" — the number of source-target
     pairs for which this shortcut is the unique β-hop path. Stop
-    when no source-target pair requires a shortcut (i.e., the
-    β-hop reachability matches the plain reachability).
+    when no source-target pair requires a shortcut (i.e., the β-hop
+    reachability matches the plain reachability).
+
+    Args:
+        graph: The input digraph G.
+        beta: Hop bound.
+        epsilon: Approximation parameter ε (reserved for the formal
+            (1+ε) bound; the current implementation is a simpler
+            greedy without the formal guarantee).
+        max_iterations: Hard cap on iterations.
+
+    Returns:
+        Greedy shortcut set.
     """
     H: set[tuple[Any, Any]] = set()
     for iteration in range(max_iterations):
@@ -65,11 +75,14 @@ def best_candidate(
     A source-target pair (s, t) is in "essential reach" iff every
     β-hop path from s to t in G goes through (u, v).
 
-    A simple (but not optimal) heuristic: pick the (u, v) that
-    shortens the most source-target distances when added. The
-    `(u, v)` whose addition produces the largest reduction in the
-    average distance over all source-target pairs is the most
-    "globally beneficial" shortcut.
+    Args:
+        graph: The input digraph G.
+        beta: Hop bound.
+        H: Current shortcut set.
+
+    Returns:
+        The best (u, v) shortcut, or ``None`` if no candidate beats
+        the current benefit threshold.
     """
     best = None
     best_benefit = 0
@@ -90,7 +103,18 @@ def bfs_limited(
     beta: int,
     H: set[tuple[Any, Any]],
 ) -> dict[Any, int]:
-    """BFS from source, limited to beta hops, using G + H."""
+    """BFS from source, limited to beta hops, using G + H.
+
+    Args:
+        graph: The input digraph G.
+        source: Source vertex.
+        beta: Hop bound.
+        H: Shortcut set to merge with the graph.
+
+    Returns:
+        Mapping ``vertex -> distance`` for every vertex reachable
+        from ``source`` within ``beta`` hops.
+    """
     visited = {source: 0}
     q = deque([(source, 0)])
     out = graph.out_edges
@@ -113,7 +137,15 @@ def bfs_limited(
 
 
 def any_vertex(graph: Digraph) -> object:
-    """Return an arbitrary vertex (for iteration convenience)."""
+    """Return an arbitrary vertex (for iteration convenience).
+
+    Args:
+        graph: The input digraph.
+
+    Returns:
+        The first vertex yielded by ``graph.vertices()``, or ``None``
+        if the graph has no vertices.
+    """
     for v in graph.vertices():
         return v
     return None

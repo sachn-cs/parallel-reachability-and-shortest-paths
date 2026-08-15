@@ -151,7 +151,16 @@ def fix_resample_reachable(
     source: Any,
     shortcuts: set[tuple[Any, Any]],
 ) -> set[Any]:
-    """Reachable from source via graph + shortcuts, using the BFS-variant."""
+    """Reachable from source via graph + shortcuts, using the BFS-variant.
+
+    Args:
+        graph: The input digraph G.
+        source: Source vertex.
+        shortcuts: Shortcut set H to merge with the graph.
+
+    Returns:
+        Set of vertices reachable from ``source`` in ``G ∪ H``.
+    """
     from collections import deque
 
     visited = {source}

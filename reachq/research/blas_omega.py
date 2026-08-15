@@ -39,8 +39,14 @@ BLAS_OMEGA_TABLE: dict[str, float] = {
 def detect_blas_vendor() -> str | None:
     """Return the BLAS vendor name as a string, or None if undetected.
 
-    Inspects numpy.show_config() output for known vendor substrings.
-    show_config() prints (it doesn't return), so we capture stdout.
+    Inspects ``numpy.show_config()`` output for known vendor
+    substrings. ``show_config()`` prints (it doesn't return), so we
+    capture stdout.
+
+    Returns:
+        The detected vendor name (one of ``BLAS_OMEGA_TABLE`` keys, or
+        the normalised ``openblas64`` / ``mkl_rt`` variants), or
+        ``None`` if no vendor is detected.
     """
     import contextlib
     import io
@@ -71,7 +77,10 @@ def detect_blas_vendor() -> str | None:
 def runtime_omega() -> float:
     """Return the conservative runtime omega estimate.
 
-    Default to 3.0 (schoolbook) if the vendor cannot be identified.
+    Defaults to 3.0 (schoolbook) if the vendor cannot be identified.
+
+    Returns:
+        The conservative omega for the detected vendor, or 3.0.
     """
     vendor = detect_blas_vendor()
     if vendor is None:
@@ -80,5 +89,9 @@ def runtime_omega() -> float:
 
 
 def omega_table() -> dict[str, float]:
-    """Return the full vendor -> omega mapping (for inspection)."""
+    """Return the full vendor -> omega mapping (for inspection).
+
+    Returns:
+        A copy of ``BLAS_OMEGA_TABLE``.
+    """
     return dict(BLAS_OMEGA_TABLE)
