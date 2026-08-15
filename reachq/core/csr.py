@@ -1,4 +1,18 @@
-"""CSR adjacency representation for digraphs."""
+"""Compressed-sparse-row (CSR) adjacency representation for digraphs.
+
+A CSR pair is two numpy arrays per direction: ``indptr`` (length
+``n+1``) and ``indices`` (length ``m``). Reading the outgoing
+neighbours of vertex ``i`` is a constant-time slice:
+
+    neighbours_i = indices[indptr[i]:indptr[i+1]]
+
+CSR is the format used by the BFS kernels in ``reachq/core/bfs.py``
+and the experimental Cython/Numba/Rust wrappers in
+``reachq/accel/``. The conversion from a Digraph allocates
+``indptr_fwd``/``indices_fwd`` (forward edges) and the
+indptr_rev/indices_rev (reverse edges) in one pass so the BFS
+also has the backward view at hand.
+"""
 
 from __future__ import annotations
 

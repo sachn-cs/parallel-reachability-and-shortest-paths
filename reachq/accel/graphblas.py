@@ -1,6 +1,11 @@
 """GraphBLAS backend.
 
-Requires pygraphblas. Install with ``pip install reachq[accel]``.
+This is a stub: the backend exposes the ``Backend`` Protocol
+shape but the underlying implementation defers to a sequential
+list comprehension. Real GraphBLAS operations would operate on
+sparse matrices, not on per-item callables. Requires the optional
+``pygraphblas`` dependency; install with ``pip install
+reachq[accel]``.
 """
 
 from __future__ import annotations

@@ -1,6 +1,9 @@
 """Ray distributed backend.
 
-Requires ray. Install with ``pip install reachq[accel]``.
+This is a stub: it dispatches items via Ray remote calls but is
+not wired into the JLS shortcut-set construction. Requires the
+optional ``ray`` dependency; install with ``pip install
+reachq[accel]``.
 """
 
 from __future__ import annotations

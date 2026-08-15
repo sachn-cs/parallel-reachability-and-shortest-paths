@@ -1,6 +1,9 @@
 """Dask distributed backend.
 
-Requires dask. Install with ``pip install reachq[accel]``.
+This is a stub: it dispatches items via ``dask.delayed`` /
+``dask.compute`` but is not wired into the JLS shortcut-set
+construction. Requires the optional ``dask`` dependency; install
+with ``pip install reachq[accel]``.
 """
 
 from __future__ import annotations
