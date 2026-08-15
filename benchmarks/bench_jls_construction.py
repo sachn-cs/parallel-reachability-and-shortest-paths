@@ -10,7 +10,7 @@ import sys
 # Add the project root to sys.path so reachq is importable
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.generators import random_dag
+from reachq.core.generators import random_dag
 
 from reachq.core.algorithm import build_shortcut_set_for_reachability
 
