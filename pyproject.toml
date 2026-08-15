@@ -53,6 +53,7 @@ dev = [
     "pytest-benchmark>=4.0.0",
     "hypothesis>=6.0.0",
     "mypy>=1.0.0",
+    "networkx>=3.0",
     "ruff==0.16.3",
 ]
 research = [
