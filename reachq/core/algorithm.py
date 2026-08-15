@@ -236,6 +236,21 @@ def sample_pivots_uniform(
     prob: float,
     rng: random.Random,
 ) -> list[Any]:
+    """Sample a uniform subset of vertices with independent probability.
+
+    Each vertex in ``vertices`` is included in the returned list with
+    independent probability ``prob``. The order of the returned list
+    matches the order of the input iterable.
+
+    Args:
+        vertices: Iterable of vertex identifiers (any hashable type).
+        prob: Per-vertex inclusion probability in [0, 1].
+        rng: Source of randomness. Accepts a ``random.Random`` so the
+            caller can pin a seed for reproducibility.
+
+    Returns:
+        A list of the selected vertices in the same order as ``vertices``.
+    """
     return [v for v in vertices if rng.random() < prob]
 
 
