@@ -432,6 +432,17 @@ def paley_graph(q: int) -> Digraph:
 
 
 def is_prime(n: int) -> bool:
+    """Return True iff ``n`` is a prime number.
+
+    Used by ``paley_graph`` to validate the prime ``q`` argument.
+    Trial division up to sqrt(n); fine for small n used in fixtures.
+
+    Args:
+        n: Candidate integer.
+
+    Returns:
+        True if ``n`` is prime, False otherwise.
+    """
     if n < 2:
         return False
     if n < 4:
