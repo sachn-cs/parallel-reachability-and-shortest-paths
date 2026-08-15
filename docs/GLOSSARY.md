@@ -11,38 +11,38 @@ v in `R+(G, s)` in ≤ β hops.
 
 **Shortcut set.** A set H of additional directed edges added to a
 graph G such that `R+(G, s) = R+(G+H, s)` for all s. Used in the
-JLS construction. (reachq.shortcut_set)
+JLS construction. (reachq.core.algorithm)
 
 **Pivot.** A vertex chosen by the JLS construction. The construction
 adds shortcuts `(pivot, v)` for every v in r_plus(pivot) and
-`(v, pivot)` for every v in r_minus(pivot). (reachq.shortcut_set)
+`(v, pivot)` for every v in r_minus(pivot). (reachq.core.algorithm)
 
 **r_plus(v), r_minus(v).** The forward- and backward-reachable sets
 of v, respectively. Computed by BFS / CSR-BFS.
-(reachq.reachability)
+(reachq.core.reachability)
 
 **ρ (rho).** The shortcut-set construction's density parameter:
 `rho = sqrt(n) / beta`. Used in the paper's bound
-`|H| <= O(m*rho + n*rho^2)`. (reachq.shortcut_set)
+`|H| <= O(m*rho + n*rho^2)`. (reachq.core.algorithm)
 
 **ω (omega).** The matrix-multiplication exponent. The paper's bound
 uses ω = 3 (standard schoolbook). Faster ω (Strassen, Strassen-like)
-tightens the bound. (reachq.blas_omega)
+tightens the bound. (reachq.research.blas_omega)
 
 **SCC.** Strongly connected component. Computed via Kosaraju's
-algorithm. (reachq.reachability)
+algorithm. (reachq.core.reachability)
 
 **Trivial condensation.** When all SCCs of a graph have size 1
 (typical for DAGs), the condensation step is a no-op and is skipped.
-(reachq.shortcut_set, `SkipCondense` flag)
+(reachq.core.algorithm, `RefinementConfig.skip_condense` flag)
 
 **Hop-bounded BFS.** A BFS that stops after a fixed number of
 levels. The β-hopbound-preserving sparsifier uses a depth-limited
-BFS to check redundancy. (reachq.sparsify_hop)
+BFS to check redundancy. (reachq.research.sparsify_hop)
 
 **Sparsification (reachbound-preserving).** Iteratively removing
 shortcuts whose removal does not break the β-hopbound for any
-source-target pair. (reachq.sparsify_hop.sparsify_hop_bounded)
+source-target pair. (reachq.research.sparsify_hop.sparsify_hop_bounded)
 
 **StreamingShortcutSet.** Incrementally-maintained shortcut set
 under edge insertions. Amortised O(log^2 n) per insertion.
@@ -55,31 +55,31 @@ minimum-β-hop-bounded shortcut set. (reachq.research.approximation)
 removes shortcuts that break reachability; β-sparsification
 (our name) additionally preserves the hopbound.
 
-**SP.** Shortest path. (reachq.shortest_paths)
+**SP.** Shortest path. (reachq.core.shortest_paths)
 
-**DAG.** Directed acyclic graph. (reachq.generators.random_dag)
+**DAG.** Directed acyclic graph. (reachq.core.generators.random_dag)
 
-**SRG.** Strongly regular graph. (reachq.generators.petersen_graph
+**SRG.** Strongly regular graph. (reachq.core.generators.petersen_graph
 and similar)
 
 **CSR.** Compressed sparse row. A matrix storage format used for
-BFS frontier expansion. (reachq.numpy_bfs)
+BFS frontier expansion. (reachq.core.bfs)
 
 **Flags.** A dataclass of boolean toggles for each algorithmic
 refinement in the shortcut-set construction.
-(reachq.shortcut_set.Flags)
+(reachq.core.config.RefinementConfig, exported as reachq.Flags)
 
 **TC-pruning.** Transitive-closure pruning. Adds all-pairs reachability
 shortcuts within the pivot's reachable ball when the ball is small
-enough that the work is bounded. (reachq.transitive_closure)
+enough that the work is bounded. (reachq.core.tc)
 
 **JLS construction.** The shortcut-set construction of
-Jambulapati, Liu, Sidford 2019. (reachq.shortcut_set.jls_shortcut_set)
+Jambulapati, Liu, Sidford 2019. (reachq.core.algorithm.jls_shortcut_set)
 
 **CFR construction.** The hopset construction of Cao, Fineman,
-Russell 2020. (reachq.hopset.cfr_hopset)
+Russell 2020. (reachq.core.hopset.cfr_hopset)
 
-**ω (different).** In [reachq.blas_omega] the symbol is used for
+**ω (different).** In [reachq.research.blas_omega] the symbol is used for
 the matrix-multiplication exponent, while in some literature it
 denotes the mixing time of an expander. reachq uses only the former.
 

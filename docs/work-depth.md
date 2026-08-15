@@ -13,10 +13,10 @@ they are never conflated.
 
 ## WorkDepthAccountant
 
-The central type is `WorkDepthAccountant` in `reachq/work_depth.py`.
+The central type is `WorkDepthAccountant` in `reachq/core/work_depth.py`.
 
 ```python
-from reachq.work_depth import WorkDepthAccountant, record_bfs
+from reachq.core.work_depth import WorkDepthAccountant, record_bfs
 
 wd = WorkDepthAccountant()
 wd.start_timer()

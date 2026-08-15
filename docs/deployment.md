@@ -159,10 +159,10 @@ logging.basicConfig(level=logging.DEBUG)
 
 ### Profiling
 
-Built-in profiling support via `work_depth.py`:
+Built-in profiling support via `reachq.core.work_depth`:
 
 ```python
-from reachq.work_depth import WorkDepthAccountant
+from reachq.core.work_depth import WorkDepthAccountant
 
 wd = WorkDepthAccountant()
 wd.start_timer()

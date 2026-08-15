@@ -33,7 +33,7 @@ preserves reachability but **violates the β-hopbound guarantee** — the
 sparsified set has a strictly larger empirical diameter.
 
 **Theorem (β-hopbound-preserving sparsification).** The
-`reachq.sparsify.sparsify_hop_bounded(graph, H, beta)` function
+`reachq.research.sparsify_hop.sparsify_hop_bounded(graph, H, beta)` function
 preserves both:
 1. `R+(G, s) = R+(G+H, s)` for all s, and
 2. the empirical diameter of `G + H` is bounded by `beta`.
@@ -44,7 +44,7 @@ random graphs while preserving both invariants.
 ### 2.2. Adaptive β from graph structure
 
 The paper's `beta = (n^omega / m)^(1 / (2 * omega - 2))` is a
-worst-case bound based on edge density. `reachq.adaptive_beta.adaptive_beta`
+worst-case bound based on edge density. `reachq.research.adaptive_beta.adaptive_beta`
 computes a graph-aware β from the empirical eccentricity of a sample
 of source vertices, scaled by a safety factor. The two estimates
 diverge on dense graphs and converge on sparse ones.
@@ -56,19 +56,19 @@ paper draft). All default to on, all individually toggleable.
 
 1. **Trivial-condensation fast path.** When the input graph is a DAG
    (all SCCs of size 1), the condensation step is skipped
-   (`reachq.shortcut_set.SkipCondense`).
+   (`RefinementConfig.skip_condense`).
 2. **Degree-ordered pivot iteration.** Pivots are processed in
    ascending out-degree order, so cheap BFSes finish first
-   (`reachq.shortcut_set.DegreeOrderedPivots`).
+   (`RefinementConfig.degree_ordered_pivots`).
 3. **Label compression.** Labels are stored as `frozenset[int]`
    pivot IDs instead of `set[str]`, reducing memory and hashing cost
-   (`reachq.shortcut_set.LabelCompress`).
+   (`RefinementConfig.label_compress`).
 4. **Skip-trivial-partition guard.** When the partition has only one
    part, the recursion cannot shrink, so we return immediately
-   (`reachq.shortcut_set.SkipTrivialPart`).
+   (`RefinementConfig.skip_trivial_part`).
 5. **Hop-bounded BFS in the pivot loop.** The pivot BFS is bounded
    at the wrapper's β estimate
-   (`reachq.shortcut_set.HopBoundedBfs`).
+   (`RefinementConfig.hop_bounded_bfs`).
 
 ## 4. Bound gap analysis
 
