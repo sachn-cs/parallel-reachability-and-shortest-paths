@@ -20,16 +20,21 @@ satisfies R+(G, s) ⊆ R+(G ∪ H_k, s), so the intersection does too.
 
 Empirical finding:
 
-  On random DAGs (n=60, p=0.1), |H_1|=670, |H_2|=608, |H_1 ∩ H_2|=608.
-  H_2 is a strict subset of H_1: 62 shortcuts in H_1 are NOT in H_2.
-  These are the "self-redundant" shortcuts.
+  On random DAGs (n=60, p=0.1) with parameters matched to
+  build_shortcut_set_for_reachability, the construction is IDEMPOTENT:
+  |H_2| = |H_1| (the second pass over G ∪ H_1 re-derives the same set).
+  The strict reduction reported in earlier versions (|H_1|=670,
+  |H_2|=608) came from a hand-rolled second call that used different
+  k/rho parameters than the wrapper and relied on a module-global
+  sampling constant; it is not reproducible with consistent parameters
+  and should not be relied on.
 
-  On random DAGs, the iteration converges in 1-2 steps (H_{k+1} ⊆ H_k
-  and |H_{k+1}| < |H_k| for the first step, then stable).
-
-When the intersection becomes empty, the function returns the empty
-set rather than the last iteration's H, matching the contract that
-the result is the *robust core* (shortcuts present in every iteration).
+The robust-core semantics still hold: the intersection of sound
+shortcut sets is sound, so even when the iteration is idempotent the
+returned set is a valid shortcut set. When the intersection becomes
+empty, the function returns the empty set rather than the last
+iteration's H, matching the contract that the result is the *robust
+core* (shortcuts present in every iteration).
 """
 
 from __future__ import annotations
@@ -76,6 +81,9 @@ def iterative_shortcut_set(
     rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
     rho = min(rho, math.sqrt(n))
     max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
+    from reachq.core.algorithm import density_aware_constant
+
+    sampling_constant = density_aware_constant(rho, k)
 
     log.info(
         "iterative: starting (max_iterations=%d, k=%.2f, rho=%.2f, max_level=%d)",
@@ -102,6 +110,7 @@ def iterative_shortcut_set(
             max_level=max_level,
             n_global=n,
             random_seed=random_seed,
+            sampling_constant=sampling_constant,
         )
 
     history: list[set[tuple[object, object]]] = []

@@ -39,14 +39,18 @@ class TestIterativeSoundness:
 
 
 class TestIterativeRefines:
-    r"""Iterative refinement produces a strict subset H_2 ⊂ H_1.
+    r"""Iterative refinement is idempotent under consistent parameters.
 
-    On the tested inputs, JLS(G∪H_1) is strictly smaller than JLS(G).
-    The shortcuts in H_1 \ H_2 are "self-redundant": JLS added them, but
-    given H_1 already in the graph, JLS would not add them again.
+    With the sampling constant threaded through explicitly (matching
+    ``build_shortcut_set_for_reachability``), re-running JLS on
+    ``G ∪ H_1`` re-derives the same shortcut set: |H_2| = |H_1|. The
+    strict reduction (|H_2| < |H_1|) reported by earlier versions was an
+    artifact of a hand-rolled second call using different k/rho
+    parameters and a module-global sampling constant, and does not
+    reproduce under consistent parameters.
     """
 
-    def test_h2_strict_subset_of_h1_on_random_dag(self):
+    def test_h2_idempotent_with_matching_parameters(self):
         g = random_dag(60, edge_probability=0.1, random_seed=42)
         H_direct, _ = build_shortcut_set_for_reachability(
             g,
@@ -72,13 +76,17 @@ class TestIterativeRefines:
             n_global=60,
             random_seed=42,
         )
-        assert H_direct > H2, (
-            f"Expected H_2 ⊂ H_1 strictly; got |H_1|={len(H_direct)}, "
-            f"|H_2|={len(H2)} (not strict subset)"
+        # Soundness: the augmented-graph construction never needs more
+        # shortcuts than the direct one.
+        assert H2 <= H_direct, (
+            f"expected H_2 ⊆ H_1; got |H_1|={len(H_direct)}, |H_2|={len(H2)}"
         )
-        # The "self-redundant" shortcuts are H_1 \ H_2.
-        self_redundant = H_direct - H2
-        assert len(self_redundant) > 0, "no self-redundant shortcuts found"
+        # Idempotency: with the default sampling constant the second pass
+        # re-derives the same set (no "self-redundant" shortcuts).
+        assert H2 == H_direct, (
+            f"expected H_2 == H_1 under consistent parameters; got "
+            f"|H_1|={len(H_direct)}, |H_2|={len(H2)}"
+        )
 
     def test_iterative_matches_direct_wrapper(self):
         """The iterate.py wrapper uses the same parameters as

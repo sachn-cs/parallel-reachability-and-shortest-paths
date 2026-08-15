@@ -49,7 +49,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   prototype with no amortized bound, the (1+ε) approximation has no
   formal guarantee, and beta-hopbound-preserving sparsification is
   small-graphs only.
-- Test count in the README corrected (304 → 574).
+- Test count in the README corrected (304 → 574), then to 576 as two
+  regression tests were added for the per-call sampling constant.
 - Python requirement corrected to ≥ 3.10 everywhere (the package never
   supported 3.9).
 - Property tests for the lemmas run at scale nightly:
@@ -65,6 +66,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   cross-check, property tests in CI, the `REACHQ_HYPOTHESIS=10000`
   nightly run, the MkDocs site, the PyPI workflow, pre-commit, and the
   literature survey are all marked done (with caveats where they apply).
+- `reachq.research.iterate` no longer claims a strict subset reduction:
+  with the sampling constant threaded through explicitly (matching
+  `build_shortcut_set_for_reachability`), the second pass over
+  `G ∪ H_1` is idempotent (`H_2 == H_1`). The previously documented
+  `|H_1|=670 → |H_2|=608` reduction came from a hand-rolled call using
+  different k/rho parameters and relied on a module-global constant;
+  `iterative_shortcut_set` itself was already idempotent.
 
 ## [7.0.0] - 2026-07-24
 

@@ -150,7 +150,7 @@ Every script auto-detects hardware (CPU, RAM, Python, BLAS) and writes it to `re
 ## Tests
 
 ```bash
-pytest                        # 574 tests (1 xfailed)
+pytest                        # 576 tests (1 xfailed)
 pytest -m "not slow"          # skip slow tests
 pytest --cov=reachq          # with coverage
 pytest tests/test_paper_lemmas.py -v   # the 22 empirical lemma tests
@@ -237,7 +237,7 @@ parallel-reachability-and-shortest-paths/
 │   │   ├── work_depth.py            # PRAM work/depth accounting
 │   │   └── invariants.py            # Theorem-oriented validators
 │   └── research/                    # Opt-in refinements (off-paper)
-├── tests/                            # 574 tests
+├── tests/                            # 576 tests
 │   ├── test_paper_lemmas.py          # Empirical support for paper lemmas
 │   ├── test_algorithmic_improvements.py   # Per-flag ablation tests
 │   ├── test_numpy_bfs.py             # Vectorised BFS equivalence
