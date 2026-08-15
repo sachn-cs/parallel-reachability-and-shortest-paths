@@ -1,5 +1,12 @@
 # reachq: parallel reachability with β-hopbound-preserving shortcut sets
 
+> **Historical draft.** This document is a unified paper draft kept
+> for the record. Section 5.1's `StreamingShortcutSet` claim and
+> Section 5.2's `greedy_shortcut_set` claim do not match the current
+> implementation; see [`docs/limitations.md`](limitations.md) for
+> the current state. The current test count is in CHANGELOG.md; do
+> not hard-code counts here.
+
 This document is the unified paper draft. It consolidates the
 previous `paper_innovations.md`, `paper_refinements.md`, and
 `paper_contribution.md` into a single canonical source. The
