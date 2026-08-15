@@ -364,24 +364,23 @@ The refinement-with-all-on vs all-off comparison (synthetic n=500, density=0.1):
 
 ### Done (v0.7.0)
 - [x] Hypothesis-based property testing on random DAGs (`tests/test_properties.py`)
-- [x] SpanProfiler for empirical parallel span (`reachq/work_depth.py`)
+- [x] SpanProfiler for empirical parallel span (`reachq/core/work_depth.py`)
 - [x] Formalise Lemma 2.2 for dense graphs — strengthened Corollary 2.3 to ALL regimes
 - [x] Counterexample search for Lemma 2.2 — no counterexample found in 24 cases
 - [x] Auto-tuned sampling constant per graph density (`density_aware_constant`)
 - [x] Parallel pivot processing — `ParallelContext` with threads + processes modes, 1.8–2.9× speedup
-- [x] Fast matrix multiplication support (ω < 3) — runtime omega detection (`reachq/blas_omega.py`)
-- [x] PRAM span measurement — `SpanProfiler` for sequential phase timing
-- [x] True PRAM parallelism integration — `ParallelContext` with process-based dispatch
+- [x] Fast matrix multiplication support (ω < 3) — runtime omega detection (`reachq/research/blas_omega.py`)
+- [x] Empirical span profiling — `SpanProfiler` (times sequential phases; a lower bound on true PRAM span, not a PRAM measurement)
 
 ### Done (v0.8.0 — Papers 1, 2, 3 ideas)
 - [x] SRG + Hamming graph test fixtures (Papers 2/3) — `petersen_graph`,
   `paley_graph`, `shrikhande_graph`, `hamming_graph` in
-  `reachq/generators.py`.
-- [x] Spectrum helpers + cross-check script (Paper 2) — `reachq/spectrum.py`,
+  `reachq/core/generators.py`.
+- [x] Spectrum helpers + cross-check script (Paper 2) — `reachq/core/spectrum.py`,
   `scripts/spectral_check.py`. Verifies generator spectra match published
   values; documents `|H|/n` correlation with density rather than spectrum.
 - [x] Fix/Resample experimental variant (Paper 1) —
-  `reachq/fix_resample.py`, `scripts/eval_fix_resample.py`. Empirical
+  `reachq/research/fix_resample.py`, `scripts/eval_fix_resample.py`. Empirical
   finding across 9/9 fixtures: Fix/Resample produces smaller `|H|`
   (16% of JLS on average) but with looser hopbound. Trade-off
   documented in `docs/fix_resample.md`.
