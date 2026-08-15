@@ -22,9 +22,19 @@ def compute_tc_pruning_threshold(
 ) -> float:
     """Compute the threshold below which TC-pruning is cost-effective.
 
-    TC(G[R]) takes O(|R|^omega) ops; the alternative (sampling shortcuts
-    for every vertex in R) costs O(|R| * k * log n). Trigger TC only when
-    the former is cheaper.
+    TC(G[R]) takes O(|R|^ω) ops; the alternative (sampling shortcuts
+    for every vertex in R) costs O(|R| * k * log n). Trigger TC only
+    when the former is cheaper.
+
+    Args:
+        k: Hopbound parameter k.
+        log_n: log_2(n).
+        rho: Hop-parameter ρ.
+        n: Number of vertices.
+        omega: Fast-matrix-multiplication exponent.
+
+    Returns:
+        The threshold ``|R|`` below which TC-pruning is cheaper.
     """
     threshold = (k**2) * (log_n**2) * (rho**2)
     if rho > 0 and log_n > 0:
@@ -40,12 +50,19 @@ def apply_tc_pruning(
 ) -> set[tuple[object, object]]:
     """Apply TC-pruning to a single pivot's r-ball.
 
-    If |r_ball| <= threshold, compute the transitive closure on the
+    If ``|r_ball| <= threshold``, compute the transitive closure on the
     induced subgraph and return all non-self pairs as shortcuts.
     Otherwise returns an empty set.
 
+    Args:
+        graph: The input digraph G.
+        r_ball: The pivot's r-ball as a vertex set.
+        threshold: Maximum ``|r_ball|`` for which TC-pruning is
+            applied.
+
     Returns:
-        Set of (u, v) shortcut pairs from the TC step.
+        Set of ``(u, v)`` shortcut pairs from the TC step. Empty if
+        ``|r_ball|`` exceeds the threshold.
     """
     if len(r_ball) == 0 or len(r_ball) > threshold:
         return set()

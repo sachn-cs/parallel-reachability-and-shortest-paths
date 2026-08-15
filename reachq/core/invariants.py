@@ -25,8 +25,16 @@ def assert_reachability_preserved(
 ) -> None:
     """Verify that shortcuts do not alter reachability.
 
-    For every vertex v, R^+(G, v) must equal R^+(G ∪ H, v).
-    This corresponds to the definition of a shortcut set (Section 2).
+    For every vertex v, R^+(G, v) must equal R^+(G ∪ H, v). This
+    corresponds to the definition of a shortcut set (Section 2).
+
+    Args:
+        graph: The input digraph G.
+        shortcuts: The shortcut set H to verify.
+        msg: Optional suffix appended to the AssertionError message.
+
+    Raises:
+        AssertionError: If any vertex's reachability differs.
     """
     for v in graph.vertices():
         original = bfs_reachability(graph, v)
@@ -48,8 +56,18 @@ def assert_hopbound(
 ) -> int:
     """Compute the actual hop count from source and assert it ≤ beta.
 
-    Returns the observed hop count. Raises AssertionError if the bound
-    is violated.
+    Args:
+        graph: The input digraph G.
+        source: Source vertex.
+        shortcuts: The shortcut set H to verify.
+        beta: Target hop bound.
+        msg: Optional suffix appended to the AssertionError message.
+
+    Returns:
+        The observed maximum hop count from ``source``.
+
+    Raises:
+        AssertionError: If the observed max hop count exceeds ``beta``.
     """
     from collections import deque
 
@@ -87,15 +105,17 @@ def assert_scc_shortcuts_form_cliques(
     """Verify that every SCC is a clique in G + shortcuts.
 
     Theorem 2 requires that within each SCC, every vertex can reach
-    every other via G ∪ shortcuts. We verify this by checking that
-    for each pair (u, v) in the same SCC, the augmented graph G +
-    shortcuts makes u and v mutually reachable.
+    every other via G ∪ shortcuts. Equivalent to requiring shortcuts
+    for every (u, v) pair in the SCC that is NOT already a direct
+    G-edge in either direction.
 
-    This is equivalent to requiring shortcuts for every (u, v) pair
-    in the SCC that is NOT already a direct G-edge -- because within
-    an SCC, G itself gives reachability, so the only missing reachability
-    is pairs where G has no edge in either direction. (If G has u→v
-    directly, no shortcut is needed.)
+    Args:
+        graph: The input digraph G.
+        shortcuts: The shortcut set H to verify.
+        msg: Optional suffix appended to the AssertionError message.
+
+    Raises:
+        AssertionError: If any SCC is not a clique in G ∪ H.
     """
     from reachq.core.reachability import parallel_bfs
 
@@ -104,9 +124,6 @@ def assert_scc_shortcuts_form_cliques(
         if len(scc) <= 1:
             continue
         scc_list = list(scc)
-        # For each u in SCC, check that parallel_bfs(g, u, shortcuts)
-        # reaches every other v in the SCC. This is the "augmented
-        # reachability" check, NOT the direct-edge check.
         for u in scc_list:
             reach = parallel_bfs(graph, u, shortcuts)
             for v in scc_list:
@@ -126,8 +143,16 @@ def assert_partition_correctness(
     """Verify that parts form a partition of V(G).
 
     Checks:
-    1. Union of parts equals V(G).
-    2. Parts are pairwise disjoint.
+        1. Union of parts equals V(G).
+        2. Parts are pairwise disjoint.
+
+    Args:
+        graph: The input digraph G.
+        parts: The proposed partition of V(G).
+        msg: Optional suffix appended to the AssertionError message.
+
+    Raises:
+        AssertionError: If the union doesn't match or parts overlap.
     """
     vertices = graph.vertices()
     union: set[object] = set()
@@ -159,10 +184,24 @@ def assert_distance_approximation(
 ) -> dict[object, float]:
     """Verify that hopset distances are within (1 + epsilon) of true distances.
 
-    Computes exact distances with Dijkstra and approximate distances with
-    shortest_path_hopbound, then asserts the (beta, epsilon)-hopset guarantee.
+    Computes exact distances with Dijkstra and approximate distances
+    with ``shortest_path_hopbound``, then asserts the (β, ε)-hopset
+    guarantee.
 
-    Returns a dict mapping each vertex to the observed approximation ratio.
+    Args:
+        graph: The input weighted digraph G.
+        hopset: The hopset H to verify.
+        source: Source vertex.
+        epsilon: Approximation parameter ε.
+        max_hops: Maximum hops allowed in the hopset query.
+        msg: Optional suffix appended to the AssertionError message.
+
+    Returns:
+        Mapping ``vertex -> observed approximation ratio`` for every
+        vertex reachable from ``source``.
+
+    Raises:
+        AssertionError: If any vertex's distance ratio exceeds (1+ε).
     """
     original = dijkstra(graph, source)
     approx = shortest_path_hopbound(graph, hopset, source, max_hops)
@@ -193,9 +232,18 @@ def assert_shortcut_set_size_bound(
     rho: float,
     msg: str | None = None,
 ) -> None:
-    """Verify that |H| is consistent with the O~(n * rho^2) bound.
+    """Verify that |H| is consistent with the O~(n * ρ^2) bound.
 
-    This is a coarse sanity check, not a proof.
+    Coarse sanity check, not a proof.
+
+    Args:
+        graph: The input digraph G.
+        shortcuts: The shortcut set H to verify.
+        rho: Hop-parameter ρ.
+        msg: Optional suffix appended to the AssertionError message.
+
+    Raises:
+        AssertionError: If |H| exceeds the coarse bound.
     """
     n = graph.num_vertices()
     log_n = max(1.0, math.log2(n + 2))
@@ -214,9 +262,19 @@ def assert_hopset_size_bound(
     rho: float,
     msg: str | None = None,
 ) -> None:
-    """Verify that |H| is consistent with the O~(n/epsilon^2 + n*rho^2) bound.
+    """Verify that |H| is consistent with the O~(n/ε² + n*ρ²) bound.
 
     Coarse sanity check only.
+
+    Args:
+        graph: The input weighted digraph G.
+        hopset: The hopset H to verify.
+        epsilon: Approximation parameter ε.
+        rho: Hop-parameter ρ.
+        msg: Optional suffix appended to the AssertionError message.
+
+    Raises:
+        AssertionError: If |H| exceeds the coarse bound.
     """
     n = graph.num_vertices()
     log_n = max(1.0, math.log2(n + 2))
@@ -236,6 +294,14 @@ def check_equivalence_classes(
     """Verify that label-based partitioning matches the equivalence classes.
 
     Every part should consist of vertices with identical label sets.
+
+    Args:
+        labels: Mapping ``vertex -> label set``.
+        parts: The proposed partition of V.
+        msg: Optional suffix appended to the AssertionError message.
+
+    Raises:
+        AssertionError: If the partition does not match the labels.
     """
     label_to_part: dict[frozenset, set[object]] = {}
     for part in parts:

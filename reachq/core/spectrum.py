@@ -22,13 +22,17 @@ if TYPE_CHECKING:
 
 
 def spectrum(graph: Digraph) -> np.ndarray:
-    """Return the eigenvalues of the adjacency matrix of *graph*.
+    """Return the eigenvalues of the adjacency matrix of ``graph``.
 
     The adjacency matrix is built for vertices labelled by their
     position in ``graph.vertices()``. For an undirected graph this
     returns a real symmetric matrix and a sorted real spectrum.
 
-    Returns a 1-D numpy array sorted ascending.
+    Args:
+        graph: The input digraph.
+
+    Returns:
+        1-D numpy array of eigenvalues sorted ascending.
     """
     vertices = sorted(graph.vertices(), key=lambda v: str(v))
     n = len(vertices)
@@ -42,10 +46,17 @@ def spectrum(graph: Digraph) -> np.ndarray:
 
 
 def spectral_gap(graph: Digraph) -> float:
-    """Largest absolute non-trivial eigenvalue of *graph*.
+    """Largest absolute non-trivial eigenvalue of ``graph``.
 
-    For a connected graph, this is max(|lambda_2|, |lambda_n|) where
-    lambda_1 > lambda_2 >= ... >= lambda_n are the eigenvalues.
+    For a connected graph, this is ``max(|λ_2|, |λ_n|)`` where
+    ``λ_1 > λ_2 >= ... >= λ_n`` are the eigenvalues.
+
+    Args:
+        graph: The input digraph.
+
+    Returns:
+        The spectral gap, or 0.0 if the graph has fewer than 2
+        eigenvalues.
     """
     eigs = spectrum(graph)
     if len(eigs) < 2:

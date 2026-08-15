@@ -16,14 +16,22 @@ histograms: dict[str, list[float]] = {}
 
 
 def enable_metrics() -> None:
-    """Enable metrics collection."""
+    """Enable metrics collection.
+
+    After this call, ``inc_counter`` and ``record_histogram`` are
+    active. The flag is global; metrics are per-process.
+    """
     global enabled
     with lock:
         enabled = True
 
 
 def disable_metrics() -> None:
-    """Disable and reset metrics collection."""
+    """Disable metrics collection and reset all counters.
+
+    After this call, ``inc_counter`` and ``record_histogram`` are
+    no-ops. The collected counters and histograms are cleared.
+    """
     global enabled
     with lock:
         enabled = False
@@ -32,7 +40,12 @@ def disable_metrics() -> None:
 
 
 def inc_counter(name: str, value: int = 1) -> None:
-    """Increment a named counter."""
+    """Increment a named counter.
+
+    Args:
+        name: Counter name.
+        value: Amount to add (default 1).
+    """
     if not enabled:
         return
     with lock:
@@ -40,7 +53,12 @@ def inc_counter(name: str, value: int = 1) -> None:
 
 
 def record_histogram(name: str, value: float) -> None:
-    """Record a value in a named histogram."""
+    """Record a value in a named histogram.
+
+    Args:
+        name: Histogram name.
+        value: Value to record.
+    """
     if not enabled:
         return
     with lock:
@@ -51,7 +69,8 @@ def snapshot() -> dict[str, object]:
     """Return current metrics as a dict.
 
     Returns:
-        {"counters": {name: value}, "histograms": {name: {min, max, mean, count}}}
+        Mapping with keys ``"counters"`` (``{name: value}``) and
+        ``"histograms"`` (``{name: {min, max, mean, count}}``).
     """
     with lock:
         counters_snap = dict(counters)
