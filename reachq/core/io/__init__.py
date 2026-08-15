@@ -16,4 +16,3 @@ Three backends are provided:
 The JSON backend is re-exported from the top-level ``reachq``
 package as ``dump`` / ``load`` / ``weighted_dump`` / ``weighted_load``.
 """
-
