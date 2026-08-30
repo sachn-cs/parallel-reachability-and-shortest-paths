@@ -1,21 +1,20 @@
-"""Parallel work/depth simulation model.
+"""Parallel work/depth accounting and span profiling.
 
-The paper analyzes algorithms in the PRAM work/depth model:
-- Work = total number of operations.
-- Depth = length of the longest critical path (span).
+The paper analyses algorithms in the PRAM work/depth model: work
+counts total operations, depth measures the longest critical
+path. Python does not provide PRAM, so we simulate work and depth
+explicitly via :class:`WorkDepthAccountant` and observe empirical
+span via :class:`SpanProfiler`.
 
-Since Python does not provide PRAM, we simulate work and depth explicitly
-by recording coarse-grained algorithmic primitives. Each recorded operation
-adds to the total work and depth according to the asymptotic bounds stated
-in the paper. This makes the simulation mathematically traceable.
+Recorded wall-clock time is never conflated with theoretical
+bounds; the two are exposed side-by-side in the
+:func:`Accountant.summary` and :func:`Profiler.summary` dicts.
 
-Observed wall-clock time is tracked separately and never conflated with
-theoretical work/depth bounds.
-
-In addition to the simulated model, ``SpanProfiler`` measures *empirical*
-parallel span by timing each sequential phase of the construction on one
-process. This gives a lower bound on true PRAM span: anything faster than
-this on a single process implies the algorithm is already well-parallelised.
+Four theoretical-bound functions round out the module:
+:func:`theoretical_shortcut_work`,
+:func:`theoretical_shortcut_depth`,
+:func:`theoretical_hopset_work`, and
+:func:`theoretical_hopset_depth`.
 """
 
 from __future__ import annotations
@@ -39,9 +38,8 @@ class OperationRecord:
 class WorkDepthAccountant:
     """Tracks simulated work, depth, and observed runtime.
 
-    Work and depth are accumulated as floating-point asymptotic estimates.
-    They are not exact operation counts; they reflect the paper's stated
-    bounds for each primitive.
+    Work and depth are accumulated as floating-point asymptotic
+    estimates, not exact operation counts.
     """
 
     work: float = 0.0
@@ -67,38 +65,22 @@ class WorkDepthAccountant:
         depth: float,
         details: str | None = None,
     ) -> None:
-        """Record a single primitive operation.
-
-        Args:
-            name: Identifier for the primitive (e.g., ``"bfs"``,
-                ``"matrix_multiply"``).
-            work: Asymptotic work contributed by this call.
-            depth: Asymptotic depth contributed by this call.
-            details: Optional human-readable annotation.
-        """
+        """Record a single primitive operation."""
         self.work += work
-        self.depth = max(self.depth, depth)  # parallel composition of sequential phases
+        self.depth = max(self.depth, depth)
         self.records.append(OperationRecord(name, work, depth, details))
 
-    def sequential_composition(self, other: WorkDepthAccountant) -> None:
-        """Combine another accountant sequentially.
-
-        Work and depth add; the other's depth extends our critical path.
-
-        Args:
-            other: The accountant to compose in series.
-        """
+    def sequential_composition(self, other: "WorkDepthAccountant") -> None:
+        """Combine another accountant sequentially (work + depth add)."""
         self.work += other.work
         self.depth += other.depth
         self.records.extend(other.records)
 
-    def parallel_composition(self, others: list[WorkDepthAccountant]) -> None:
+    def parallel_composition(self, others: list["WorkDepthAccountant"]) -> None:
         """Combine several accountants in parallel.
 
-        Work sums; depth is the maximum across all branches.
-
-        Args:
-            others: The accountants to compose in parallel.
+        Work sums across branches; depth is the max (bounded by
+        the slowest branch).
         """
         for o in others:
             self.work += o.work
@@ -108,11 +90,7 @@ class WorkDepthAccountant:
             self.records.extend(o.records)
 
     def summary(self) -> dict[str, float]:
-        """Return a dict with total work, depth, and elapsed time.
-
-        Returns:
-            Mapping with keys ``work``, ``depth``, ``elapsed_seconds``.
-        """
+        """Return ``work``, ``depth``, and ``elapsed_seconds``."""
         return {
             "work": self.work,
             "depth": self.depth,
@@ -120,11 +98,7 @@ class WorkDepthAccountant:
         }
 
     def operations(self) -> list[OperationRecord]:
-        """Return the list of recorded operations.
-
-        Returns:
-            A copy of the recorded ``OperationRecord`` list.
-        """
+        """Return a copy of recorded operations."""
         return list(self.records)
 
     def __repr__(self) -> str:
@@ -132,325 +106,6 @@ class WorkDepthAccountant:
             f"WorkDepthAccountant(work={self.work:.2e}, "
             f"depth={self.depth:.2e}, elapsed={self.elapsed_seconds:.3f}s)"
         )
-
-
-def record_bfs(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    m: int,
-    details: str | None = None,
-) -> None:
-    """Record a BFS/DFS traversal on a digraph with n vertices and m edges.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Number of vertices.
-        m: Number of edges.
-        details: Optional human-readable annotation.
-
-    Notes:
-        Paper work bound: O(m). Sequential depth bound: O(n) for
-        standard BFS. Parallel depth bound (used in ``parallel_bfs``
-        with shortcuts): O(β). We record the sequential bound here;
-        callers using parallel primitives should adjust depth
-        explicitly.
-    """
-    if accountant is None:
-        return
-    accountant.record("bfs", work=m, depth=n, details=details)
-
-
-def record_reverse_bfs(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    m: int,
-    details: str | None = None,
-) -> None:
-    """Record a reverse BFS traversal. Same bounds as BFS.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Number of vertices.
-        m: Number of edges.
-        details: Optional human-readable annotation.
-    """
-    if accountant is None:
-        return
-    accountant.record("reverse_bfs", work=m, depth=n, details=details)
-
-
-def record_dijkstra(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    m: int,
-    details: str | None = None,
-) -> None:
-    """Record Dijkstra's algorithm on a graph with n vertices and m edges.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Number of vertices.
-        m: Number of edges.
-        details: Optional human-readable annotation.
-
-    Notes:
-        Paper work bound: O(m log n) with a binary heap. We
-        approximate work as ``m * log2(n + 2)`` to avoid log(0).
-        Depth is sequential: O(m log n).
-    """
-    if accountant is None:
-        return
-    log_n = max(1.0, math.log2(n + 2))
-    work = m * log_n
-    accountant.record("dijkstra", work=work, depth=work, details=details)
-
-
-def record_truncated_dijkstra(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    m: int,
-    details: str | None = None,
-) -> None:
-    """Record a truncated Dijkstra run.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Number of vertices.
-        m: Number of edges.
-        details: Optional human-readable annotation.
-
-    Notes:
-        Work and depth are bounded by the full Dijkstra cost in the
-        worst case, but typically smaller. We conservatively use the
-        full bound.
-    """
-    record_dijkstra(accountant, n, m, details)
-
-
-def record_matrix_multiply(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    omega: float = 3.0,
-    details: str | None = None,
-) -> None:
-    """Record an n x n matrix multiplication.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Matrix dimension.
-        omega: Fast-matrix-multiplication exponent (default 3.0,
-            matching BLAS). Paper assumes ω < 2.371339.
-        details: Optional human-readable annotation.
-
-    Notes:
-        Work: O(n^ω). Depth: O(log n) for parallel repeated squaring.
-    """
-    if accountant is None:
-        return
-    work = n**omega
-    depth = max(1.0, math.log2(n + 2))
-    accountant.record("matrix_multiply", work=work, depth=depth, details=details)
-
-
-def record_transitive_closure(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    omega: float = 3.0,
-    details: str | None = None,
-) -> None:
-    """Record transitive closure via repeated squaring.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Matrix dimension.
-        omega: Fast-matrix-multiplication exponent (default 3.0).
-        details: Optional human-readable annotation.
-
-    Notes:
-        Work: O(n^ω). Depth: O(log n) for the O(log n) parallel
-        matrix multiplications.
-    """
-    if accountant is None:
-        return
-    work = n**omega
-    depth = max(1.0, math.log2(n + 2))
-    accountant.record("transitive_closure", work=work, depth=depth, details=details)
-
-
-def record_tc_pruning(
-    accountant: WorkDepthAccountant | None,
-    ball_size: int,
-    omega: float = 3.0,
-    details: str | None = None,
-) -> None:
-    """Record TC-Pruning on a ball of size |R(G,p)|.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        ball_size: ``|R(G, p)|`` — the size of the r-ball around the pivot.
-        omega: Fast-matrix-multiplication exponent (default 3.0).
-        details: Optional human-readable annotation.
-
-    Notes:
-        Work: O(|R|^ω) for computing TC on the induced subgraph.
-        Depth: O(log |R|) for repeated squaring.
-    """
-    if accountant is None:
-        return
-    b = ball_size
-    if b <= 1:
-        return
-    work = b**omega
-    depth = max(1.0, math.log2(b + 2))
-    accountant.record("tc_pruning", work=work, depth=depth, details=details)
-
-
-def record_truncsssp_pruning(
-    accountant: WorkDepthAccountant | None,
-    ball_size: int,
-    details: str | None = None,
-) -> None:
-    """Record TruncSSSP-Pruning on a ball of size |R_d(G,p)|.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        ball_size: ``|R_d(G, p)|`` — the size of the d-ball around the pivot.
-        details: Optional human-readable annotation.
-
-    Notes:
-        Work: O(|R| * (n_R + m_R)) for running Dijkstra from every vertex
-        in the ball on the induced subgraph, truncated at distance d,
-        where ``n_R`` and ``m_R`` are the vertex and edge counts of the
-        d-ball. We approximate this as O(|R| * m_R) in the worst case.
-        Depth: sequential, O(|R| * m_R).
-    """
-    if accountant is None:
-        return
-    b = ball_size
-    if b <= 1:
-        return
-    # Conservative bound: |R| Dijkstra runs on subgraph with <= |R| vertices.
-    # Densest possible subgraph has O(|R|^2) edges.
-    work = b * (b**2)
-    accountant.record("truncsssp_pruning", work=work, depth=work, details=details)
-
-
-def record_scc_decomposition(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    m: int,
-    details: str | None = None,
-) -> None:
-    """Record Kosaraju SCC decomposition.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Number of vertices.
-        m: Number of edges.
-        details: Optional human-readable annotation.
-
-    Notes:
-        Work: O(n + m). Depth: O(n) sequential; parallel variants
-        exist but are not reproduced.
-    """
-    if accountant is None:
-        return
-    accountant.record("scc_decomposition", work=n + m, depth=n, details=details)
-
-
-def record_partition(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    details: str | None = None,
-) -> None:
-    """Record label-based vertex partitioning.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Number of vertices.
-        details: Optional human-readable annotation.
-
-    Notes:
-        Work: O(n). Depth: O(1) in parallel; O(n) sequential.
-    """
-    if accountant is None:
-        return
-    accountant.record("partition", work=n, depth=n, details=details)
-
-
-def record_shortcut_set_construction(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    m: int,
-    rho: float,
-    omega: float = 3.0,
-    details: str | None = None,
-) -> None:
-    """Record the overall JLS + TC-Pruning shortcut set construction.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Number of vertices.
-        m: Number of edges.
-        rho: Hop-parameter ρ.
-        omega: Fast-matrix-multiplication exponent (default 3.0).
-        details: Optional human-readable annotation.
-
-    Notes:
-        Paper work bound (Theorem 2): O~(m + n * ρ^(2ω - 2)).
-        Paper depth bound: O~(n^(1/2+o(1)) / ρ) for parallel
-        execution. Since we simulate sequentially, depth tracks the
-        sequential depth dominated by the recursion and BFS phases.
-    """
-    if accountant is None:
-        return
-    log_n = max(1.0, math.log2(n + 2))
-    work = m + n * (rho ** (2 * omega - 2))
-    # Sequential depth is O~(n) in the worst case for the simulation.
-    depth = n * log_n
-    accountant.record(
-        "shortcut_set_construction",
-        work=work * log_n,
-        depth=depth,
-        details=details,
-    )
-
-
-def record_hopset_construction(
-    accountant: WorkDepthAccountant | None,
-    n: int,
-    m: int,
-    rho: float,
-    epsilon: float,
-    details: str | None = None,
-) -> None:
-    """Record the overall CFR + TruncSSSP-Pruning hopset construction.
-
-    Args:
-        accountant: The accountant to update, or ``None`` for a no-op.
-        n: Number of vertices.
-        m: Number of edges.
-        rho: Hop-parameter ρ.
-        epsilon: Approximation parameter ε.
-        details: Optional human-readable annotation.
-
-    Notes:
-        Paper work bound (Theorem 4): O~(m / ε^2 + n * ρ^4).
-        Paper hopbound: (n^(3+o(1)) / m)^(1/4) / ρ, up to (1+ε)
-        distortion. Sequential depth is dominated by recursive
-        Dijkstra calls.
-    """
-    if accountant is None:
-        return
-    log_n = max(1.0, math.log2(n + 2))
-    work = (m / (epsilon**2)) + n * (rho**4)
-    depth = n * log_n
-    accountant.record(
-        "hopset_construction",
-        work=work * log_n,
-        depth=depth,
-        details=details,
-    )
 
 
 @dataclass
@@ -465,22 +120,10 @@ class PhaseRecord:
 class SpanProfiler:
     """Measures empirical parallel span by timing sequential phases.
 
-    The construction is run sequentially on a single process. Each
-    "phase" — a coarse unit of work like sampling, partition, or
-    recursion — is timed. The *empirical span* is the sum of phase
-    times (since each phase is sequential in the absence of real
-    parallelism).
-
-    This is NOT a true PRAM measurement; it is a lower bound on the
-    parallel span achievable on one process. Real PRAM span can only
-    be smaller if the phases are parallelisable.
-
-    To compare against the paper's theoretical bounds, set
-    ``theoretical_work`` and ``theoretical_depth`` from the formulas
-    in this module; ``span_to_depth_ratio`` then gives a dimensionless
-    indicator: > 1 means the implementation takes longer than the
-    theoretical depth predicts (expected for Python overhead),
-    < 1 would mean we beat the bound (a sign of measurement error).
+    Each phase is timed in isolation; the sum of phase times is a
+    lower bound on true PRAM span. Recorded wall-clock time is in
+    ``phases``; the ``SpanProfiler.summary()`` dict exposes it
+    alongside the registered theoretical bounds.
     """
 
     phases: list[PhaseRecord] = field(default_factory=list)
@@ -491,20 +134,16 @@ class SpanProfiler:
     theoretical_depth: float = 0.0
 
     def begin_phase(self, name: str) -> None:
-        """Start timing a new phase.
-
-        Args:
-            name: Human-readable phase label (e.g. ``"sample_pivots"``).
-        """
-        self.__close_current()
+        """Start timing ``name``."""
+        self._close_current()
         self.current_name = name
         self.current_start = time.perf_counter()
 
     def end_phase(self) -> None:
         """Close the current phase and record its wall-clock time."""
-        self.__close_current()
+        self._close_current()
 
-    def __close_current(self) -> None:
+    def _close_current(self) -> None:
         if self.current_name is None or self.current_start is None:
             return
         elapsed = time.perf_counter() - self.current_start
@@ -513,33 +152,16 @@ class SpanProfiler:
         self.current_start = None
 
     def total_span_seconds(self) -> float:
-        """Sum of phase wall-clock times. Lower bound on true PRAM span.
-
-        Returns:
-            Total sequential wall-clock time across all phases, in
-            seconds. This is a lower bound on the true PRAM span.
-        """
-        self.__close_current()
+        """Sum of phase wall-clock times. Lower bound on true PRAM span."""
+        self._close_current()
         return sum(p.seconds for p in self.phases)
 
     def summary(self) -> dict[str, float]:
-        """Return a dict with measured span and theoretical bounds.
-
-        Returns:
-            Mapping ``str -> float`` containing:
-              - ``span_seconds``
-              - ``theoretical_work``
-              - ``theoretical_depth``
-              - one ``phase_<name>_seconds`` entry per recorded phase.
-
-        Notes:
-            ``theoretical_work`` and ``theoretical_depth`` are in
-            asymptotic-operation units, while ``span_seconds`` is
-            wall-clock time. They are NOT directly comparable. Convert
-            with an operations-per-second constant for your hardware if
-            you want a unitless ratio.
+        """Return ``span_seconds``, ``theoretical_work``,
+        ``theoretical_depth``, and one ``phase_<name>_seconds``
+        entry per recorded phase.
         """
-        self.__close_current()
+        self._close_current()
         result: dict[str, float] = {
             "span_seconds": self.total_span_seconds(),
             "theoretical_work": self.theoretical_work,
@@ -554,76 +176,54 @@ class SpanProfiler:
         return f"SpanProfiler(span={span:.3f}s, phases={len(self.phases)})"
 
 
-def theoretical_shortcut_work(n: int, m: int, rho: float, omega: float = 3.0) -> float:
-    """Return theoretical work bound for shortcut set construction.
+def theoretical_shortcut_work(
+    n: int, m: int, rho: float, omega: float = 3.0
+) -> float:
+    """Theoretical work bound for the JLS shortcut-set construction.
 
-    Args:
-        n: Number of vertices.
-        m: Number of edges.
-        rho: Hop-parameter ρ.
-        omega: Fast-matrix-multiplication exponent (default 3.0).
-
-    Returns:
-        The bound ``O~(m + n * ρ^(2ω - 2))`` from Theorem 2,
-        with the o(1) term approximated by a single log factor.
-
-    Notes:
-        Bound from Theorem 2: O~(m + n * ρ^(2ω - 2)).
+    Returns ``log(n) * (m + n * ρ^(2ω-2))``. Theorem 2.
     """
     log_n = max(1.0, math.log2(n + 2))
     return log_n * (m + n * math.pow(rho, 2 * omega - 2))
 
 
 def theoretical_shortcut_depth(n: int, rho: float) -> float:
-    """Return theoretical parallel depth bound for shortcut set construction.
+    """Theoretical parallel depth bound for the JLS construction.
 
-    Args:
-        n: Number of vertices.
-        rho: Hop-parameter ρ.
-
-    Returns:
-        The bound ``O~(n^(1/2+o(1)) / ρ)`` from Theorem 2,
-        with the o(1) term approximated by a single log factor.
-
-    Notes:
-        We approximate the o(1) term with a single log factor.
+    Returns ``log(n) * sqrt(n) / ρ``.
     """
     log_n = max(1.0, math.log2(n + 2))
     return log_n * (math.sqrt(n) / rho)
 
 
-def theoretical_hopset_work(n: int, m: int, rho: float, epsilon: float) -> float:
-    """Return theoretical work bound for hopset construction.
+def theoretical_hopset_work(
+    n: int, m: int, rho: float, epsilon: float
+) -> float:
+    """Theoretical work bound for the CFR hopset construction.
 
-    Args:
-        n: Number of vertices.
-        m: Number of edges.
-        rho: Hop-parameter ρ.
-        epsilon: Approximation parameter ε.
-
-    Returns:
-        The bound ``O~(m / ε^2 + n * ρ^4)`` from Theorem 4,
-        with the o(1) term approximated by a single log factor.
+    Returns ``log(n) * (m / ε^2 + n * ρ^4)``. Theorem 4.
     """
     log_n = max(1.0, math.log2(n + 2))
     return log_n * ((m / (epsilon**2)) + n * (rho**4))
 
 
 def theoretical_hopset_depth(n: int, m: int, rho: float) -> float:
-    """Return theoretical parallel depth bound for hopset construction.
+    """Theoretical parallel depth bound for the CFR hopset construction.
 
-    Args:
-        n: Number of vertices.
-        m: Number of edges.
-        rho: Hop-parameter ρ.
-
-    Returns:
-        The bound ``O~((n^3 / m)^(1/4) / ρ)`` from Theorem 4,
-        with the o(1) term approximated by a single log factor.
-
-    Notes:
-        We approximate the o(1) term with a single log factor.
+    Returns ``log(n) * (n^3 / m)^(1/4) / ρ``.
     """
     log_n = max(1.0, math.log2(n + 2))
     depth = math.pow((n**3) / max(1, m), 0.25) / rho
     return log_n * depth
+
+
+__all__ = [
+    "OperationRecord",
+    "PhaseRecord",
+    "SpanProfiler",
+    "WorkDepthAccountant",
+    "theoretical_hopset_depth",
+    "theoretical_hopset_work",
+    "theoretical_shortcut_depth",
+    "theoretical_shortcut_work",
+]
