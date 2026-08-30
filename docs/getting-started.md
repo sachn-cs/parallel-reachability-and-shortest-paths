@@ -57,7 +57,7 @@ for i in range(99):
 ### 2. Construct a Shortcut Set
 
 ```python
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.generators import complete_dag
 
 # Build a 10-vertex complete DAG (a denser graph where the

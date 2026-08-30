@@ -12,8 +12,9 @@ sequence of vertices regardless of hash randomization. ``vertices()``
 returns that sequence as a tuple.
 
 The classes conform to :class:`reachq.proto.Graph` (and
-:class:`WeightedGraph`), so any third-party graph implementation that
-satisfies the protocol can be substituted into reachq algorithms.
+:class:`reachq.proto.WeightedGraph`), so any third-party graph
+implementation that satisfies the protocol can be substituted into
+reachq algorithms.
 """
 
 from __future__ import annotations

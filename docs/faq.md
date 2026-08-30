@@ -61,7 +61,7 @@ g.add_edge(1, 2)
 ### How do I construct a shortcut set?
 
 ```python
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.shortcut import build_shortcut_set_for_reachability
 
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
 ```

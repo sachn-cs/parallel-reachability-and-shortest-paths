@@ -1,12 +1,19 @@
-"""Protocol definitions for reachq extension points.
+"""Structural Protocols describing the shape of reachq graphs and RNGs.
 
-The Protocols here are load-bearing: every public algorithm is
-type-annotated against them, so a third-party graph
-implementation that conforms to ``proto.Graph`` is
-substitutable for the concrete :class:`Digraph`.
+The Protocols here describe the contract that
+:class:`reachq.graph.Digraph`, :class:`reachq.graph.WeightedDigraph`,
+and ``random.Random`` already satisfy. They are intentionally
+minimal -- they expose only the surface that the algorithms
+actually consume, so a third-party implementation that satisfies
+the Protocol can be substituted for the concrete class without
+subclassing.
 
-These Protocols are intentionally minimal -- they expose only the
-shape that the algorithms actually use.
+These Protocols are *not* used as the runtime type annotations of
+the public algorithms (those still take the concrete
+:class:`Digraph` / :class:`WeightedDigraph`). They exist so
+external code that wants to declare "any object that looks like a
+reachq graph" can use :class:`Graph` as an annotation or an
+``isinstance`` check.
 """
 
 from __future__ import annotations
@@ -18,7 +25,7 @@ from typing import Protocol, runtime_checkable
 class Graph(Protocol):
     """Directed graph.
 
-    The concrete :class:`reachq.core.graph.Digraph` conforms.
+    The concrete :class:`reachq.graph.Digraph` conforms.
     """
 
     insertion_order: list[object]
@@ -51,7 +58,7 @@ class Graph(Protocol):
 class WeightedGraph(Graph, Protocol):
     """Weighted directed graph.
 
-    The concrete :class:`reachq.core.graph.WeightedDigraph` conforms.
+    The concrete :class:`reachq.graph.WeightedDigraph` conforms.
     """
 
     def add_edge(self, u: object, v: object, weight: int) -> None: ...

@@ -81,9 +81,9 @@ No JIT, no native extensions; the wheel is pure-Python.
 ## Quick start
 
 ```python
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.generators import random_dag
-from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.generators import random_dag
+from reachq.reachability import bfs_reachability, parallel_bfs
 
 g = random_dag(n=1000, edge_probability=0.1, random_seed=42)
 shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
@@ -162,21 +162,21 @@ not hard-code counts in user-facing docs.
 
 ```python
 from reachq import RefinementConfig as Flags, Digraph, WeightedDigraph
-from reachq.core.shortcut import (
+from reachq.shortcut import (
     build_shortcut_set_for_reachability,  # Theorem-2 wrapper
     jls_with_tc_pruning,  # direct recursion
 )
-from reachq.core.hopset import (
+from reachq.hopset import (
     build_hopset_for_sssp,  # Theorem-4 wrapper
     cfr_with_truncsssp_pruning,  # direct recursion
 )
-from reachq.core.reachability import (
+from reachq.reachability import (
     bfs_reachability,
     parallel_bfs,
     strongly_connected_components,
     topological_sort,
 )
-from reachq.core.shortest_paths import (
+from reachq.shortest_paths import (
     dijkstra,
     shortest_path_hopbound,
     truncated_dijkstra,
@@ -185,12 +185,12 @@ from reachq.core.shortest_paths import (
     compute_d_descendants,
     UNREACHABLE,
 )
-from reachq.core.tc import (
+from reachq.closure import (
     TransitiveClosureBudgetError,
     transitive_closure_boolean,
     transitive_closure_brute_force,
 )
-from reachq.core.generators import (
+from reachq.generators import (
     random_dag,
     weighted_random_dag,
     layered_dag,
@@ -205,7 +205,7 @@ from reachq.core.generators import (
     shrikhande_cayley,
     hamming_graph,
 )
-from reachq.core.io.json import (
+from reachq.io import (
     dump,  # digraph -> JSON string
     load,  # JSON string -> digraph
     weighted_dump,

@@ -44,7 +44,7 @@ dependencies = [
 ]
 
 [project.scripts]
-reachq = "reachq.cli.main:cli_main"
+reachq = "reachq.cli:main"
 
 [project.optional-dependencies]
 dev = [
@@ -73,10 +73,6 @@ accel-numba = [
 accel-rust = [
     "maturin>=1.0.0",
 ]
-
-[project.entry-points."reachq.backends"]
-threads = "reachq.core.backends.threads:threads"
-processes = "reachq.core.backends.processes:processes"
 
 [project.urls]
 Homepage = "https://github.com/sachncs/parallel-reachability-and-shortest-paths"

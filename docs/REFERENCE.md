@@ -104,13 +104,10 @@ docstrings, so they should never lie about the API.
 
 ## Spectral helpers
 
-::: reachq.core.spectrum.spectrum
-    options:
-      show_root_heading: true
-
-::: reachq.core.spectrum.spectral_gap
-    options:
-      show_root_heading: true
+The spectral cross-check helpers (`spectrum`, `spectral_gap`) were
+removed in v0.10. They were used only by the SRG fixture tests
+(`tests/test_spectrum.py`); the generators themselves produce the
+graphs deterministically and don't need a spectral oracle.
 
 ## Graph generators
 
@@ -147,14 +144,6 @@ docstrings, so they should never lie about the API.
       show_root_heading: true
 
 ::: reachq.errors.ReachqGraphError
-    options:
-      show_root_heading: true
-
-::: reachq.errors.ReachqBackendError
-    options:
-      show_root_heading: true
-
-::: reachq.errors.ReachqConfigError
     options:
       show_root_heading: true
 
@@ -199,11 +188,6 @@ docstrings, so they should never lie about the API.
     options:
       show_root_heading: true
 
-::: reachq.core.snapshot.Snapshot
-    options:
-      show_root_heading: true
-      show_symbol_class_toc: true
-
 ## Invariants
 
 ::: reachq.invariants.assert_reachability_preserved
@@ -230,17 +214,19 @@ for usage; the handlers live in `reachq.cli`.
     options:
       show_root_heading: true
 
-::: reachq.proto.rng.RNG
+::: reachq.proto.RNG
     options:
       show_root_heading: true
 
-::: reachq.core.backends.Backend
-    options:
-      show_root_heading: true
+## Backend protocols
 
-::: reachq.proto.store.Store
-    options:
-      show_root_heading: true
+The `Backend` Protocol and `Store` Protocol were removed in v0.10
+along with the `reachq.core.backends` package and the
+`reachq.accel.dask` / `reachq.accel.ray` / `reachq.accel.graphblas`
+stubs. The only remaining parallel dispatch is the
+`_run_pivots(graph, state, pivots, *, parallel, n_workers)` helper
+inside `reachq.shortcut`, which is invoked via
+`build_shortcut_set_for_reachability(parallel_workers=...)`.
 
 ## Post-processing refinements
 

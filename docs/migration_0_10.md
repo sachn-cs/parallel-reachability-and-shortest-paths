@@ -80,11 +80,9 @@ The test suite pins every invariant below in
 # Old
 from reachq.core.tc import transitive_closure_matrix
 from reachq.core.algorithm import build_shortcut_set_for_reachability
-from reachq import Flags
 # New
 from reachq.closure import transitive_closure
 from reachq.shortcut import build_shortcut_set_for_reachability
-from reachq import RefinementConfig
 ```
 
 See `docs/migration_0_9.md` for the prior migration and the
