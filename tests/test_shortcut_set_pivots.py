@@ -26,9 +26,7 @@ class TestPivotSampling:
         shortcuts, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
 
@@ -48,9 +46,7 @@ class TestPivotSampling:
         shortcuts, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
 

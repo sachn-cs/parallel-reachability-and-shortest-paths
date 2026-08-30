@@ -14,10 +14,12 @@ from reachq.core.reachability import bfs_reachability, parallel_bfs
 
 def test_empty_graph():
     g = Digraph()
-    # Source is not in graph; parallel_bfs returns only {source}.
-    # Shortcuts to non-existent vertices are silently ignored.
-    assert parallel_bfs(g, 0, set()) == {0}
-    assert parallel_bfs(g, 0, {(0, 1)}) == {0}
+    import pytest
+
+    with pytest.raises(KeyError):
+        parallel_bfs(g, 0, set())
+    with pytest.raises(KeyError):
+        parallel_bfs(g, 0, {(0, 1)})
 
 
 def test_single_vertex_no_shortcuts():

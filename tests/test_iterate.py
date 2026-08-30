@@ -55,9 +55,7 @@ class TestIterativeRefines:
         H_direct, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         from reachq.core.algorithm import jls_with_tc_pruning
         from reachq.core.graph import Digraph
 
@@ -97,9 +95,7 @@ class TestIterativeRefines:
         H_direct, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         H_iter = iterative_shortcut_set(g, omega=3.0, max_iterations=3, random_seed=42)
         # H_iter is the robust core; for graphs where H_1 = H_2 = ... the
         # core equals H_1. For Petersen we get a smaller H_1 ∩ H_2

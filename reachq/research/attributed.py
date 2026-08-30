@@ -63,7 +63,7 @@ def attributed_bfs(
     Raises:
         KeyError: If ``source`` is not in ``graph``.
     """
-    if source not in graph.vertex_set:
+    if source not in graph:
         raise KeyError(f"source {source!r} not in graph")
 
     vp = vertex_pred if vertex_pred is not None else lambda _v: True
@@ -117,7 +117,7 @@ def attributed_reachable_pairs(
     """
     out: set[tuple[object, object]] = set()
     for s in sources:
-        if s not in graph.vertex_set:
+        if s not in graph:
             continue
         visited = attributed_bfs(graph, s, vertex_pred=vertex_pred, edge_pred=edge_pred)
         for t in targets:

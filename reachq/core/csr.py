@@ -8,10 +8,10 @@ neighbours of vertex ``i`` is a constant-time slice:
 
 CSR is the format used by the BFS kernels in ``reachq/core/bfs.py``
 and the experimental Cython/Numba/Rust wrappers in
-``reachq/accel/``. The conversion from a Digraph allocates
-``indptr_fwd``/``indices_fwd`` (forward edges) and the
-indptr_rev/indices_rev (reverse edges) in one pass so the BFS
-also has the backward view at hand.
+``reachq/accel/``.
+
+Vertex indices follow the graph's insertion order (see
+:mod:`reachq.core.graph`).
 """
 
 from __future__ import annotations
@@ -24,32 +24,26 @@ if TYPE_CHECKING:
     from reachq.core.graph import Digraph
 
 
-def csr_to_index_map(
-    graph_vertex_set: set[object],
-) -> tuple[dict[object, int], list[object]]:
-    """Build bijection from vertex objects to int indices."""
-    vertices = list(graph_vertex_set)
-    index_map = {v: i for i, v in enumerate(vertices)}
-    return index_map, vertices
-
-
 def build_csr_pair(
     graph: Digraph,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, int, list[object]]:
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, int, tuple[object, ...]]:
     """Build forward and reversed CSR arrays from a Digraph.
 
     Returns:
-        (indptr_fwd, indices_fwd, indptr_rev, indices_rev, n, index_to_vertex)
+        ``(indptr_fwd, indices_fwd, indptr_rev, indices_rev, n, idx_to_vertex)``
+        where ``idx_to_vertex`` is the graph's insertion-order vertex
+        tuple, used to decode computed indices back to vertices.
     """
-    index_map, vertices = csr_to_index_map(graph.vertex_set)
-    n = len(vertices)
+    n = graph.num_vertices()
+    idx_to_vertex: tuple[object, ...] = graph.vertices()
+    v_to_idx = graph._index_of  # noqa: SLF001 — internal but stable
 
     out_counts = np.zeros(n, dtype=np.int64)
     for v, neighbors in graph.out_edges.items():
-        out_counts[index_map[v]] = len(neighbors)
+        out_counts[v_to_idx[v]] = len(neighbors)
     in_counts = np.zeros(n, dtype=np.int64)
     for v, neighbors in graph.in_edges.items():
-        in_counts[index_map[v]] = len(neighbors)
+        in_counts[v_to_idx[v]] = len(neighbors)
 
     indptr_fwd = np.zeros(n + 1, dtype=np.int64)
     np.cumsum(out_counts, out=indptr_fwd[1:])
@@ -62,14 +56,21 @@ def build_csr_pair(
     cursor_fwd = indptr_fwd[:-1].copy()
     cursor_rev = indptr_rev[:-1].copy()
     for u, neighbors in graph.out_edges.items():
-        i = index_map[u]
+        i = v_to_idx[u]
         for w in neighbors:
-            indices_fwd[cursor_fwd[i]] = index_map[w]
+            indices_fwd[cursor_fwd[i]] = v_to_idx[w]
             cursor_fwd[i] += 1
     for v, neighbors in graph.in_edges.items():
-        j = index_map[v]
+        j = v_to_idx[v]
         for u in neighbors:
-            indices_rev[cursor_rev[j]] = index_map[u]
+            indices_rev[cursor_rev[j]] = v_to_idx[u]
             cursor_rev[j] += 1
 
-    return indptr_fwd, indices_fwd, indptr_rev, indices_rev, n, vertices
+    return (
+        indptr_fwd,
+        indices_fwd,
+        indptr_rev,
+        indices_rev,
+        n,
+        idx_to_vertex,
+    )

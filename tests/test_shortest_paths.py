@@ -1,5 +1,7 @@
 """Tests for shortest path algorithms."""
 
+import pytest
+
 from reachq.core.graph import WeightedDigraph
 from reachq.core.shortest_paths import (
     astar,
@@ -32,7 +34,7 @@ class TestDijkstra:
         g.add_vertex(2)
         dists = dijkstra(g, 0)
         assert dists[1] == 1
-        assert dists[2] == float("inf")
+        assert 2 not in dists
 
     def test_single_vertex(self):
         g = WeightedDigraph()
@@ -42,8 +44,8 @@ class TestDijkstra:
 
     def test_empty_graph(self):
         g = WeightedDigraph()
-        dists = dijkstra(g, 0)
-        assert dists == {0: 0}
+        with pytest.raises(KeyError):
+            dijkstra(g, 0)
 
     def test_self_loop(self):
         g = WeightedDigraph()

@@ -245,20 +245,19 @@ def njit_dijkstra(
     for u in range(n):
         start = int(indptr[u])
         end = int(indptr[u + 1])
+        g.add_vertex(u)
         for j in range(start, end):
             v = int(indices[j])
             w = float(weights[j])
-            if v not in g.vertex_set:
-                g.add_vertex(v)
-            if u not in g.vertex_set:
-                g.add_vertex(u)
+            g.add_vertex(v)
             g.add_edge(u, v, int(w))
     result = dijkstra(g, source)
     out = np.full(n, np.inf, dtype=np.float64)
+    if source in g:
+        out[source] = 0.0
     for v_obj, d in result.items():
-        v = int(str(v_obj))
-        if 0 <= v < n:
-            out[v] = d
+        if isinstance(v_obj, int) and 0 <= v_obj < n:
+            out[v_obj] = d
     return out
 
 

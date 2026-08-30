@@ -17,7 +17,7 @@ class TestDigraph:
         g = Digraph()
         assert g.num_vertices() == 0
         assert g.num_edges() == 0
-        assert g.vertices() == set()
+        assert g.vertices() == ()
         assert g.edges() == []
 
     def test_add_vertices_and_edges(self):
@@ -27,7 +27,7 @@ class TestDigraph:
         g.add_edge(0, 2)
         assert g.num_vertices() == 3
         assert g.num_edges() == 3
-        assert g.vertices() == {0, 1, 2}
+        assert g.vertices() == (0, 1, 2)
         assert set(g.edges()) == {(0, 1), (1, 2), (0, 2)}
         assert g.out_neighbors(0) == {1, 2}
         assert g.in_neighbors(2) == {1, 0}
@@ -254,7 +254,7 @@ class TestContractSccs:
         g.add_edge(2, 0)
         sccs, scc_map = contract_sccs(g)
         assert len(sccs) == 1
-        assert sccs[0] == {0, 1, 2}
+        assert set(sccs[0]) == {0, 1, 2}
         assert scc_map[0] == scc_map[1] == scc_map[2]
 
     def test_mixed_sccs_and_dag(self):

@@ -42,7 +42,7 @@ class TestHopboundPreserved:
         """The default build_shortcut_set_for_reachability must return a
         shortcut set that satisfies the beta-hopbound.
 
-        Regression test: the old default (sparsify_shortcuts=True)
+        Regression test: the old default ()
         used the reachability-only sparsifier, which on a path graph
         stripped H down to empty and pushed the max hop to n-1,
         far above beta.
@@ -75,9 +75,7 @@ class TestHopboundPreserved:
         shortcuts, beta = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         for s in g.vertices():
             d = max_hops(g, s, shortcuts, int(beta) + 1)
             assert d <= int(beta) + 1, (
@@ -94,9 +92,7 @@ class TestHopboundPreserved:
         shortcuts, beta = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         for s in g.vertices():
             d = max_hops(g, s, shortcuts, int(beta) + 1)
             assert d <= int(beta) + 1
@@ -114,9 +110,7 @@ class TestHopboundPreserved:
         shortcuts, beta = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         for s in g.vertices():
             d = max_hops(g, s, shortcuts, int(beta) + 1)
             assert d <= int(beta) + 1
@@ -134,8 +128,6 @@ class TestHopboundPreserved:
         shortcuts, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         for s in g.vertices():
             assert bfs_reachability(g, s) == parallel_bfs(g, s, shortcuts)

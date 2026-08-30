@@ -1,158 +1,167 @@
-"""Benchmark script for shortcut set construction and reachability queries.
+"""Reachability oracle benchmark.
 
-Produces tabular output comparing construction time, shortcut set size,
-and observed hop counts across varying graph sizes and densities.
+Validates the returned ``beta`` against actual max-hop from each
+source in the largest weak component, and checks reachability
+preservation. Reports environment metadata.
 """
 
 from __future__ import annotations
 
 import argparse
 import csv
+import os
+import platform
+import sys
 import time
+from collections.abc import Sequence
 from typing import Any
 
 from reachq.core.algorithm import build_shortcut_set_for_reachability
-from reachq.core.config import get_logger
+from reachq.core.config import configure_logging, get_logger
 from reachq.core.generators import (
     dense_graph,
+    graph_with_sccs,
+    path_graph,
+    random_dag,
 )
 from reachq.core.graph import Digraph
-from reachq.core.work_depth import WorkDepthAccountant
+from reachq.core.reachability import bfs_reachability, parallel_bfs
 
+
+configure_logging()
 log = get_logger("reachq.benchmark_reachability")
 
 
-def measure_shortcut_construction(
-    graph: Digraph, omega: float, seed: int
-) -> tuple[set[tuple[object, object]], float, float, float, float]:
-    """Build shortcut set and return metrics.
-
-    Returns: (shortcuts, beta, elapsed_seconds, max_hops, work_estimate)
-    """
-    accountant = WorkDepthAccountant()
-    accountant.start_timer()
-    start = time.perf_counter()
-    shortcuts, beta = build_shortcut_set_for_reachability(
-        graph, omega=omega, random_seed=seed
-    )
-    elapsed = time.perf_counter() - start
-    accountant.stop_timer()
-
-    # Measure max hops from a random source in the largest weak component
-    # For simplicity, use vertex 0 if present
-    source = 0 if graph.has_edge(0, 1) or graph.num_vertices() > 0 else None
-    if source is not None:
-        hop_dists = hop_count_bfs(graph, source, shortcuts)
-        reachable = {v for v, d in hop_dists.items() if d < float("inf")}
-        max_hops = max((hop_dists[v] for v in reachable), default=0)
-    else:
-        max_hops = 0
-
-    return shortcuts, beta, elapsed, max_hops, accountant.work
-
-
-def hop_count_bfs(
-    graph: Digraph, source: object, shortcuts: set
-) -> dict[object, float]:
-    """BFS returning hop counts."""
+def _hop_count_bfs_indexed(
+    graph: Digraph,
+    source: object,
+    shortcuts: set[tuple[object, object]],
+) -> dict[object, int]:
+    """BFS-with-shortcuts returning hop counts."""
     from collections import deque
 
-    dist: dict[object, float] = {v: float("inf") for v in graph.vertices()}
+    shortcut_index: dict[object, list[object]] = {}
+    for a, b in shortcuts:
+        shortcut_index.setdefault(a, []).append(b)
+
+    dist: dict[object, int] = {v: 1 << 62 for v in graph.vertices()}
     dist[source] = 0
     q: deque = deque([source])
-    out = graph.out_edges
-    s_list = list(shortcuts)
     while q:
         u = q.popleft()
-        for v in out.get(u, set()):
-            if dist[v] == float("inf"):
+        for v in graph.out_edges.get(u, ()):
+            if dist[v] == 1 << 62:
                 dist[v] = dist[u] + 1
                 q.append(v)
-        for a, b in s_list:
-            if a == u and dist[b] == float("inf"):
+        for b in shortcut_index.get(u, ()):
+            if b in dist and dist[b] == 1 << 62:
                 dist[b] = dist[u] + 1
                 q.append(b)
     return dist
 
 
+def _environment_metadata() -> dict[str, Any]:
+    return {
+        "python": sys.version.split()[0],
+        "platform": platform.platform(),
+        "machine": platform.machine(),
+        "pythonhashseed": os.environ.get("PYTHONHASHSEED", "default"),
+        "omp_num_threads": os.environ.get("OMP_NUM_THREADS", "unset"),
+        "numpy": __import__("numpy").__version__,
+        "scipy": __import__("scipy").__version__,
+    }
+
+
+def _build_graphs(
+    n_list: Sequence[int],
+    densities: Sequence[float],
+    seed: int,
+) -> list[tuple[str, Digraph]]:
+    families: list[tuple[str, Digraph]] = []
+    for n in n_list:
+        for density in densities:
+            edge_count = max(1, int(density * n * (n - 1)))
+            families.append(
+                (
+                    f"dense_n{n}_d{density:.2f}",
+                    dense_graph(n, edge_count, random_seed=seed),
+                )
+            )
+        families.append(
+            (f"random_dag_n{n}", random_dag(n=n, edge_probability=0.1, random_seed=seed))
+        )
+        families.append(
+            (f"with_sccs_n{n}", graph_with_sccs(scc_sizes=[max(1, n // 4)] * 4, inter_edge_probability=0.1, random_seed=seed))
+        )
+        families.append((f"path_n{n}", path_graph(n)))
+    return families
+
+
 def benchmark_suite(
-    sizes: list[int],
-    densities: list[float],
+    sizes: Sequence[int],
+    densities: Sequence[float],
     omega: float,
     seed: int,
     output_csv: str | None,
 ) -> None:
-    """Run benchmarks across sizes and densities."""
     rows: list[dict[str, Any]] = []
-    for n in sizes:
-        for density in densities:
-            # Approximate edge count from density
-            max_edges = n * (n - 1)
-            edge_count = int(density * max_edges)
-            if edge_count < n - 1 and density > 0:
-                # Ensure enough edges for a non-trivial graph
-                edge_count = min(max_edges, n)
+    env = _environment_metadata()
+    for family_name, graph in _build_graphs(sizes, densities, seed):
+        t0 = time.perf_counter()
+        shortcuts, beta = build_shortcut_set_for_reachability(
+            graph, omega=omega, random_seed=seed
+        )
+        elapsed = time.perf_counter() - t0
 
-            graph = dense_graph(n, edge_count, random_seed=seed)
-            shortcuts, beta, elapsed, max_hops, work = measure_shortcut_construction(
-                graph, omega, seed
-            )
-            row = {
-                "n": n,
-                "m": graph.num_edges(),
-                "density": density,
-                "omega": omega,
-                "beta_target": beta,
-                "shortcut_size": len(shortcuts),
-                "elapsed_sec": elapsed,
-                "max_hops_observed": max_hops,
-                "simulated_work": work,
-            }
-            rows.append(row)
-            log.info(
-                "n=%d m=%d density=%.3f beta=%.2f |H|=%d time=%.3fs max_hops=%d",
-                n,
-                graph.num_edges(),
-                density,
-                beta,
-                len(shortcuts),
-                elapsed,
-                max_hops,
-            )
+        max_hop_global = 0
+        reachability_violations = 0
+        for source in graph.vertices():
+            hop_dists = _hop_count_bfs_indexed(graph, source, shortcuts)
+            reachable = [
+                d for d in hop_dists.values() if d < (1 << 62)
+            ]
+            if reachable:
+                max_hop_global = max(max_hop_global, max(reachable))
+            if bfs_reachability(graph, source) != parallel_bfs(
+                graph, source, shortcuts
+            ):
+                reachability_violations += 1
+
+        row = {
+            "family": family_name,
+            "n": graph.num_vertices(),
+            "m": graph.num_edges(),
+            "omega": omega,
+            "beta": beta,
+            "shortcut_size": len(shortcuts),
+            "elapsed_seconds": elapsed,
+            "max_hop_global": max_hop_global,
+            "reachability_violations": reachability_violations,
+        }
+        rows.append(row)
+        log.info(
+            "%s n=%d m=%d beta=%.2f |H|=%d time=%.3fs "
+            "max_hop=%d reach_viol=%d",
+            family_name, graph.num_vertices(), graph.num_edges(), beta,
+            len(shortcuts), elapsed, max_hop_global, reachability_violations,
+        )
 
     if output_csv:
         with open(output_csv, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=rows[0].keys())
+            writer = csv.DictWriter(f, fieldnames=[*env.keys(), *rows[0].keys()])
             writer.writeheader()
-            writer.writerows(rows)
+            for row in rows:
+                writer.writerow({**env, **row})
         log.info("results written to %s", output_csv)
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(
-        description="Benchmark shortcut set construction for reachability"
-    )
-    parser.add_argument(
-        "--sizes",
-        type=int,
-        nargs="+",
-        default=[20, 50, 100, 200],
-        help="Graph sizes (number of vertices) to benchmark",
-    )
-    parser.add_argument(
-        "--densities",
-        type=float,
-        nargs="+",
-        default=[0.1, 0.3, 0.5, 0.8],
-        help="Edge density fractions relative to complete digraph",
-    )
-    parser.add_argument(
-        "--omega", type=float, default=3.0, help="Matrix multiplication exponent"
-    )
-    parser.add_argument("--seed", type=int, default=42, help="Random seed")
-    parser.add_argument(
-        "--output", type=str, default=None, help="Optional CSV output path"
-    )
+    parser = argparse.ArgumentParser(description="Reachability oracle benchmark")
+    parser.add_argument("--sizes", type=int, nargs="+", default=[20, 50, 100])
+    parser.add_argument("--densities", type=float, nargs="+", default=[0.2, 0.5])
+    parser.add_argument("--omega", type=float, default=3.0)
+    parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--output", type=str, default=None)
     args = parser.parse_args()
     benchmark_suite(args.sizes, args.densities, args.omega, args.seed, args.output)
 

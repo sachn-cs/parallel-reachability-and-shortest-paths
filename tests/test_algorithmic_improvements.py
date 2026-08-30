@@ -13,7 +13,7 @@ from importlib.util import find_spec
 
 import pytest
 
-from reachq import Flags
+from reachq import RefinementConfig as Flags
 from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag, weighted_random_dag
 from reachq.core.hopset import build_hopset_for_sssp
@@ -69,14 +69,15 @@ def test_flags_dataclass_rejects_unknown_names() -> None:
 
 def test_density_aware_constant_scales_with_rho() -> None:
     """The density-aware sampling constant is non-decreasing in rho."""
-    from reachq.core.algorithm import SAMPLING_CONSTANT, density_aware_constant
+    from reachq.core.algorithm import density_aware_constant
 
-    assert density_aware_constant(rho=10.0, k=4.0) == SAMPLING_CONSTANT
+    SAMPLING_DEFAULT = 10.0
+    assert density_aware_constant(rho=10.0, k=4.0) == SAMPLING_DEFAULT
     sparse_c = density_aware_constant(rho=1.0, k=4.0)
     dense_c = density_aware_constant(rho=100.0, k=4.0)
-    assert dense_c == SAMPLING_CONSTANT
+    assert dense_c == SAMPLING_DEFAULT
     assert 0.0 < sparse_c < dense_c
-    assert density_aware_constant(rho=0.1, k=4.0) == 1.0  # floored at C=1
+    assert density_aware_constant(rho=0.1, k=4.0) == 1.0
 
 
 def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
@@ -89,10 +90,7 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
     """
     import math
 
-    from reachq.core.algorithm import (
-        SAMPLING_CONSTANT,
-        jls_with_tc_pruning,
-    )
+    from reachq.core.algorithm import jls_with_tc_pruning
 
     g = random_dag(n=60, edge_probability=0.4, random_seed=7)
     build_shortcut_set_for_reachability(
@@ -110,7 +108,7 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
         n_global=g.num_vertices(),
         random_seed=7,
         flags={"adaptive_sampling": True},
-        sampling_constant=SAMPLING_CONSTANT,
+        sampling_constant=10.0,
     )
     explicit_default = jls_with_tc_pruning(
         g,

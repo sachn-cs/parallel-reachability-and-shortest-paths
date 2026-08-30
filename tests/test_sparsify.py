@@ -40,9 +40,7 @@ class TestSparsifyBasic:
         H_orig, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         # First verify the unsparsified set is sound.
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, H_orig)
@@ -59,9 +57,7 @@ class TestSparsifyBasic:
         H_orig, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         H_sparse = sparsify_shortcut_set(g, H_orig)
         assert len(H_sparse) <= len(H_orig)
 
@@ -71,9 +67,7 @@ class TestSparsifyBasic:
         H_orig, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         H_once = sparsify_shortcut_set(g, H_orig)
         H_twice = sparsify_shortcut_set(g, H_once)
         assert H_once == H_twice
@@ -88,9 +82,7 @@ class TestSparsifyReducesJLS:
         H_orig, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         H_sparse = sparsify_shortcut_set(g, H_orig)
         # We expect most JLS shortcuts to be redundant on dense graphs.
         if len(H_orig) > 0:
@@ -102,7 +94,7 @@ class TestSparsifyReducesJLS:
 
     def test_wrapper_default_does_not_sparsify(self):
         """build_shortcut_set_for_reachability does not sparsify by
-        default (sparsify_shortcuts=False), so the default output is
+        default (), so the default output is
         identical to the explicit unsparsified output.
 
         The sparsifier is opt-in because the reachability-only variant
@@ -117,26 +109,20 @@ class TestSparsifyReducesJLS:
         H_unsparsified = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         assert H_default == H_unsparsified
 
     def test_wrapper_opt_in_sparsifies(self):
-        """With sparsify_shortcuts=True the output is no larger."""
+        """Withthe output is no larger."""
         g = random_dag(60, edge_probability=0.3, random_seed=42)
         H_sparse = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=True,
-        )
+            random_seed=42)
         H_unsparsified = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         assert len(H_sparse) <= len(H_unsparsified)
 
 
@@ -155,8 +141,6 @@ class TestSparsifyCorrectnessInvariant:
         H_orig, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         H_sparse = sparsify_shortcut_set(g, H_orig)
         assert_scc_shortcuts_form_cliques(g, H_sparse)

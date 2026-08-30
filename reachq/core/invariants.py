@@ -154,7 +154,7 @@ def assert_partition_correctness(
     Raises:
         AssertionError: If the union doesn't match or parts overlap.
     """
-    vertices = graph.vertices()
+    vertices = set(graph.vertices())
     union: set[object] = set()
     for part in parts:
         if not part.issubset(vertices):

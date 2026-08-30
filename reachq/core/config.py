@@ -1,11 +1,9 @@
-"""Centralised logging configuration and algorithmic refinement config.
+"""Algorithmic refinement config and CLI entry-point logging setup.
 
-Call ``configure_logging()`` once at the entry point of a CLI / script. Module
-loggers (``logging.getLogger(__name__)``) inside ``reachq`` pick up the
-handler automatically because we attach to the root logger.
-
-``RefinementConfig`` is a frozen dataclass that replaces the old ``Flags``
-class. It controls which algorithmic refinements are active.
+``RefinementConfig`` is a frozen dataclass of refinement toggles.
+The library never touches the root logger. ``configure_logging``
+attaches a single stderr handler; call it once at the entry
+point of CLI scripts, not at import time.
 """
 
 from __future__ import annotations
@@ -15,22 +13,10 @@ import os
 import sys
 from dataclasses import dataclass, fields
 
-CONFIGURED: bool = False
-
 
 @dataclass(frozen=True, slots=True)
 class RefinementConfig:
-    """Per-call toggle for algorithmic refinements. Default: all on.
-
-    Replaces the old ``Flags`` class. Frozen and immutable — construct a
-    new instance to change settings.
-
-    Examples:
-        >>> RefinementConfig()
-        RefinementConfig(...)
-        >>> RefinementConfig(enable_tc_pruning=False)
-        RefinementConfig(...)
-    """
+    """Per-call toggle for algorithmic refinements. Default: all on."""
 
     adaptive_sampling: bool = True
     label_compress: bool = True
@@ -43,7 +29,7 @@ class RefinementConfig:
     parallel: bool = False
 
     @classmethod
-    def from_dict(cls, d: dict[str, bool] | None = None) -> RefinementConfig:
+    def from_dict(cls, d: dict[str, bool] | None = None) -> "RefinementConfig":
         """Construct from a partial dict. Missing keys default to True."""
         if not d:
             return cls()
@@ -57,20 +43,20 @@ class RefinementConfig:
 
 
 def configure_logging(level: int | str | None = None) -> None:
-    """Idempotent logger setup.
+    """Attach a single stderr handler to the ``reachq`` logger.
 
-    Idempotent so importing this module multiple times (which happens in
-    tests) doesn't double-attach handlers.
+    Idempotent: subsequent calls update the level only.
+    Library code never calls this; only CLI / script entry
+    points should.
     """
-    global CONFIGURED
-    if CONFIGURED:
-        return
     if level is None:
         env = os.environ.get("REACHQ_LOG", "INFO").upper()
         level = getattr(logging, env, logging.INFO)
     elif isinstance(level, str):
         level = getattr(logging, level.upper(), logging.INFO)
 
+    log = logging.getLogger("reachq")
+    log.handlers.clear()
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(
         logging.Formatter(
@@ -78,13 +64,11 @@ def configure_logging(level: int | str | None = None) -> None:
             datefmt="%H:%M:%S",
         )
     )
-    root = logging.getLogger()
-    root.addHandler(handler)
-    root.setLevel(level)
-    CONFIGURED = True
+    log.addHandler(handler)
+    log.setLevel(level)
+    log.propagate = False
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Return a logger for the given module name, configuring on first call."""
-    configure_logging()
+    """Return a logger for the given module name without configuring."""
     return logging.getLogger(name)

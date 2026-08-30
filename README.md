@@ -130,12 +130,14 @@ The seven toggles on `RefinementConfig` (re-exported as
 | `tight_tc_trigger` | Tighten the TC-pruning trigger by work comparison. |
 | `skip_trivial_part` | Skip recursion when the partition is a single part. |
 | `enable_tc_pruning` | Enable TC-pruning (Theorem 2's improvement). |
-| `parallel` | Reserved; the current implementation is sequential. |
+| `parallel` | When True, dispatch per-pivot BFS through a process pool with `parallel_workers > 1`. |
 
-The `parallel_workers` parameter on both wrappers is accepted for
-API symmetry; the current implementation is sequential.
+The `parallel_workers` parameter on `build_shortcut_set_for_reachability`
+now dispatches per-pivot BFS through a process pool when
+`flags.parallel=True`. The hopset path runs sequentially because
+the per-pivot workload is a SSSP (GIL-bound in Python).
 See [`docs/algorithms.md`](docs/algorithms.md) §"Refinement flags"
-and [`docs/limitations.md`](docs/limitations.md).
+and [`docs/migration_0_9.md`](docs/migration_0_9.md).
 
 ---
 
@@ -163,12 +165,10 @@ from reachq import RefinementConfig as Flags, Digraph, WeightedDigraph
 from reachq.core.algorithm import (
     build_shortcut_set_for_reachability,  # Theorem-2 wrapper
     jls_with_tc_pruning,  # direct recursion
-    jls_shortcut_set,  # wrapper, TC pruning off
 )
 from reachq.core.hopset import (
     build_hopset_for_sssp,  # Theorem-4 wrapper
     cfr_with_truncsssp_pruning,  # direct recursion
-    cfr_hopset,  # wrapper, TruncSSSP off
 )
 from reachq.core.reachability import (
     bfs_reachability,
@@ -183,9 +183,11 @@ from reachq.core.shortest_paths import (
     compute_d_ball,
     compute_d_ancestors,
     compute_d_descendants,
+    UNREACHABLE,
 )
 from reachq.core.tc import (
-    transitive_closure_matrix,
+    TransitiveClosureBudgetError,
+    transitive_closure_boolean,
     transitive_closure_brute_force,
 )
 from reachq.core.generators import (
@@ -300,9 +302,10 @@ Notable entry points:
 See [`docs/limitations.md`](docs/limitations.md) for the consolidated
 list. The short version:
 
-- **No true parallel execution.** Single-threaded; `parallel_workers`
-  is accepted for API symmetry but logged-and-ignored on the process
-  path.
+- **Process parallelism** is real for the JLS shortcut-set
+  construction when `flags.parallel=True` and
+  `parallel_workers > 1`. The hopset construction runs sequentially
+  because the per-pivot workload is a SSSP (GIL-bound in Python).
 - **No JIT / no native extensions.** Pure-Python wheel; the
   experimental Cython/Rust kernels in `reachq/accel/` are not
   built or shipped.
@@ -312,6 +315,9 @@ list. The short version:
   prototype; the O(log² n) per-insertion bound is not implemented.
 - **`web-Google` (n=875k) is out of reach** for single-process
   Python.
+- **Exact transitive closure** is inherently output-quadratic; the
+  Boolean-semiring core respects an explicit `max_pairs` budget and
+  raises `TransitiveClosureBudgetError` when exceeded.
 
 ---
 

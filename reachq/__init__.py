@@ -47,7 +47,6 @@ __version__ = "0.8.0"
 from reachq.core import invariants
 from reachq.core.algorithm import (
     build_shortcut_set_for_reachability,
-    jls_shortcut_set,
     jls_with_tc_pruning,
 )
 from reachq.core.config import RefinementConfig
@@ -71,7 +70,6 @@ from reachq.core.generators import (
 from reachq.core.graph import Digraph, WeightedDigraph
 from reachq.core.hopset import (
     build_hopset_for_sssp,
-    cfr_hopset,
     cfr_with_truncsssp_pruning,
 )
 from reachq.core.io.json import (
@@ -105,8 +103,9 @@ from reachq.core.shortest_paths import (
     truncated_dijkstra,
 )
 from reachq.core.tc import (
+    TransitiveClosureBudgetError,
+    transitive_closure_boolean,
     transitive_closure_brute_force,
-    transitive_closure_matrix,
     transitive_closure_on_subset,
 )
 from reachq.core.work_depth import WorkDepthAccountant
@@ -123,7 +122,6 @@ __all__ = [
     "bfs_reachability",
     "build_hopset_for_sssp",
     "build_shortcut_set_for_reachability",
-    "cfr_hopset",
     "cfr_with_truncsssp_pruning",
     "compute_ancestors",
     "compute_bridges",
@@ -143,7 +141,6 @@ __all__ = [
     "grid_graph",
     "hamming_graph",
     "invariants",
-    "jls_shortcut_set",
     "jls_with_tc_pruning",
     "layered_dag",
     "load",
@@ -159,8 +156,9 @@ __all__ = [
     "shrikhande_graph",
     "strongly_connected_components",
     "topological_sort",
+    "TransitiveClosureBudgetError",
+    "transitive_closure_boolean",
     "transitive_closure_brute_force",
-    "transitive_closure_matrix",
     "transitive_closure_on_subset",
     "truncated_dijkstra",
     "weighted_dense_graph",

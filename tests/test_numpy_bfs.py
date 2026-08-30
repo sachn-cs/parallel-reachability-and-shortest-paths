@@ -36,8 +36,7 @@ def test_to_csr_returns_arrays() -> None:
 def test_to_csr_neighbors_match_out_edges() -> None:
     g = path_graph(5)
     indptr, indices, _ = g.to_csr()
-    vertices_sorted = sorted(g.vertex_set, key=lambda v: str(v))
-    index_map = {v: i for i, v in enumerate(vertices_sorted)}
+    index_map = {v: i for i, v in enumerate(g.vertices())}
     for v, i in index_map.items():
         neighbors = {int(indices[j]) for j in range(indptr[i], indptr[i + 1])}
         expected = {index_map[w] for w in g.out_edges[v]}

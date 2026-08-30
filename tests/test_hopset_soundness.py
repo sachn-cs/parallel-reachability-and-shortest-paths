@@ -3,7 +3,8 @@
 Each test asserts that the hopset-augmented reachability matches
 plain Dijkstra within the same graph. The hopset is a sound
 approximation: any vertex reachable by a regular path is reachable
-via a hopset-augmented path.
+via a hopset-augmented path *and* the augmented distance equals
+the exact Dijkstra distance for every reachable pair.
 """
 
 from __future__ import annotations
@@ -39,17 +40,14 @@ def test_three_node_chain_hopset_soundness():
     expected = dijkstra(g, 0)
     approx = shortest_path_hopbound(g, H, 0, max_hops=int(beta) + 5)
     for v in g.vertices():
-        if expected[v] != float("inf"):
-            assert approx.get(v, float("inf")) != float("inf"), (
-                f"hopset disconnected reachable 0->{v}"
-            )
+        if v in expected:
+            assert v in approx, f"hopset disconnected reachable 0->{v}"
+            assert approx[v] == expected[v]
 
 
 def test_random_dag_hopset_soundness():
-    """For a random DAG, the hopset-augmented shortest path
-    distance to every reachable vertex equals the plain Dijkstra
-    distance. The hopset is a sound approximation: it never
-    overestimates the true distance.
+    """For a random DAG the augmented distance equals the exact
+    distance at every reachable vertex.
     """
     g = random_dag(n=10, edge_probability=0.3, random_seed=42)
     g_w = WeightedDigraph()
@@ -62,21 +60,21 @@ def test_random_dag_hopset_soundness():
         dijkstra_dist = dijkstra(g_w, source)
         approx = shortest_path_hopbound(g_w, H, source, max_hops=int(beta) + 5)
         for target in g_w.vertices():
-            if dijkstra_dist[target] != float("inf"):
-                assert approx.get(target, float("inf")) != float("inf"), (
-                    f"hopset disconnected reachable {source}->{target}"
-                )
+            if target in dijkstra_dist:
+                assert target in approx, f"hopset disconnected {source}->{target}"
+                assert approx[target] == dijkstra_dist[target]
 
 
-def test_hopset_does_not_introduce_negative_weights():
+def test_hopset_weights_match_dijkstra():
+    """Every hopset edge weight must equal the original-graph distance."""
     g = WeightedDigraph()
     g.add_vertex(0)
     g.add_vertex(1)
     g.add_edge(0, 1, 5)
     H, _ = build_hopset_for_sssp(g, epsilon=0.1, random_seed=42)
-    for _, (_, _, _) in H.items():
-        assert isinstance(_, int)
-        assert _ >= 0
+    for (u, v), w in H.items():
+        assert isinstance(w, int) and w >= 0
+        assert dijkstra(g, u)[v] == w
 
 
 def test_hopset_reproducible():
@@ -102,15 +100,10 @@ def test_hopset_soundness_long_path():
     H, beta = build_hopset_for_sssp(g, epsilon=0.1, random_seed=42)
     for source in g.vertices():
         approx = shortest_path_hopbound(
-            g,
-            H,
-            source,
-            max_hops=int(beta) + 1,
+            g, H, source, max_hops=int(beta) + 1
         )
-        for target in g.vertices():
-            if source != target:
-                plain = dijkstra(g, source).get(target, float("inf"))
-                if plain != float("inf"):
-                    assert approx.get(target, float("inf")) != float("inf"), (
-                        f"hopset disconnected reachable {source}->{target}"
-                    )
+        plain = dijkstra(g, source)
+        for target, d in plain.items():
+            if target != source:
+                assert target in approx
+                assert approx[target] == d

@@ -1,9 +1,12 @@
 """Tests for transitive closure computation."""
 
+import pytest
+
 from reachq.core.graph import Digraph
 from reachq.core.tc import (
+    TransitiveClosureBudgetError,
+    transitive_closure_boolean,
     transitive_closure_brute_force,
-    transitive_closure_matrix,
     transitive_closure_on_subset,
 )
 
@@ -13,85 +16,79 @@ class TestTransitiveClosureBruteForce:
 
     def test_empty_graph(self):
         g = Digraph()
-        tc = transitive_closure_brute_force(g)
-        assert tc == set()
+        assert transitive_closure_brute_force(g) == set()
 
     def test_single_vertex(self):
         g = Digraph()
         g.add_vertex(0)
-        tc = transitive_closure_brute_force(g)
-        assert tc == {(0, 0)}
+        assert transitive_closure_brute_force(g) == {(0, 0)}
 
     def test_simple_path(self):
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(1, 2)
-        tc = transitive_closure_brute_force(g)
-        assert tc == {(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)}
+        expected = {(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)}
+        assert transitive_closure_brute_force(g) == expected
 
     def test_cycle(self):
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         g.add_edge(2, 0)
-        tc = transitive_closure_brute_force(g)
         vertices = {0, 1, 2}
         expected = {(u, v) for u in vertices for v in vertices}
-        assert tc == expected
+        assert transitive_closure_brute_force(g) == expected
 
     def test_disconnected(self):
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(2, 3)
-        tc = transitive_closure_brute_force(g)
-        assert tc == {(0, 0), (0, 1), (1, 1), (2, 2), (2, 3), (3, 3)}
+        expected = {(0, 0), (0, 1), (1, 1), (2, 2), (2, 3), (3, 3)}
+        assert transitive_closure_brute_force(g) == expected
 
     def test_triangle(self):
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         g.add_edge(0, 2)
-        tc = transitive_closure_brute_force(g)
-        assert tc == {(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)}
+        expected = {(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)}
+        assert transitive_closure_brute_force(g) == expected
 
 
-class TestTransitiveClosureMatrix:
-    """Tests for matrix-based transitive closure."""
+class TestTransitiveClosureBoolean:
+    """Boolean-semiring tests for transitive closure."""
 
     def test_empty_graph(self):
         g = Digraph()
-        tc = transitive_closure_matrix(g)
-        assert tc == set()
+        assert transitive_closure_boolean(g) == set()
 
     def test_single_vertex(self):
         g = Digraph()
         g.add_vertex(0)
-        tc = transitive_closure_matrix(g)
-        assert tc == {(0, 0)}
+        assert transitive_closure_boolean(g) == {(0, 0)}
 
     def test_simple_path(self):
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(1, 2)
-        tc = transitive_closure_matrix(g)
-        assert tc == {(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)}
+        expected = {(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)}
+        assert transitive_closure_boolean(g) == expected
 
     def test_cycle(self):
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         g.add_edge(2, 0)
-        tc = transitive_closure_matrix(g)
         vertices = {0, 1, 2}
         expected = {(u, v) for u in vertices for v in vertices}
-        assert tc == expected
+        assert transitive_closure_boolean(g) == expected
 
     def test_disconnected(self):
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(2, 3)
-        tc = transitive_closure_matrix(g)
-        assert tc == {(0, 0), (0, 1), (1, 1), (2, 2), (2, 3), (3, 3)}
+        expected = {(0, 0), (0, 1), (1, 1), (2, 2), (2, 3), (3, 3)}
+        assert transitive_closure_boolean(g) == expected
 
     def test_agrees_with_brute_force(self):
         g = Digraph()
@@ -100,9 +97,7 @@ class TestTransitiveClosureMatrix:
             for j in range(i + 1, n):
                 if (i + j) % 3 == 0:
                     g.add_edge(i, j)
-        tc_matrix = transitive_closure_matrix(g)
-        tc_brute = transitive_closure_brute_force(g)
-        assert tc_matrix == tc_brute
+        assert transitive_closure_boolean(g) == transitive_closure_brute_force(g)
 
     def test_large_agrees_with_brute_force(self):
         g = Digraph()
@@ -111,9 +106,24 @@ class TestTransitiveClosureMatrix:
             g.add_edge(i, i + 1)
             if i % 2 == 0 and i + 2 < n:
                 g.add_edge(i, i + 2)
-        tc_matrix = transitive_closure_matrix(g)
-        tc_brute = transitive_closure_brute_force(g)
-        assert tc_matrix == tc_brute
+        assert transitive_closure_boolean(g) == transitive_closure_brute_force(g)
+
+    def test_budget_raises_strict(self):
+        g = Digraph()
+        n = 100
+        for i in range(n - 1):
+            g.add_edge(i, i + 1)
+        with pytest.raises(TransitiveClosureBudgetError):
+            transitive_closure_boolean(g, max_pairs=10)
+
+    def test_budget_non_strict_returns_partial(self):
+        g = Digraph()
+        n = 50
+        for i in range(n - 1):
+            g.add_edge(i, i + 1)
+        result = transitive_closure_boolean(g, max_pairs=50, budget_strict=False)
+        assert len(result) <= 50
+        assert (0, 0) in result
 
 
 class TestTransitiveClosureOnSubset:
@@ -124,32 +134,29 @@ class TestTransitiveClosureOnSubset:
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         g.add_edge(2, 3)
-        tc = transitive_closure_on_subset(g, {0, 1, 2})
-        assert tc == {(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)}
+        expected = {(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)}
+        assert transitive_closure_on_subset(g, {0, 1, 2}) == expected
 
     def test_empty_subset(self):
         g = Digraph()
         g.add_edge(0, 1)
-        tc = transitive_closure_on_subset(g, set())
-        assert tc == set()
+        assert transitive_closure_on_subset(g, set()) == set()
 
     def test_single_element_subset(self):
         g = Digraph()
         g.add_edge(0, 1)
-        tc = transitive_closure_on_subset(g, {0})
-        assert tc == {(0, 0)}
+        assert transitive_closure_on_subset(g, {0}) == {(0, 0)}
 
 
 class TestLargeGraphOverflow:
-    """Regression test: int8 adjacency matrix overflows for n > 127."""
+    """Boolean semiring: no integer overflow on dense graphs."""
 
     def test_large_path_no_overflow(self):
         n = 200
         g = Digraph()
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        tc = transitive_closure_matrix(g)
-        # Transitive closure of a path: (i, j) for all i <= j.
+        tc = transitive_closure_boolean(g)
         assert len(tc) == n * (n + 1) // 2
         for i in range(n):
             for j in range(i, n):
@@ -163,5 +170,5 @@ class TestLargeGraphOverflow:
         for i in range(n):
             for j in range(i + 1, n):
                 g.add_edge(i, j)
-        tc = transitive_closure_matrix(g)
+        tc = transitive_closure_boolean(g)
         assert len(tc) == n * (n + 1) // 2

@@ -50,7 +50,8 @@ class TestBfsReachability:
 
     def test_empty_graph(self):
         g = Digraph()
-        assert bfs_reachability(g, 0) == {0}
+        with pytest.raises(KeyError):
+            bfs_reachability(g, 0)
 
     def test_single_vertex(self):
         g = Digraph()
@@ -144,7 +145,7 @@ class TestStronglyConnectedComponents:
         g.add_edge(2, 0)
         sccs = strongly_connected_components(g)
         assert len(sccs) == 1
-        assert sccs[0] == {0, 1, 2}
+        assert set(sccs[0]) == {0, 1, 2}
 
     def test_dag_has_singleton_sccs(self):
         g = Digraph()
@@ -177,14 +178,14 @@ class TestStronglyConnectedComponents:
         g.add_vertex(0)
         sccs = strongly_connected_components(g)
         assert len(sccs) == 1
-        assert sccs[0] == {0}
+        assert set(sccs[0]) == {0}
 
     def test_self_loop(self):
         g = Digraph()
         g.add_edge(0, 0)
         sccs = strongly_connected_components(g)
         assert len(sccs) == 1
-        assert sccs[0] == {0}
+        assert set(sccs[0]) == {0}
 
     def test_disconnected_sccs(self):
         g = Digraph()

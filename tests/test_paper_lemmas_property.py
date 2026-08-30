@@ -91,8 +91,8 @@ def test_lemma_3_2_reachability_correctness_hop_bounded_property(n, p, seed):
         assert original == augmented
 
 
-def test_flags_dataclass_is_public():
-    from reachq import Flags as TopFlags
-    from reachq.core.algorithm import Flags as LocalFlags
+def test_refinement_config_is_public():
+    from reachq import RefinementConfig
+    from reachq import RefinementConfig as TopFlags
 
-    assert TopFlags is LocalFlags
+    assert TopFlags is RefinementConfig

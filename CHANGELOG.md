@@ -7,6 +7,120 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-08-30
+
+Hard-cut correctness release. No backward compatibility shims;
+v0.8.x users must follow [`docs/migration_0_9.md`](docs/migration_0_9.md).
+
+### Critical correctness
+
+- **`shortest_path_hopbound` rewritten as layered DP** (reviewer's
+  counterexample). The old per-vertex distance map suppressed
+  costlier arrivals that left hops needed to reach the target.
+  New implementation keeps a per-``(vertex, hops)`` state.
+- **Weighted SCC condensation removed from the hopset path** (and
+  CFR is run on the original graph). The previous
+  ``scc_rep[idx]`` mapping emitted underweighted shortcuts on
+  hash-randomized inputs. A multi-``PYTHONHASHSEED`` test now
+  pins this.
+- **Hop-bounded SSSP raised on incomparable vertices**: every
+  heap tuple now includes a per-call monotonic counter so ties
+  never fall through to a vertex comparison.
+- **Heap contracts documented per algorithm**
+  (``(distance, counter, vertex)`` etc.); the constants are part
+  of the public contract.
+- **TC rewritten in the Boolean semiring.** No more integer path
+  counts and no more overflow. New ``max_pairs`` budget with
+  ``TransitiveClosureBudgetError``.
+
+### Threading / process parallelism
+
+- **Module-level ``PIVOT_STATE`` removed.** State is bound per
+  invocation and passed as the task tuple ``(graph, state,
+  pivot)``. Workers never read globals. Process pool uses
+  ``mp_context="spawn"``.
+- **Concurrent JLS builds no longer corrupt each other**, even
+  when ``flags.parallel=True`` and ``parallel_workers > 1``.
+- **Adaptive sampling actually scales the next-level sampling
+  constant.** The previous "RNG perturbation" workaround
+  (``rng.random() × 7 % 13``) is removed.
+
+### Reproducibility
+
+- **Insertion-order vertex index.** ``Graph`` now exposes
+  ``vertices()`` as a tuple in canonical insertion order. SCC,
+  partition, sampling, recursion, CSR, and ``strongly_connected_components``
+  consume the order. ``vertex_set`` is gone.
+- **Cross-process byte-stability** verified by
+  ``tests/test_reproducibility_subprocess.py``: subprocess runs
+  under diverse ``PYTHONHASHSEED`` values produce identical
+  shortcut sets.
+
+### Input validation
+
+- ``WeightedDigraph.add_edge`` rejects non-int, ``bool``,
+  ``NaN``, ``inf``, and negative weights.
+- ``Dijkstra``, ``truncated_dijkstra``, ``shortest_path``,
+  ``shortest_path_hopbound``, ``astar``, ``parallel_bfs``,
+  ``bfs_reachability``, ``reverse_bfs_reachability`` raise
+  ``KeyError`` for sources not in the graph.
+- ``truncated_dijkstra`` and ``shortest_path_hopbound`` raise
+  ``ValueError`` for negative bounds.
+- A* accepts ``reopen=True`` (re-relaxes ``g_score`` on better
+  arrivals) and ``require_consistent=True`` (validates the
+  heuristic up to ``dist(source, target)``).
+
+### Reachability contract
+
+- ``dijkstra`` returns reachable vertices only; unreachable are
+  absent.
+- ``shortest_path`` returns the new
+  ``UNREACHABLE`` sentinel (~ ``1 << 62``).
+- The legacy ``dijkstra(...)[v] == float('inf')`` idiom is gone.
+
+### Removed (dead code)
+
+- The ``reachq.core.backends`` module (per-call executor is in
+  :class:`reachq.core.algorithm.parallel.ParallelExecutor`).
+- The legacy ``jls_shortcut_set`` and ``cfr_hopset`` thin
+  wrappers removed from top-level exports.
+- The ``Flags`` alias for ``RefinementConfig``.
+- The unsafe ``sparsify_shortcuts=True`` switch.
+- ``apply_pivot`` consolidated into ``reachq.core.algorithm.pivots``.
+- Module-level ``SAMPLING_CONSTANT``, ``OMEGA_DEFAULT``,
+  ``OMEGA_RUNTIME``, ``OMEGA_RUNTIME_HOP``, ``CONFIGURED``.
+
+### Architecture
+
+- ``reachq.core.algorithm`` is now a subpackage
+  (``algorithm/{state,pivots,partition,recursion,scc_lift,parallel,adaptive,wrap}.py``).
+- ``reachq.proto`` no longer references backends.
+- ``reachq.core.config`` no longer mutates the root logger;
+  CLI scripts must call ``configure_logging()``.
+
+### Benchmarks
+
+- ``scripts/benchmark_shortest_paths.py`` and
+  ``scripts/benchmark_reachability.py`` rewritten around the
+  **returned β**. New fields: max hop count, β violations,
+  approximation violations, reached %, environment metadata.
+- Hop-counting BFS indexes shortcuts by source (no longer
+  scans every shortcut edge).
+
+### Tests
+
+- 632 tests pass; new oracles:
+  - ``test_hopbound_dominance.py``
+  - ``test_heap_incomparable_vertices.py``
+  - ``test_hopset_weight_accuracy.py``
+  - ``test_algorithm_concurrency.py``
+  - ``test_networkx_differential_shortest.py``
+  - ``test_reproducibility_subprocess.py``
+  - ``test_regression_v0_9_fixes.py``
+- The broken ``test_hopset_does_not_introduce_negative_weights``
+  test (triple-destructure on empty hopset) is replaced by
+  ``test_hopset_weights_match_dijkstra``.
+
 ## [0.8.0] - 2026-08-15
 
 The first releaseable version of `reachq`. The previous tag

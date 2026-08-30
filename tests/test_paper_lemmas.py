@@ -129,12 +129,11 @@ def test_lemma_3_2_reachability_correctness_hop_bounded(seed: int) -> None:
         assert original == augmented, f"seed={seed}: reachability mismatch from {v}"
 
 
-def test_flags_dataclass_is_public() -> None:
-    """Flags must be importable from the top-level package, not be hidden."""
-    from reachq import Flags as TopFlags
-    from reachq.core.algorithm import Flags as LocalFlags
+def test_refinement_config_is_public() -> None:
+    """RefinementConfig must be importable from the top-level package."""
+    from reachq import RefinementConfig
 
-    assert TopFlags is LocalFlags
+    assert callable(RefinementConfig)
 
 
 def test_paper_tc_vs_tight_tc_size_invariant_across_seeds() -> None:

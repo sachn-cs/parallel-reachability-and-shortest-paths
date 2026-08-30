@@ -1,0 +1,44 @@
+name: Test (concurrency)
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+jobs:
+  concurrency-stress:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -e ".[dev]"
+      - name: Concurrency tests
+        run: |
+          pytest tests/test_algorithm_concurrency.py tests/test_reproducibility_subprocess.py tests/test_hopset_weight_accuracy.py -v
+      - name: Stress process pool
+        run: |
+          python -c "
+          from reachq.core.algorithm import build_shortcut_set_for_reachability
+          from reachq.core.generators import random_dag
+          import threading
+          graphs = [random_dag(n=100, edge_probability=0.05, random_seed=i) for i in range(4)]
+          def run(i):
+              build_shortcut_set_for_reachability(
+                  graphs[i], omega=3.0, random_seed=42,
+                  parallel_workers=4, flags={'parallel': True},
+              )
+          ts = [threading.Thread(target=run, args=(i,)) for i in range(4)]
+          for t in ts: t.start()
+          for t in ts: t.join()
+          print('concurrent jls builds ok')
+          "

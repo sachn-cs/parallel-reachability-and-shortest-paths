@@ -1,10 +1,16 @@
 """TC-pruning and hopbound-preserving pruning for shortcut sets.
 
-TC-pruning (Improvement 7 in the paper): when the r-ball around a pivot
-is small enough, compute the full transitive closure on that subset and
-add all non-self pairs as shortcuts. This replaces individual shortcut
-sampling with an exact all-pairs computation, which is cheaper when the
-subset is small relative to the matrix multiplication exponent omega.
+TC-pruning (paper Theorem 2): when the r-ball around a pivot is
+small enough, compute the full transitive closure on that subset
+and add all non-self pairs as shortcuts. This replaces individual
+shortcut sampling with an exact all-pairs computation, which is
+cheaper when the subset is small relative to the matrix
+multiplication exponent omega.
+
+The closure is now in the Boolean semiring
+(:mod:`reachq.core.tc`) and respects an explicit
+``max_pairs`` budget; see
+:class:`reachq.core.tc.TransitiveClosureBudgetError`.
 """
 
 from __future__ import annotations
@@ -22,14 +28,14 @@ def compute_tc_pruning_threshold(
 ) -> float:
     """Compute the threshold below which TC-pruning is cost-effective.
 
-    TC(G[R]) takes O(|R|^ω) ops; the alternative (sampling shortcuts
-    for every vertex in R) costs O(|R| * k * log n). Trigger TC only
-    when the former is cheaper.
+    The paper's analysis: TC(G[R]) costs O(|R|^ω) ops; the
+    alternative (sampling shortcuts for every vertex in R) costs
+    O(|R| * k * log n). Trigger TC when the former is cheaper.
 
     Args:
-        k: Hopbound parameter k.
-        log_n: log_2(n).
-        rho: Hop-parameter ρ.
+        k: Hopbound parameter.
+        log_n: ``log_2(n)``.
+        rho: Hop-parameter.
         n: Number of vertices.
         omega: Fast-matrix-multiplication exponent.
 
@@ -43,28 +49,49 @@ def compute_tc_pruning_threshold(
     return threshold
 
 
+def default_max_pairs(n: int) -> int:
+    """Default ``max_pairs`` budget for a graph with ``n`` vertices.
+
+    Caps at 2 million pairs and at the all-pairs upper bound so
+    that TC-pruning does not silently request O(n^2) memory.
+    """
+    return min(2 * 10**6, n * (n - 1))
+
+
 def apply_tc_pruning(
     graph: Digraph,
-    r_ball: set[object],
+    r_ball,
     threshold: float,
+    *,
+    max_pairs: int | None = None,
 ) -> set[tuple[object, object]]:
     """Apply TC-pruning to a single pivot's r-ball.
 
-    If ``|r_ball| <= threshold``, compute the transitive closure on the
-    induced subgraph and return all non-self pairs as shortcuts.
-    Otherwise returns an empty set.
+    If ``|r_ball| <= threshold``, compute TC on the induced
+    subgraph, apply the budget, and emit non-self pairs as
+    shortcuts. Otherwise returns an empty set.
 
     Args:
-        graph: The input digraph G.
-        r_ball: The pivot's r-ball as a vertex set.
+        graph: The input digraph ``G``.
+        r_ball: The pivot's r-ball as a container of vertices.
         threshold: Maximum ``|r_ball|`` for which TC-pruning is
             applied.
+        max_pairs: Maximum number of TC pairs to emit; defaults to
+            :func:`default_max_pairs` for ``len(r_ball)``.
 
     Returns:
-        Set of ``(u, v)`` shortcut pairs from the TC step. Empty if
-        ``|r_ball|`` exceeds the threshold.
+        Set of ``(u, v)`` shortcut pairs from TC-pruning. Empty
+        when ``|r_ball|`` exceeds ``threshold`` or when the budget
+        is exhausted.
     """
-    if len(r_ball) == 0 or len(r_ball) > threshold:
+    r_ball_set = set(r_ball)
+    if len(r_ball_set) == 0 or len(r_ball_set) > threshold:
         return set()
-    tc = transitive_closure_on_subset(graph, r_ball)
+    budget = max_pairs if max_pairs is not None else default_max_pairs(
+        len(r_ball_set)
+    )
+    try:
+        tc = transitive_closure_on_subset(graph, r_ball_set, max_pairs=budget)
+    except Exception:
+        return set()
     return {(u, v) for u, v in tc if u != v}

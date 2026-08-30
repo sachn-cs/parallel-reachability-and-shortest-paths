@@ -230,14 +230,14 @@ def incremental_tc(
     # elsewhere, sharing is safe.
     dtc = DynamicTransitiveClosure(initial_graph)
     for u, v in edges_to_insert:
-        if u not in dtc.graph.vertex_set:
+        if u not in dtc.graph:
             dtc.graph.add_vertex(u)
-            dtc.vertices = tuple(dtc.graph.vertices())
+            dtc.vertices = dtc.graph.vertices()
             dtc._index = {vtx: i for i, vtx in enumerate(dtc.vertices)}
             dtc._reach = dtc._compute_full_tc()
-        if v not in dtc.graph.vertex_set:
+        if v not in dtc.graph:
             dtc.graph.add_vertex(v)
-            dtc.vertices = tuple(dtc.graph.vertices())
+            dtc.vertices = dtc.graph.vertices()
             dtc._index = {vtx: i for i, vtx in enumerate(dtc.vertices)}
             dtc._reach = dtc._compute_full_tc()
         dtc.insert_edge(u, v)

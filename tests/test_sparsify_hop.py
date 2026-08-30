@@ -35,9 +35,7 @@ class TestSparsifyHopBounded:
             H, beta = build_shortcut_set_for_reachability(
                 g,
                 omega=3.0,
-                random_seed=42,
-                sparsify_shortcuts=False,
-            )
+                random_seed=42)
             H2 = sparsify_hop_bounded(g, H, int(beta), max_iterations=200)
             assert H2 <= H
             assert verify_hopbound_preserved(g, H2, int(beta)), (
@@ -49,9 +47,7 @@ class TestSparsifyHopBounded:
         H, beta = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         H2 = sparsify_hop_bounded(g, H, int(beta), max_iterations=200)
         assert verify_hopbound_preserved(g, H2, int(beta))
 
@@ -62,9 +58,7 @@ class TestSparsifyHopBounded:
         H, beta = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         H2 = sparsify_hop_bounded(g, H, int(beta))
         for s in g.vertices():
             assert bfs_reachability(g, s) == parallel_bfs(g, s, H2)
@@ -74,9 +68,7 @@ class TestSparsifyHopBounded:
         H, beta = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         H2 = sparsify_hop_bounded(g, H, int(beta), max_vertices=10)
         assert H2 == H
 
@@ -107,8 +99,6 @@ class TestVerifyHopboundPreserved:
         H, beta = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
-            random_seed=42,
-            sparsify_shortcuts=False,
-        )
+            random_seed=42)
         assert verify_hopbound_preserved(g, H, int(beta))
         assert not verify_hopbound_preserved(g, set(), int(beta))

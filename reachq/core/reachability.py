@@ -19,17 +19,22 @@ from reachq.core.graph import Digraph
 
 
 def bfs_reachability(graph: Digraph, source: object) -> set[object]:
-    """Compute R^+(G, source): all vertices reachable from source via BFS.
+    """Compute ``R^+(G, source)``: all vertices reachable from ``source``.
 
     Args:
         graph: The input digraph.
-        source: Source vertex.
+        source: Source vertex. Must be in the graph.
 
     Returns:
         Set of vertices reachable from ``source`` (including ``source``).
 
+    Raises:
+        KeyError: If ``source`` is not in the graph.
+
     Complexity: O(m) time, O(n) space.
     """
+    if source not in graph:
+        raise KeyError(f"source vertex {source!r} is not in the graph")
     visited: set[object] = {source}
     queue: deque[object] = deque([source])
     out = graph.out_edges
@@ -43,23 +48,24 @@ def bfs_reachability(graph: Digraph, source: object) -> set[object]:
 
 
 def reverse_bfs_reachability(graph: Digraph, target: object) -> set[object]:
-    """Compute R^-(G, target): all vertices that can reach ``target``.
+    """Compute ``R^-(G, target)``: all vertices that can reach ``target``.
 
     Runs BFS on the reversed graph.
 
     Args:
         graph: The input digraph.
-        target: Target vertex.
+        target: Target vertex. Must be in the graph.
 
     Returns:
         Set of vertices that can reach ``target`` (including ``target``).
 
-    Complexity: O(m) time, O(n) space.
+    Raises:
+        KeyError: If ``target`` is not in the graph.
     """
-    visited: set[object] = set()
-    queue: deque[object] = deque()
-    queue.append(target)
-    visited.add(target)
+    if target not in graph:
+        raise KeyError(f"target vertex {target!r} is not in the graph")
+    visited: set[object] = {target}
+    queue: deque[object] = deque([target])
     inn = graph.in_edges
     while queue:
         u = queue.popleft()
@@ -71,7 +77,7 @@ def reverse_bfs_reachability(graph: Digraph, target: object) -> set[object]:
 
 
 def compute_r_plus(graph: Digraph, vertex: object) -> set[object]:
-    """Compute R^+(G, vertex): descendants of ``vertex``.
+    """Compute ``R^+(G, vertex)``: descendants of ``vertex``.
 
     Args:
         graph: The input digraph.
@@ -84,7 +90,7 @@ def compute_r_plus(graph: Digraph, vertex: object) -> set[object]:
 
 
 def compute_r_minus(graph: Digraph, vertex: object) -> set[object]:
-    """Compute R^-(G, vertex): ancestors of ``vertex``.
+    """Compute ``R^-(G, vertex)``: ancestors of ``vertex``.
 
     Args:
         graph: The input digraph.
@@ -97,7 +103,7 @@ def compute_r_minus(graph: Digraph, vertex: object) -> set[object]:
 
 
 def compute_r_ball(graph: Digraph, vertex: object) -> set[object]:
-    """Compute R(G, vertex) = R^+(G, vertex) ∪ R^-(G, vertex).
+    """Compute ``R(G, vertex) = R^+(G, vertex) ∪ R^-(G, vertex)``.
 
     Args:
         graph: The input digraph.
@@ -112,7 +118,7 @@ def compute_r_ball(graph: Digraph, vertex: object) -> set[object]:
 def compute_r_sets_for_vertices(
     graph: Digraph, vertices: list[object]
 ) -> tuple[set[object], set[object]]:
-    """Compute union of R^- and R^+ for a set of vertices.
+    """Compute union of ``R^-`` and ``R^+`` for a set of vertices.
 
     Args:
         graph: The input digraph.
@@ -131,45 +137,19 @@ def compute_r_sets_for_vertices(
 
 
 def compute_ancestors(graph: Digraph, path_vertices: list[object]) -> set[object]:
-    r"""Compute R^-(G, P) \ R^+(G, P): ancestors of path P.
-
-    Args:
-        graph: The input digraph.
-        path_vertices: The vertices P along the path.
-
-    Returns:
-        Vertices that can reach some P-vertex but cannot be reached
-        from any P-vertex.
-    """
+    r"""Compute ``R^-(G, P) \\ R^+(G, P)``: ancestors of path ``P``."""
     r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_minus - r_plus
 
 
 def compute_descendants(graph: Digraph, path_vertices: list[object]) -> set[object]:
-    r"""Compute R^+(G, P) \ R^-(G, P): descendants of path P.
-
-    Args:
-        graph: The input digraph.
-        path_vertices: The vertices P along the path.
-
-    Returns:
-        Vertices reachable from some P-vertex but cannot reach back
-        to any P-vertex.
-    """
+    r"""Compute ``R^+(G, P) \\ R^-(G, P)``: descendants of path ``P``."""
     r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_plus - r_minus
 
 
 def compute_bridges(graph: Digraph, path_vertices: list[object]) -> set[object]:
-    """Compute R^-(G, P) ∩ R^+(G, P): bridges of path P.
-
-    Args:
-        graph: The input digraph.
-        path_vertices: The vertices P along the path.
-
-    Returns:
-        Vertices that can both reach and be reached from some P-vertex.
-    """
+    """Compute ``R^-(G, P) ∩ R^+(G, P)``: bridges of path ``P``."""
     r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_minus & r_plus
 
@@ -179,7 +159,7 @@ def parallel_bfs(
     source: object,
     shortcut_edges: set[tuple[object, object]] | None = None,
 ) -> set[object]:
-    """BFS on G ∪ H where H is a shortcut set.
+    """BFS on ``G ∪ H`` where ``H`` is a shortcut set.
 
     Simulates the parallel reachability primitive from Section 1.1.
     **Sequential simulation; span bounds are NOT DETERMINED.**
@@ -189,22 +169,26 @@ def parallel_bfs(
 
     Args:
         graph: The input digraph.
-        source: Source vertex.
-        shortcut_edges: Optional shortcut set H to merge with the
-            graph before the BFS.
+        source: Source vertex. Must be in the graph.
+        shortcut_edges: Optional shortcut set ``H`` to merge with
+            the graph before the BFS.
 
     Returns:
         Set of vertices reachable from ``source`` in ``G ∪ H``.
+
+    Raises:
+        KeyError: If ``source`` is not in the graph.
     """
+    if source not in graph:
+        raise KeyError(f"source vertex {source!r} is not in the graph")
     visited: set[object] = {source}
     queue: deque[object] = deque([source])
     out = graph.out_edges
     shortcut_index: dict[object, list[object]] = {}
     if shortcut_edges:
         for a, b in shortcut_edges:
-            if b not in graph.vertex_set:
-                continue
-            shortcut_index.setdefault(a, []).append(b)
+            if b in graph:
+                shortcut_index.setdefault(a, []).append(b)
     while queue:
         u = queue.popleft()
         for v in out.get(u, ()):
@@ -218,7 +202,7 @@ def parallel_bfs(
     return visited
 
 
-def strongly_connected_components(graph: Digraph) -> list[set[object]]:
+def strongly_connected_components(graph: Digraph) -> list[list[object]]:
     """Compute SCCs using Kosaraju's algorithm.
 
     Uses iterative DFS to avoid stack overflow on large graphs.
@@ -227,8 +211,9 @@ def strongly_connected_components(graph: Digraph) -> list[set[object]]:
         graph: The input digraph.
 
     Returns:
-        List of SCCs, each as a set of vertices. The order of the
-        list is not specified.
+        List of SCCs, each as a list of vertices. The order of the
+        outer list is not specified by the algorithm. Vertices
+        inside each SCC are returned in insertion order.
 
     Complexity: O(n + m) time and space.
     """
@@ -239,7 +224,9 @@ def strongly_connected_components(graph: Digraph) -> list[set[object]]:
     for v in graph.vertices():
         if v in visited:
             continue
-        stack: list[tuple[object, Iterator[object]]] = [(v, iter(out.get(v, set())))]
+        stack: list[tuple[object, Iterator[object]]] = [
+            (v, iter(out.get(v, set())))
+        ]
         visited.add(v)
         while stack:
             node, children = stack[-1]
@@ -255,17 +242,17 @@ def strongly_connected_components(graph: Digraph) -> list[set[object]]:
     rev = graph.reversed()
     rev_out = rev.out_edges
     visited.clear()
-    sccs: list[set[object]] = []
+    sccs: list[list[object]] = []
 
     for v in reversed(finish_order):
         if v in visited:
             continue
-        component: set[object] = set()
+        component: list[object] = []
         component_stack: list[object] = [v]
         visited.add(v)
         while component_stack:
             node = component_stack.pop()
-            component.add(node)
+            component.append(node)
             for w in rev_out.get(node, set()):
                 if w not in visited:
                     visited.add(w)
@@ -292,7 +279,9 @@ def topological_sort(graph: Digraph) -> list[object]:
     Complexity: O(n + m) time and space.
     """
     in_degree: dict[object, int] = {v: graph.degree_in(v) for v in graph.vertices()}
-    queue: deque[object] = deque([v for v, d in in_degree.items() if d == 0])
+    queue: deque[object] = deque(
+        [v for v, d in in_degree.items() if d == 0]
+    )
     result: list[object] = []
     out = graph.out_edges
 
