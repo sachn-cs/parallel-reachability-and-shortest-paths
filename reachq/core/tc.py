@@ -26,6 +26,7 @@ from collections.abc import Iterable
 
 import numpy as np
 
+from reachq.core.errors import ReachqValueError
 from reachq.core.graph import Digraph
 
 
@@ -97,14 +98,14 @@ def transitive_closure_boolean(
             so callers can recover progress.
     """
     if max_pairs is not None and max_pairs < 0:
-        raise ValueError(f"max_pairs must be non-negative (got {max_pairs})")
+        raise ReachqValueError(f"max_pairs must be non-negative (got {max_pairs})")
 
     vertices = list(graph.vertices())
     n = len(vertices)
     if n == 0:
         return set()
 
-    index_map = graph._index_of  # noqa: SLF001 — insertion-order index
+    index_map = graph.index_of_map
 
     rows: list[int] = []
     cols: list[int] = []

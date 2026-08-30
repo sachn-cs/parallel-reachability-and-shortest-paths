@@ -148,10 +148,12 @@ class TestWeightedDigraph:
         assert g.get_weight(0, 1) == 3
 
     def test_to_unweighted(self):
+        from reachq.core.csr import to_unweighted_digraph
+
         g = WeightedDigraph()
         g.add_edge(0, 1, 5)
         g.add_edge(1, 2, 3)
-        u = g.to_unweighted()
+        u = to_unweighted_digraph(g)
         assert u.num_vertices() == 3
         assert u.num_edges() == 2
         assert set(u.edges()) == {(0, 1), (1, 2)}

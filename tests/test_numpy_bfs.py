@@ -20,8 +20,10 @@ from reachq.core.reachability import bfs_reachability, reverse_bfs_reachability
 
 
 def test_to_csr_returns_arrays() -> None:
+    from reachq.core.csr import digraph_from_csr_indices
+
     g = path_graph(5)
-    indptr, indices, n = g.to_csr()
+    indptr, indices, n, _ = digraph_from_csr_indices(g)
     assert isinstance(indptr, np.ndarray)
     assert isinstance(indices, np.ndarray)
     assert n == 5
@@ -34,8 +36,10 @@ def test_to_csr_returns_arrays() -> None:
 
 
 def test_to_csr_neighbors_match_out_edges() -> None:
+    from reachq.core.csr import digraph_from_csr_indices
+
     g = path_graph(5)
-    indptr, indices, _ = g.to_csr()
+    indptr, indices, _, _ = digraph_from_csr_indices(g)
     index_map = {v: i for i, v in enumerate(g.vertices())}
     for v, i in index_map.items():
         neighbors = {int(indices[j]) for j in range(indptr[i], indptr[i + 1])}
