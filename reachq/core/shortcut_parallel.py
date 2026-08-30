@@ -10,6 +10,12 @@ Sequential mode is the default. When ``mode="processes"`` and
 :func:`concurrent.futures.ProcessPoolExecutor` with
 ``mp_context="spawn"`` so numpy/scipy re-import cleanly per worker
 without inheriting lingering thread state from the parent process.
+
+Caveat: on macOS Python 3.12 the default ``ProcessPoolExecutor``
+uses ``spawn``, which re-imports ``reachq`` (and its numpy/scipy
+dependencies) in every worker. For small graphs the per-worker
+import cost dominates the per-pivot BFS, so prefer sequential
+mode unless the graph is large.
 """
 
 from __future__ import annotations
