@@ -69,9 +69,13 @@ def apply_tc_pruning(
     r_ball_set = set(r_ball)
     if len(r_ball_set) == 0 or len(r_ball_set) > threshold:
         return set()
-    budget = max_pairs if max_pairs is not None else min(
-        2_000_000,
-        len(r_ball_set) * (len(r_ball_set) - 1),
+    budget = (
+        max_pairs
+        if max_pairs is not None
+        else min(
+            2_000_000,
+            len(r_ball_set) * (len(r_ball_set) - 1),
+        )
     )
     if budget == len(r_ball_set) * (len(r_ball_set) - 1):
         budget = 2_000_000

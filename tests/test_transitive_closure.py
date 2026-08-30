@@ -2,13 +2,13 @@
 
 import pytest
 
-from reachq.graph import Digraph
 from reachq.closure import (
     TransitiveClosureBudgetError,
     transitive_closure,
     transitive_closure_brute_force,
     transitive_closure_on_subset,
 )
+from reachq.graph import Digraph
 
 
 class TestTransitiveClosureBruteForce:

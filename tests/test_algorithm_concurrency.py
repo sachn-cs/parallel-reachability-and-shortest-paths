@@ -11,9 +11,10 @@ from __future__ import annotations
 import threading
 import time
 
-from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.errors import ReachqError
 from reachq.generators import random_dag
 from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
 
 
 def _build(graph, seed: int):
@@ -22,21 +23,20 @@ def _build(graph, seed: int):
         omega=3.0,
         random_seed=seed,
         parallel_workers=4,
-        refinement={"parallel": True}, )
+        refinement={"parallel": True},
+    )
     return shortcuts, beta
 
 
 def test_concurrent_jls_distinct_graphs():
-    graphs = [
-        random_dag(n=40, edge_probability=0.1, random_seed=i) for i in range(3)
-    ]
+    graphs = [random_dag(n=40, edge_probability=0.1, random_seed=i) for i in range(3)]
     results = [None] * 3
     errors: list[Exception] = []
 
     def worker(idx: int):
         try:
             results[idx] = _build(graphs[idx], seed=idx)
-        except Exception as e:
+        except ReachqError as e:
             errors.append(e)
 
     threads = [threading.Thread(target=worker, args=(i,)) for i in range(3)]
@@ -82,7 +82,8 @@ def test_reentrant_concurrent_builds_with_workers():
             omega=3.0,
             random_seed=7,
             parallel_workers=2,
-            refinement={"parallel": True}, )
+            refinement={"parallel": True},
+        )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts), (
                 f"thread {idx}: reachability mismatch"

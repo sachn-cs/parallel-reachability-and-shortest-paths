@@ -5,13 +5,13 @@ Pivots are sampled with probability C * k * log n / n. The
 density-aware constant C depends on graph density.
 """
 
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.shortcut import (
     build_shortcut_set_for_reachability,
     density_aware_constant,
     jls_with_tc_pruning,
 )
-from reachq.graph import Digraph
-from reachq.reachability import bfs_reachability, parallel_bfs
 
 
 class TestPivotSampling:
@@ -24,9 +24,8 @@ class TestPivotSampling:
         for i in range(0, n - 1, 3):
             g.add_edge(i, i + 1)
         shortcuts, _, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+            g, omega=3.0, random_seed=42
+        )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
 
@@ -44,9 +43,8 @@ class TestPivotSampling:
                 if j - i <= 3:
                     g.add_edge(i, j)
         shortcuts, _, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+            g, omega=3.0, random_seed=42
+        )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
 

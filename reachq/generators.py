@@ -11,7 +11,6 @@ import random
 
 from reachq.graph import Digraph, WeightedDigraph
 
-
 __all__ = [
     "SNAP_BASE",
     "SNAP_DATASETS",

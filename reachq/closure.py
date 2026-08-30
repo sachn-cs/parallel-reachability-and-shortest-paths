@@ -113,12 +113,8 @@ def transitive_closure(
             rows.append(i)
             cols.append(index_map[v])
     diag = np.arange(n, dtype=np.int32)
-    rows_arr = np.concatenate(
-        [np.asarray(rows, dtype=np.int32), diag]
-    )
-    cols_arr = np.concatenate(
-        [np.asarray(cols, dtype=np.int32), diag]
-    )
+    rows_arr = np.concatenate([np.asarray(rows, dtype=np.int32), diag])
+    cols_arr = np.concatenate([np.asarray(cols, dtype=np.int32), diag])
 
     from scipy.sparse import csr_matrix
 
@@ -130,9 +126,7 @@ def transitive_closure(
     tc.sum_duplicates()
 
     coo = tc.tocoo()
-    reach: set[tuple[int, int]] = {
-        (int(r), int(c)) for r, c in zip(coo.row, coo.col)
-    }
+    reach: set[tuple[int, int]] = {(int(r), int(c)) for r, c in zip(coo.row, coo.col)}
     if max_pairs is not None and len(reach) > max_pairs:
         if budget_strict:
             raise TransitiveClosureBudgetError(
@@ -147,12 +141,8 @@ def transitive_closure(
 
     max_iterations = max(1, (n - 1).bit_length())
     for _ in range(max_iterations):
-        rows_arr = np.fromiter(
-            (r for r, _ in reach), dtype=np.int32, count=len(reach)
-        )
-        cols_arr = np.fromiter(
-            (c for _, c in reach), dtype=np.int32, count=len(reach)
-        )
+        rows_arr = np.fromiter((r for r, _ in reach), dtype=np.int32, count=len(reach))
+        cols_arr = np.fromiter((c for _, c in reach), dtype=np.int32, count=len(reach))
         step = csr_matrix(
             (np.ones(len(reach), dtype=np.int8), (rows_arr, cols_arr)),
             shape=(n, n),

@@ -45,13 +45,9 @@ empirical evaluation. The actual contribution is:
   3. Identification of when the bound is tight vs loose.
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 from reachq.graph import Digraph

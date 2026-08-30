@@ -36,13 +36,9 @@ This is the standard HyperLogLog algorithm; novelty is its
 application to reachability counting.
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 import hashlib

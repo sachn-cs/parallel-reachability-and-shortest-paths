@@ -11,14 +11,14 @@ Bugs covered:
   4. TC self-loops: (i, i) entries were leaking into the shortcut set.
 """
 
-from reachq.shortcut import (
-    build_shortcut_set_for_reachability,
-)
 from reachq.bfs import csr_reachable_backward, csr_reachable_forward
+from reachq.closure import transitive_closure
 from reachq.csr import build_csr_pair
 from reachq.graph import Digraph
 from reachq.reachability import bfs_reachability, parallel_bfs
-from reachq.closure import transitive_closure
+from reachq.shortcut import (
+    build_shortcut_set_for_reachability,
+)
 
 
 class TestRegressionTcMatrixSparsity:

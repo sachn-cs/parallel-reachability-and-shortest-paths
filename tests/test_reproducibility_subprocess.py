@@ -14,9 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.graph import Digraph
-
+from reachq.shortcut import build_shortcut_set_for_reachability
 
 REPO_ROOT = Path(__file__).parent.parent
 
@@ -24,7 +23,7 @@ REPO_ROOT = Path(__file__).parent.parent
 SCRIPT = textwrap.dedent(
     """
     import sys
-    sys.path.insert(0, %r)
+    sys.path.insert(0, {root!r})
     from reachq.shortcut import build_shortcut_set_for_reachability
     from reachq.graph import Digraph
 
@@ -39,13 +38,10 @@ SCRIPT = textwrap.dedent(
     print(repr(sorted(H)))
     print(beta)
     """
-    % str(REPO_ROOT)
-)
+).format(root=str(REPO_ROOT))
 
 
-@pytest.mark.parametrize(
-    "seed", ["0", "1", "2", "3", "4", "random"]
-)
+@pytest.mark.parametrize("seed", ["0", "1", "2", "3", "4", "random"])
 def test_shortcut_set_byte_stable_under_hash_seeds(seed):
     """Two subprocess runs with the same PYTHONHASHSEED must produce
     identical shortcut sets, and the output must be stable across

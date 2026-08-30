@@ -9,9 +9,9 @@ from __future__ import annotations
 
 import pytest
 
-from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.generators import random_dag
 from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
 
 PAPER_TC = {
     "enable_tc_pruning": True,

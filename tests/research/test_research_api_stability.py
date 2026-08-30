@@ -9,7 +9,6 @@ import pytest
 
 import reachq.research
 
-
 RESEARCH_DIR = os.path.dirname(reachq.research.__file__)
 
 

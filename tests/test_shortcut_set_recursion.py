@@ -6,9 +6,9 @@ within max_level levels, and the resulting shortcut set must
 preserve reachability.
 """
 
-from reachq.shortcut import jls_with_tc_pruning
 from reachq.graph import Digraph
 from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import jls_with_tc_pruning
 
 
 class TestRecursionTermination:
@@ -25,7 +25,9 @@ class TestRecursionTermination:
             rho=1.0,
             max_level=3,
             n_global=5,
-            random_seed=42, refinement={"enable_tc_pruning": False}, )
+            random_seed=42,
+            refinement={"enable_tc_pruning": False},
+        )
         assert isinstance(shortcuts, set)
         assert len(shortcuts) >= 0
 
@@ -42,7 +44,9 @@ class TestRecursionTermination:
             rho=1.0,
             max_level=4,
             n_global=n,
-            random_seed=42, refinement={"enable_tc_pruning": False}, )
+            random_seed=42,
+            refinement={"enable_tc_pruning": False},
+        )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
 
@@ -59,7 +63,9 @@ class TestRecursionTermination:
             rho=2.0,
             max_level=4,
             n_global=n,
-            random_seed=42, refinement={"enable_tc_pruning": True}, )
+            random_seed=42,
+            refinement={"enable_tc_pruning": True},
+        )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts)
 
@@ -72,5 +78,7 @@ class TestRecursionTermination:
             rho=1.0,
             max_level=0,
             n_global=2,
-            random_seed=42, refinement={"enable_tc_pruning": False}, )
+            random_seed=42,
+            refinement={"enable_tc_pruning": False},
+        )
         assert isinstance(shortcuts, set)

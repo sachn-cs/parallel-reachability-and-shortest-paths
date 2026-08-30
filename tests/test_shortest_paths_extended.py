@@ -16,13 +16,14 @@ import math
 
 import pytest
 
+from reachq.errors import ReachqGraphError
 from reachq.graph import WeightedDigraph
 from reachq.shortest_paths import UNREACHABLE, dijkstra, shortest_path
 
 
 def test_dijkstra_empty_graph():
     g = WeightedDigraph()
-    with pytest.raises(Exception):
+    with pytest.raises(ReachqGraphError):
         dijkstra(g, 0)
 
 

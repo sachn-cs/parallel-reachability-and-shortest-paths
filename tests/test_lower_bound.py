@@ -44,19 +44,14 @@ class TestBoundGap:
         from reachq.shortcut import build_shortcut_set_for_reachability
 
         g = long_path_dag(20)
-        H, _, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+        H, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
         n = g.num_vertices()
         m = g.num_edges()
         omega = 3.0
         beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
         rho = (n**0.5) / beta
         bound = m * rho + n * rho * rho
-        assert len(H) > 0, (
-            f"JLS should produce shortcuts on long path; got |H|=0"
-        )
+        assert len(H) > 0, "JLS should produce shortcuts on long path; got |H|=0"
         assert len(H) <= n * (n - 1), (
             f"|H| cannot exceed n*(n-1) (the total possible DAG edges): "
             f"got |H|={len(H)} bound={bound:.1f}"

@@ -13,13 +13,9 @@ greedy without the formal guarantee, but the empirical
 approximation ratio is small on tested inputs.
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 from collections import deque

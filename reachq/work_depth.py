@@ -176,9 +176,7 @@ class SpanProfiler:
         return f"SpanProfiler(span={span:.3f}s, phases={len(self.phases)})"
 
 
-def theoretical_shortcut_work(
-    n: int, m: int, rho: float, omega: float = 3.0
-) -> float:
+def theoretical_shortcut_work(n: int, m: int, rho: float, omega: float = 3.0) -> float:
     """Theoretical work bound for the JLS shortcut-set construction.
 
     Returns ``log(n) * (m + n * ρ^(2ω-2))``. Theorem 2.
@@ -196,9 +194,7 @@ def theoretical_shortcut_depth(n: int, rho: float) -> float:
     return log_n * (math.sqrt(n) / rho)
 
 
-def theoretical_hopset_work(
-    n: int, m: int, rho: float, epsilon: float
-) -> float:
+def theoretical_hopset_work(n: int, m: int, rho: float, epsilon: float) -> float:
     """Theoretical work bound for the CFR hopset construction.
 
     Returns ``log(n) * (m / ε^2 + n * ρ^4)``. Theorem 4.

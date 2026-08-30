@@ -13,7 +13,6 @@ from reachq.shortest_paths import (
     shortest_path_hopbound,
     shortest_path_tree,
     truncated_dijkstra,
-    UNREACHABLE,
 )
 
 
@@ -103,7 +102,7 @@ def test_unreachable_object_target_returns_sentinel():
 
     from reachq.errors import ReachqGraphError
 
-    g, a, b, _c, _d = _build_object_graph()
+    g, a, _b, _c, _d = _build_object_graph()
     target = object()
     # target not in graph
     assert target not in g

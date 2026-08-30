@@ -44,17 +44,6 @@ by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak (2026).
 
 __version__ = "0.8.0"
 
-from reachq import invariants
-from reachq.invariants import (
-    assert_distance_approximation,
-    assert_hopbound,
-    assert_hopset_size_bound,
-    assert_partition_correctness,
-    assert_reachability_preserved,
-    assert_scc_shortcuts_form_cliques,
-    assert_shortcut_set_size_bound,
-    check_equivalence_classes,
-)
 from reachq.closure import (
     TransitiveClosureBudgetError,
     transitive_closure,
@@ -83,6 +72,16 @@ from reachq.graph import Digraph, WeightedDigraph
 from reachq.hopset import (
     build_hopset_for_sssp,
     cfr_with_truncsssp_pruning,
+)
+from reachq.invariants import (
+    assert_distance_approximation,
+    assert_hopbound,
+    assert_hopset_size_bound,
+    assert_partition_correctness,
+    assert_reachability_preserved,
+    assert_scc_shortcuts_form_cliques,
+    assert_shortcut_set_size_bound,
+    check_equivalence_classes,
 )
 from reachq.io import (
     dump,
@@ -122,11 +121,19 @@ __all__ = [
     "TransitiveClosureBudgetError",
     "WeightedDigraph",
     "WorkDepthAccountant",
+    "assert_distance_approximation",
+    "assert_hopbound",
+    "assert_hopset_size_bound",
+    "assert_partition_correctness",
+    "assert_reachability_preserved",
+    "assert_scc_shortcuts_form_cliques",
+    "assert_shortcut_set_size_bound",
     "astar",
     "bfs_reachability",
     "build_hopset_for_sssp",
     "build_shortcut_set_for_reachability",
     "cfr_with_truncsssp_pruning",
+    "check_equivalence_classes",
     "compute_ancestors",
     "compute_bridges",
     "compute_d_ancestors",

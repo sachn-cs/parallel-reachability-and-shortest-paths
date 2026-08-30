@@ -17,13 +17,9 @@ motivates careful local search while the static case has no
 incremental cost. We document this honestly in the comparison script.
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 import random

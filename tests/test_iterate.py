@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.generators import petersen_graph, random_dag
 from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.research.iterate import iterative_shortcut_set
+from reachq.shortcut import build_shortcut_set_for_reachability
 
 
 class TestIterativeSoundness:

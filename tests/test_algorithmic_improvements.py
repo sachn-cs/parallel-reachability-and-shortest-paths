@@ -14,10 +14,10 @@ from importlib.util import find_spec
 import pytest
 
 from reachq import RefinementConfig
-from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.generators import random_dag, weighted_random_dag
 from reachq.hopset import build_hopset_for_sssp
 from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
 
@@ -96,7 +96,8 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
     build_shortcut_set_for_reachability(
         g,
         random_seed=7,
-        refinement={"adaptive_sampling": True}, )
+        refinement={"adaptive_sampling": True},
+    )
 
     k = max(2.0, math.log2(g.num_vertices()))
     baseline = jls_with_tc_pruning(
@@ -106,7 +107,8 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
         max_level=3,
         n_global=g.num_vertices(),
         random_seed=7,
-        refinement={"adaptive_sampling": True}, sampling_constant=10.0,
+        refinement={"adaptive_sampling": True},
+        sampling_constant=10.0,
     )
     explicit_default = jls_with_tc_pruning(
         g,
@@ -115,7 +117,8 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
         max_level=3,
         n_global=g.num_vertices(),
         random_seed=7,
-        refinement={"adaptive_sampling": True}, )
+        refinement={"adaptive_sampling": True},
+    )
     assert explicit_default == baseline
 
 

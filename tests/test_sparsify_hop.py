@@ -10,13 +10,13 @@ still preserved after removal.
 
 from __future__ import annotations
 
-from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.generators import random_dag
 from reachq.graph import Digraph
 from reachq.research.sparsify_hop import (
     sparsify_hop_bounded,
     verify_hopbound_preserved,
 )
+from reachq.shortcut import build_shortcut_set_for_reachability
 
 
 def path_graph(n: int) -> Digraph:
@@ -33,9 +33,8 @@ class TestSparsifyHopBounded:
         for n in (20, 30, 50):
             g = path_graph(n)
             H, beta, _ = build_shortcut_set_for_reachability(
-                g,
-                omega=3.0,
-                random_seed=42)
+                g, omega=3.0, random_seed=42
+            )
             H2 = sparsify_hop_bounded(g, H, int(beta), max_iterations=200)
             assert H2 <= H
             assert verify_hopbound_preserved(g, H2, int(beta)), (
@@ -44,10 +43,7 @@ class TestSparsifyHopBounded:
 
     def test_global_hopbound_preserved_on_dag(self):
         g = random_dag(40, edge_probability=0.2, random_seed=42)
-        H, beta, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+        H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
         H2 = sparsify_hop_bounded(g, H, int(beta), max_iterations=200)
         assert verify_hopbound_preserved(g, H2, int(beta))
 
@@ -55,20 +51,14 @@ class TestSparsifyHopBounded:
         from reachq.reachability import bfs_reachability, parallel_bfs
 
         g = random_dag(30, edge_probability=0.3, random_seed=42)
-        H, beta, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+        H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
         H2 = sparsify_hop_bounded(g, H, int(beta))
         for s in g.vertices():
             assert bfs_reachability(g, s) == parallel_bfs(g, s, H2)
 
     def test_size_guard_returns_input_unchanged(self):
         g = path_graph(30)
-        H, beta, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+        H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
         H2 = sparsify_hop_bounded(g, H, int(beta), max_vertices=10)
         assert H2 == H
 
@@ -96,9 +86,6 @@ class TestVerifyHopboundPreserved:
 
     def test_shortcuts_shrink_effective_diameter(self):
         g = path_graph(20)
-        H, beta, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+        H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
         assert verify_hopbound_preserved(g, H, int(beta))
         assert not verify_hopbound_preserved(g, set(), int(beta))

@@ -99,9 +99,7 @@ def test_hopset_soundness_long_path():
         g.add_edge(i, i + 1, 1)
     H, beta = build_hopset_for_sssp(g, epsilon=0.1, random_seed=42)
     for source in g.vertices():
-        approx = shortest_path_hopbound(
-            g, H, source, max_hops=int(beta) + 1
-        )
+        approx = shortest_path_hopbound(g, H, source, max_hops=int(beta) + 1)
         plain = dijkstra(g, source)
         for target, d in plain.items():
             if target != source:

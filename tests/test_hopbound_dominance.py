@@ -13,11 +13,11 @@ state must return ``t == 0``.
 from reachq.generators import path_graph
 from reachq.graph import WeightedDigraph
 from reachq.shortest_paths import (
+    astar,
     dijkstra,
     shortest_path_hopbound,
-    truncated_dijkstra,
     shortest_path_tree,
-    astar,
+    truncated_dijkstra,
 )
 
 
@@ -37,9 +37,7 @@ def test_counterexample_t_reaches_with_correct_distance():
     """
     g = _build_counterexample()
     dists = shortest_path_hopbound(g, {}, "s", max_hops=2)
-    assert "t" in dists, (
-        "t must be reachable at cost 5 via s->x->t within max_hops=2"
-    )
+    assert "t" in dists, "t must be reachable at cost 5 via s->x->t within max_hops=2"
     assert dists["t"] == 5
 
 

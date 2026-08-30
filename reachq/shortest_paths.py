@@ -137,9 +137,7 @@ def astar(
             if nd < g_score.get(v, 1 << 62):
                 g_score[v] = nd
                 f_score[v] = nd + heuristic(v)
-                heapq.heappush(
-                    heap, (f_score[v], nd, next(counter), v)
-                )
+                heapq.heappush(heap, (f_score[v], nd, next(counter), v))
     return None
 
 
@@ -253,14 +251,10 @@ def shortest_path_hopbound(
     out = graph.out_edges
 
     if hasattr(hopset_edges, "items"):
-        hopset_pairs = (
-            (a, b, weight) for (a, b), weight in hopset_edges.items()
-        )
+        hopset_pairs = ((a, b, weight) for (a, b), weight in hopset_edges.items())
     else:
         hopset_pairs = (
-            (item[0], item[1], item[2])
-            for item in hopset_edges
-            if len(item) >= 3
+            (item[0], item[1], item[2]) for item in hopset_edges if len(item) >= 3
         )
     hopset_index: dict[object, dict[object, int]] = {}
     for a, b, weight in hopset_pairs:
@@ -270,9 +264,7 @@ def shortest_path_hopbound(
     best_at_hop: dict[tuple[object, int], int] = {(source, 0): 0}
     result: dict[object, int] = {source: 0}
     counter = itertools.count()
-    heap: list[tuple[int, int, int, object, int]] = [
-        (0, 0, next(counter), source, 0)
-    ]
+    heap: list[tuple[int, int, int, object, int]] = [(0, 0, next(counter), source, 0)]
 
     while heap:
         d, h, _, u, hops = heapq.heappop(heap)
@@ -326,9 +318,7 @@ def shortest_path_tree(
         raise ReachqGraphError(f"source {source!r} not in graph")
     out = graph.out_edges
     distances: dict[object, int] = {source: 0}
-    parent: dict[object, object | None] = {
-        v: None for v in graph.iter_vertices()
-    }
+    parent: dict[object, object | None] = {v: None for v in graph.iter_vertices()}
     counter = itertools.count()
     heap: list[tuple[int, int, object]] = [(0, next(counter), source)]
     visited: set[object] = set()
@@ -348,9 +338,7 @@ def shortest_path_tree(
     return parent
 
 
-def shortest_path(
-    graph: WeightedDigraph, source: object, target: object
-) -> int:
+def shortest_path(graph: WeightedDigraph, source: object, target: object) -> int:
     """Return the shortest distance from ``source`` to ``target``.
 
     Returns :data:`UNREACHABLE` if ``target`` is unreachable from

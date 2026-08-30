@@ -52,13 +52,9 @@ force `O(n^2)` per delete). For pathological workloads, use the
 naive implementation.
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 from collections import deque
@@ -99,9 +95,7 @@ class PolylogDynamicTC:
         self._index: dict[object, int] = {v: i for i, v in enumerate(self._vertices)}
         self.n = len(self._vertices)
         # _rows[i] is the bitset of vertices reachable from i.
-        self._rows: list[list[int]] = [
-            [0] * chunk_count(self.n) for _ in range(self.n)
-        ]
+        self._rows: list[list[int]] = [[0] * chunk_count(self.n) for _ in range(self.n)]
         # _out[i] is the adjacency list of vertex i (for BFS during
         # delete operations).
         self._out: list[list[int]] = [

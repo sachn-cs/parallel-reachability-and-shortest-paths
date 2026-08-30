@@ -2,10 +2,6 @@
 
 import pytest
 
-from reachq.shortcut import (
-    build_shortcut_set_for_reachability,
-    jls_with_tc_pruning,
-)
 from reachq.generators import cycle_graph, path_graph, weighted_path_graph
 from reachq.invariants import (
     assert_distance_approximation,
@@ -16,6 +12,10 @@ from reachq.invariants import (
     assert_scc_shortcuts_form_cliques,
     assert_shortcut_set_size_bound,
     check_equivalence_classes,
+)
+from reachq.shortcut import (
+    build_shortcut_set_for_reachability,
+    jls_with_tc_pruning,
 )
 
 
@@ -31,7 +31,7 @@ class TestReachabilityPreserved:
             max_level=3,
             n_global=10,
             random_seed=1,
-            refinement={"tight_tc_trigger": False}, # tiny r_ball case
+            refinement={"tight_tc_trigger": False},  # tiny r_ball case
         )
         assert_reachability_preserved(g, shortcuts)
 

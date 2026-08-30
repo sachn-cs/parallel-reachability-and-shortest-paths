@@ -37,13 +37,9 @@ iteration's H, matching the contract that the result is the *robust
 core* (shortcuts present in every iteration).
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 from reachq.config import get_logger

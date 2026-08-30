@@ -133,11 +133,7 @@ class Digraph:
 
     def edges(self) -> list[tuple[object, object]]:
         """Return the list of edges as ordered pairs in insertion order."""
-        return [
-            (u, v)
-            for u in self.insertion_order
-            for v in self.out_edges[u]
-        ]
+        return [(u, v) for u in self.insertion_order for v in self.out_edges[u]]
 
     def out_neighbors(self, v: object) -> set[object]:
         """Return the out-neighbors of v as a set."""
@@ -215,7 +211,8 @@ class Digraph:
 
 def partition_by_labels(
     vertices,
-    labels: dict[object, object] | dict[object, tuple[frozenset[object], frozenset[object]]],
+    labels: dict[object, object]
+    | dict[object, tuple[frozenset[object], frozenset[object]]],
 ) -> list[set[object]]:
     """Partition vertices into equivalence classes by exact label equality.
 
@@ -280,9 +277,7 @@ class WeightedDigraph(Digraph):
                 f"{type(weight).__name__}: {weight!r})"
             )
         if weight < 0:
-            raise ReachqValueError(
-                f"weight must be non-negative (got {weight!r})"
-            )
+            raise ReachqValueError(f"weight must be non-negative (got {weight!r})")
 
         self.add_vertex(u)
         self.add_vertex(v)
@@ -376,9 +371,7 @@ def contract_sccs(graph: Digraph) -> tuple[list[list[object]], dict[object, int]
     from reachq.reachability import strongly_connected_components
 
     components = strongly_connected_components(graph)
-    sccs = [
-        sorted(c, key=lambda v: graph.index_of(v)) for c in components
-    ]
+    sccs = [sorted(c, key=lambda v: graph.index_of(v)) for c in components]
     scc_map: dict[object, int] = {}
     for idx, scc in enumerate(sccs):
         for v in scc:

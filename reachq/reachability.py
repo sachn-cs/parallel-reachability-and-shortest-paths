@@ -191,9 +191,7 @@ def strongly_connected_components(graph: Digraph) -> list[list[object]]:
     for v in graph.iter_vertices():
         if v in visited:
             continue
-        stack: list[tuple[object, object]] = [
-            (v, iter(out.get(v, set())))
-        ]
+        stack: list[tuple[object, object]] = [(v, iter(out.get(v, set())))]
         visited.add(v)
         while stack:
             node, children = stack[-1]
@@ -247,9 +245,7 @@ def topological_sort(graph: Digraph) -> list[object]:
     in_degree: dict[object, int] = {
         v: graph.degree_in(v) for v in graph.iter_vertices()
     }
-    queue: deque[object] = deque(
-        [v for v, d in in_degree.items() if d == 0]
-    )
+    queue: deque[object] = deque([v for v, d in in_degree.items() if d == 0])
     result: list[object] = []
     out = graph.out_edges
 

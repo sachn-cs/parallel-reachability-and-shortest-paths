@@ -22,13 +22,9 @@ specific structure of a shortcut set (every edge either in G or in
 H, and H is sound) the iterated local-redundancy test is polynomial.
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 from collections import deque

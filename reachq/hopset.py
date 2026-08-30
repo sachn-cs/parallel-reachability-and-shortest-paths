@@ -81,18 +81,14 @@ def cfr_recursive(
 
     if f.degree_ordered_pivots:
         out_degrees = {v: graph.degree_out(v) for v in vertices}
-        bernoulli_weights = [
-            base_prob / (1 + out_degrees.get(v, 0)) for v in vertices
-        ]
+        bernoulli_weights = [base_prob / (1 + out_degrees.get(v, 0)) for v in vertices]
         total = sum(bernoulli_weights)
         if total > 0:
             scale = base_prob * len(vertices) / total
         else:
             scale = 0.0
         pivots = [
-            v
-            for v, w in zip(vertices, bernoulli_weights)
-            if rng.random() < w * scale
+            v for v, w in zip(vertices, bernoulli_weights) if rng.random() < w * scale
         ]
     else:
         pivots = [v for v in vertices if rng.random() < base_prob]
@@ -326,9 +322,7 @@ def build_hopset_for_sssp(
         k = max(2.0, math.log2(n))
         rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
         rho = min(rho, math.sqrt(n))
-        max_level = (
-            max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
-        )
+        max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
 
         return cfr_with_truncsssp_pruning(
             graph,

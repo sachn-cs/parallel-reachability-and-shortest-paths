@@ -22,7 +22,6 @@ from reachq.shortest_paths import (
     shortest_path_hopbound,
 )
 
-
 pytestmark = pytest.mark.skipif(
     find_spec("networkx") is None,
     reason="networkx not installed",

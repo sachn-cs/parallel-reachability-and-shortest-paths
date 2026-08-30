@@ -27,13 +27,9 @@ straightforward BFS; the dynamic update problem is much harder and
 is not addressed here.
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 from collections import deque

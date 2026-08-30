@@ -122,9 +122,7 @@ def runtime_omega() -> float:
     global _runtime_omega_cache
     if _runtime_omega_cache is None:
         vendor = detect_blas_vendor()
-        _runtime_omega_cache = (
-            BLAS_OMEGA_TABLE[vendor] if vendor is not None else 3.0
-        )
+        _runtime_omega_cache = BLAS_OMEGA_TABLE[vendor] if vendor is not None else 3.0
     return _runtime_omega_cache
 
 
@@ -174,4 +172,3 @@ __all__ = [
     "omega_table",
     "runtime_omega",
 ]
-

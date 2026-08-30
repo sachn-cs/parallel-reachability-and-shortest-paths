@@ -29,13 +29,9 @@ foremost walks in temporal graphs." *J. Comput. System Sci. 69
 algorithm (Algorithm 1 in that paper).
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 from collections import deque

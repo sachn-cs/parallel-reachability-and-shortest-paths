@@ -1,9 +1,5 @@
 """Tests for work/depth simulation model."""
 
-import math
-
-import pytest
-
 from reachq.work_depth import (
     WorkDepthAccountant,
     theoretical_hopset_depth,
@@ -85,6 +81,7 @@ class TestWorkDepthAccountant:
         s = wd.summary()
         assert s["work"] == 100.0
         assert s["depth"] == 10.0
+
 
 class TestTheoreticalBounds:
     """Tests for theoretical bound helper functions."""

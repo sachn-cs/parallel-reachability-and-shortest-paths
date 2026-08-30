@@ -17,8 +17,7 @@ from __future__ import annotations
 
 import pytest
 
-pass  # placeholder
-from reachq.config import RefinementConfig
+# placeholder
 from reachq.closure import (
     TransitiveClosureBudgetError,
     transitive_closure,
@@ -26,16 +25,9 @@ from reachq.closure import (
 )
 from reachq.errors import ReachqGraphError
 from reachq.graph import Digraph, WeightedDigraph
-from reachq.closure import (  # type alias kept for clarity
-    transitive_closure as closure_transitive,
-    decode_pairs as closure_decode_pairs,
-)
 from reachq.shortest_paths import (
-    UNREACHABLE,
-    astar,
     dijkstra,
     shortest_path_hopbound,
-    shortest_path_tree,
     truncated_dijkstra,
 )
 
@@ -161,8 +153,8 @@ class TestBuildReturnsThreeTuple:
     ``(shortcuts, beta, realised_bound)``."""
 
     def test_three_tuple_on_small_dag(self):
-        from reachq.shortcut import build_shortcut_set_for_reachability
         from reachq.generators import path_graph
+        from reachq.shortcut import build_shortcut_set_for_reachability
 
         g = path_graph(10)
         result = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
@@ -175,11 +167,11 @@ class TestBuildReturnsThreeTuple:
         assert realised >= beta or realised >= 1.0
 
     def test_three_tuple_on_dense_dag(self):
-        from reachq.shortcut import build_shortcut_set_for_reachability
         from reachq.generators import random_dag
+        from reachq.shortcut import build_shortcut_set_for_reachability
 
         g = random_dag(n=30, edge_probability=0.375, random_seed=0)
-        shortcuts, beta, realised = build_shortcut_set_for_reachability(
+        shortcuts, _beta, realised = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=0
         )
         if not shortcuts:
@@ -249,7 +241,7 @@ class TestRemovedModulesAndShims:
         """The ``proto`` package declares protocols the algorithms
         type-annotate against; the concrete ``Digraph`` conforms.
         """
-        from reachq.proto import Graph
         from reachq.graph import Digraph as _Digraph
+        from reachq.proto import Graph
 
         assert isinstance(_Digraph(), Graph)

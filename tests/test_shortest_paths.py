@@ -2,6 +2,7 @@
 
 import pytest
 
+from reachq.errors import ReachqGraphError
 from reachq.graph import WeightedDigraph
 from reachq.shortest_paths import (
     astar,
@@ -43,7 +44,7 @@ class TestDijkstra:
 
     def test_empty_graph(self):
         g = WeightedDigraph()
-        with pytest.raises(Exception):
+        with pytest.raises(ReachqGraphError):
             dijkstra(g, 0)
 
     def test_self_loop(self):

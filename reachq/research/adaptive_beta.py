@@ -26,13 +26,9 @@ Usage:
   beta = paper_beta(graph, omega=3.0)       # worst-case
 """
 
-
-
-
 from __future__ import annotations
 
 __experimental__ = True
-
 
 
 import random

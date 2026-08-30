@@ -8,9 +8,9 @@ connected within beta hops via G + shortcuts.
 
 from collections import deque
 
-from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.graph import Digraph
 from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
 
 
 def max_hops(g, s, H, beta):
@@ -73,9 +73,8 @@ class TestHopboundPreserved:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
         shortcuts, beta, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+            g, omega=3.0, random_seed=42
+        )
         for s in g.vertices():
             d = max_hops(g, s, shortcuts, int(beta) + 1)
             assert d <= int(beta) + 1, (
@@ -90,9 +89,8 @@ class TestHopboundPreserved:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
         shortcuts, beta, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+            g, omega=3.0, random_seed=42
+        )
         for s in g.vertices():
             d = max_hops(g, s, shortcuts, int(beta) + 1)
             assert d <= int(beta) + 1
@@ -108,9 +106,8 @@ class TestHopboundPreserved:
         g.add_edge(2, 0)
         g.add_edge(5, 3)
         shortcuts, beta, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+            g, omega=3.0, random_seed=42
+        )
         for s in g.vertices():
             d = max_hops(g, s, shortcuts, int(beta) + 1)
             assert d <= int(beta) + 1
@@ -126,8 +123,7 @@ class TestHopboundPreserved:
         for i in range(0, n - 1, 2):
             g.add_edge(i, i + 1)
         shortcuts, _, _ = build_shortcut_set_for_reachability(
-            g,
-            omega=3.0,
-            random_seed=42)
+            g, omega=3.0, random_seed=42
+        )
         for s in g.vertices():
             assert bfs_reachability(g, s) == parallel_bfs(g, s, shortcuts)

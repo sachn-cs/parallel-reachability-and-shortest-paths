@@ -37,7 +37,7 @@ vertices.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable, Iterable
+from collections.abc import Iterable
 from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from typing import Any
@@ -89,8 +89,8 @@ def build_state(graph: Digraph, *, max_hops: int | None = None) -> ShortcutState
     deque-based Python BFS is faster than CSR conversion.
     """
     if graph.num_vertices() >= MIN_CSR_VERTICES:
-        indptr, indices, indptr_rev, indices_rev, n, idx_to_vertex = (
-            build_csr_pair(graph)
+        indptr, indices, indptr_rev, indices_rev, n, idx_to_vertex = build_csr_pair(
+            graph
         )
     else:
         indptr = indices = indptr_rev = indices_rev = None  # type: ignore[assignment]
@@ -157,9 +157,7 @@ def condense_to_dag(
     from reachq.reachability import strongly_connected_components
 
     components = strongly_connected_components(graph)
-    sccs = [
-        sorted(c, key=lambda v: graph.index_of(v)) for c in components
-    ]
+    sccs = [sorted(c, key=lambda v: graph.index_of(v)) for c in components]
     scc_map: dict[object, int] = {}
     representatives: list[object] = []
     for idx, scc in enumerate(sccs):
@@ -186,9 +184,7 @@ def intra_scc_shortcuts(
         sub = graph.induced_subgraph(set(scc))
         for u in scc:
             r_minus = {
-                v
-                for v in sub.iter_vertices()
-                if u != v and v in _bfs_reachable(sub, u)
+                v for v in sub.iter_vertices() if u != v and v in _bfs_reachable(sub, u)
             }
             for v in r_minus:
                 shortcuts.add((u, v))
@@ -216,9 +212,7 @@ def pivot_probability(
     if n_global <= 1:
         return 0.0
     log_n = math.log2(n_global)
-    return min(
-        1.0, sampling_constant * (k ** (level + 1)) * log_n / n_global
-    )
+    return min(1.0, sampling_constant * (k ** (level + 1)) * log_n / n_global)
 
 
 def _sample_pivots(
@@ -266,10 +260,7 @@ def _build_labels(
             anc.setdefault(v, []).append(pivot)
         for v in r_plus_per_pivot.get(pivot, set()):
             des.setdefault(v, []).append(pivot)
-    return {
-        v: (frozenset(anc.get(v, [])), frozenset(des.get(v, [])))
-        for v in vertices
-    }
+    return {v: (frozenset(anc.get(v, [])), frozenset(des.get(v, []))) for v in vertices}
 
 
 # ---------------------------------------------------------------------------
@@ -302,9 +293,7 @@ def _expand_one_pivot(
     """
     if state.csr_indptr is None or state.csr_indices is None:
         if state.max_hops is not None:
-            r_plus = _deque_hop_limited_bfs(
-                graph, pivot, state.max_hops, forward=True
-            )
+            r_plus = _deque_hop_limited_bfs(graph, pivot, state.max_hops, forward=True)
             r_minus = _deque_hop_limited_bfs(
                 graph, pivot, state.max_hops, forward=False
             )
@@ -388,10 +377,7 @@ def _run_pivots(
     tasks = [(graph, state, item) for item in pivots]
     if not parallel or n_workers <= 1:
         return [expand_pivot(t) for t in tasks]
-    if (
-        not _spawn_warn_emitted
-        and graph.num_vertices() < _PARALLEL_SPAWN_WARN_BELOW
-    ):
+    if not _spawn_warn_emitted and graph.num_vertices() < _PARALLEL_SPAWN_WARN_BELOW:
         get_logger("reachq.shortcut").info(
             "process-pool spawn cost may exceed the per-pivot BFS for "
             "graph with %d vertices (< %d); consider sequential mode "
@@ -525,17 +511,13 @@ def jls_recursive(
     return shortcuts
 
 
-def _validate_algorithm_params(
-    k: float, rho: float, max_level: int
-) -> None:
+def _validate_algorithm_params(k: float, rho: float, max_level: int) -> None:
     if k <= 1:
         raise ReachqValueError(f"k must be > 1 (got {k})")
     if rho <= 0:
         raise ReachqValueError(f"rho must be > 0 (got {rho})")
     if max_level < 0:
-        raise ReachqValueError(
-            f"max_level must be non-negative (got {max_level})"
-        )
+        raise ReachqValueError(f"max_level must be non-negative (got {max_level})")
 
 
 def _params_from_omega(
@@ -555,16 +537,10 @@ def _params_from_omega(
     asymptotic target.
     """
     k = max(2.0, math.log2(n))
-    beta = (
-        (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
-        if m > 0
-        else float("inf")
-    )
+    beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0)) if m > 0 else float("inf")
     rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
     rho = min(rho, math.sqrt(n))
-    max_level = (
-        max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
-    )
+    max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
     realised_bound = float(max_level * max(2, math.ceil(rho))) + 1.0
     return k, rho, max_level, beta, realised_bound
 
@@ -629,14 +605,10 @@ def build_shortcut_set_for_reachability(
                 if scc_map[u] != scc_map[v]:
                     dag.add_edge(scc_map[u], scc_map[v])
 
-        k, rho, max_level, beta, realised_bound = _params_from_omega(
-            n, m, omega
-        )
+        k, rho, max_level, beta, realised_bound = _params_from_omega(n, m, omega)
 
         sampling_constant = (
-            density_aware_constant(rho, k)
-            if flags.adaptive_sampling
-            else 10.0
+            density_aware_constant(rho, k) if flags.adaptive_sampling else 10.0
         )
 
         state = build_state(dag)
@@ -729,9 +701,7 @@ def jls_with_tc_pruning(
     state = build_state(graph)
     log_n = math.log2(n_global) if n_global > 1 else 0.0
     tc_threshold = (
-        compute_tc_pruning_threshold(
-            k, log_n, rho, graph.num_vertices(), omega=2.5
-        )
+        compute_tc_pruning_threshold(k, log_n, rho, graph.num_vertices(), omega=2.5)
         if flags.enable_tc_pruning
         else None
     )

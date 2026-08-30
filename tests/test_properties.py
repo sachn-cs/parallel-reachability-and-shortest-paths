@@ -15,9 +15,9 @@ import pytest
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.generators import random_dag
 from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
 
 EXAMPLES = int(os.environ.get("REACHQ_HYPOTHESIS", "20"))
 

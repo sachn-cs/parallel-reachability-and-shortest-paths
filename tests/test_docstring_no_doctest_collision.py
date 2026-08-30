@@ -20,16 +20,15 @@ import pytest
 
 import reachq
 
-
 REACHQ_DIR = os.path.dirname(reachq.__file__)
 
 # Tokens that pytest's doctest plugin would attempt to evaluate.
 # Each pattern matches the bare, unquoted form (outside backticks).
 FORBIDDEN_TOKENS = [
-    re.compile(r"O\(n\^[\d.]+"),         # O(n^2), O(n^1.5)
-    re.compile(r"O\(n\*"),                 # O(n*rho)
+    re.compile(r"O\(n\^[\d.]+"),  # O(n^2), O(n^1.5)
+    re.compile(r"O\(n\*"),  # O(n*rho)
     re.compile(r"^O\(n\)$", re.MULTILINE),  # O(n) on its own line
-    re.compile(r"O\(n\s*\*\s*sqrt"),     # O(n * sqrt(...))
+    re.compile(r"O\(n\s*\*\s*sqrt"),  # O(n * sqrt(...))
 ]
 
 
