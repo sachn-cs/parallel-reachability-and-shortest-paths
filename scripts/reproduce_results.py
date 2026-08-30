@@ -146,7 +146,7 @@ def run_sampling(
     out_dir: Path,
 ) -> list[dict[str, object]]:
     """Run synthetic random DAGs. Per-graph timeouts land in `error`."""
-    from reachq.core.algorithm import build_shortcut_set_for_reachability
+    from reachq.core.shortcut import build_shortcut_set_for_reachability
     from reachq.core.generators import random_dag, weighted_random_dag
     from reachq.core.hopset import build_hopset_for_sssp
     from reachq.core.reachability import bfs_reachability, parallel_bfs
@@ -276,7 +276,7 @@ def run_snap(
     out_dir: Path,
 ) -> list[dict[str, object]]:
     """Run SNAP datasets. Skips datasets with no cached file. Per-graph timeouts land in `error`."""
-    from reachq.core.algorithm import build_shortcut_set_for_reachability
+    from reachq.core.shortcut import build_shortcut_set_for_reachability
     from reachq.core.generators import load_dataset
     from reachq.core.reachability import bfs_reachability, parallel_bfs
 

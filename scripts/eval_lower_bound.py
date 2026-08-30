@@ -22,7 +22,7 @@ from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.config import get_logger
 from reachq.research.lower_bound import (
     barbell_graph,

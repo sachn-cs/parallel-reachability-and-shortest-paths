@@ -39,7 +39,7 @@ core* (shortcuts present in every iteration).
 
 from __future__ import annotations
 
-from reachq.core.algorithm import jls_with_tc_pruning
+from reachq.core.shortcut import jls_with_tc_pruning
 from reachq.core.config import get_logger
 from reachq.core.graph import Digraph
 
@@ -92,7 +92,7 @@ def iterative_shortcut_set(
     rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
     rho = min(rho, math.sqrt(n))
     max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
-    from reachq.core.algorithm import density_aware_constant
+    from reachq.core.shortcut import density_aware_constant
 
     sampling_constant = density_aware_constant(rho, k)
 

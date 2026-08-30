@@ -17,7 +17,7 @@ The package is organised into two layers:
     runtime activation is required.
 
 The public API is in this `__init__.py`. The algorithms module
-(``reachq.core.algorithm``) is the most important; ``reachq.core.reachability``
+(``reachq.core.shortcut``) is the most important; ``reachq.core.reachability``
 holds the BFS implementation; ``reachq.core.graph`` is the Digraph base
 class. The `flags` parameter on the public functions is a
 ``RefinementConfig`` dataclass of boolean toggles; the
@@ -28,7 +28,7 @@ logger.
 The recommended first test after install:
 
     >>> from reachq.core.graph import Digraph
-    >>> from reachq.core.algorithm import build_shortcut_set_for_reachability
+    >>> from reachq.core.shortcut import build_shortcut_set_for_reachability
     >>> g = Digraph(); g.add_edge(0, 1); g.add_edge(1, 2)
     >>> H, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     >>> isinstance(H, set)
@@ -45,10 +45,6 @@ by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak (2026).
 __version__ = "0.8.0"
 
 from reachq.core import invariants
-from reachq.core.algorithm import (
-    build_shortcut_set_for_reachability,
-    jls_with_tc_pruning,
-)
 from reachq.core.config import RefinementConfig
 from reachq.core.generators import (
     cycle_graph,
@@ -87,6 +83,10 @@ from reachq.core.reachability import (
     reverse_bfs_reachability,
     strongly_connected_components,
     topological_sort,
+)
+from reachq.core.shortcut import (
+    build_shortcut_set_for_reachability,
+    jls_with_tc_pruning,
 )
 from reachq.core.shortest_paths import (
     astar,

@@ -81,7 +81,7 @@ def cfr_recursive(
     n_global: int,
     level: int,
     rng: random.Random,
-    flags: RefinementConfig,
+    refinement: RefinementConfig,
     *,
     pruning: bool,
 ) -> dict[tuple[object, object], int]:
@@ -91,6 +91,7 @@ def cfr_recursive(
         pruning: When ``False``, runs the baseline CFR hopset (no
             TruncSSSP). When ``True``, enables TruncSSSP-Pruning.
     """
+    f = refinement
     n = graph.num_vertices()
     if n == 0 or level >= max_level:
         return {}
@@ -102,7 +103,7 @@ def cfr_recursive(
 
     vertices = list(graph.vertices())
 
-    if flags.degree_ordered_pivots:
+    if f.degree_ordered_pivots:
         out_degrees = {v: graph.degree_out(v) for v in vertices}
         bernoulli_weights = [
             base_prob / (1 + out_degrees.get(v, 0)) for v in vertices
@@ -170,7 +171,7 @@ def cfr_recursive(
 
     parts = cfr_partition(graph, vertices, pivots)
 
-    if len(parts) <= 1 and flags.skip_trivial_part:
+    if len(parts) <= 1 and f.skip_trivial_part:
         return hopset
 
     for part in parts:
@@ -187,7 +188,7 @@ def cfr_recursive(
             n_global,
             level + 1,
             rng,
-            flags,
+            f,
             pruning=pruning,
         )
         for edge, w in sub_hopset.items():
@@ -244,10 +245,16 @@ def cfr_hopset(
     n_global: int,
     level: int = 0,
     random_seed: int | None = None,
-    flags=None,
+    refinement=None,
 ) -> dict[tuple[object, object], int]:
     """CFR hopset baseline (no TruncSSSP-Pruning)."""
-    f = RefinementConfig.from_dict(flags) if flags is not None else RefinementConfig()
+    f = (
+        RefinementConfig.from_dict(refinement)
+        if refinement is not None and not isinstance(refinement, RefinementConfig)
+        else refinement
+    )
+    if f is None:
+        f = RefinementConfig()
     if k <= 1:
         raise ValueError("k must be > 1")
     if epsilon <= 0:
@@ -264,7 +271,7 @@ def cfr_hopset(
         n_global=n_global,
         level=level,
         rng=rng,
-        flags=f,
+        refinement=f,
         pruning=False,
     )
 
@@ -278,10 +285,16 @@ def cfr_with_truncsssp_pruning(
     n_global: int,
     level: int = 0,
     random_seed: int | None = None,
-    flags=None,
+    refinement=None,
 ) -> dict[tuple[object, object], int]:
     """CFR with TruncSSSP-Pruning (Section 6.3, Theorem 4)."""
-    f = RefinementConfig.from_dict(flags) if flags is not None else RefinementConfig()
+    f = (
+        RefinementConfig.from_dict(refinement)
+        if refinement is not None and not isinstance(refinement, RefinementConfig)
+        else refinement
+    )
+    if f is None:
+        f = RefinementConfig()
     if k <= 1:
         raise ValueError("k must be > 1")
     if epsilon <= 0:
@@ -300,7 +313,7 @@ def cfr_with_truncsssp_pruning(
         n_global=n_global,
         level=level,
         rng=rng,
-        flags=f,
+        refinement=f,
         pruning=True,
     )
 
@@ -309,7 +322,7 @@ def build_hopset_for_sssp(
     graph: WeightedDigraph,
     epsilon: float = 0.1,
     random_seed: int | None = None,
-    flags=None,
+    refinement=None,
 ) -> tuple[dict[tuple[object, object], int], float]:
     """High-level wrapper: build a (beta, epsilon)-hopset matching Theorem 4.
 
@@ -317,7 +330,7 @@ def build_hopset_for_sssp(
         graph: The input weighted digraph.
         epsilon: Approximation factor.
         random_seed: Optional seed for reproducibility.
-        flags: Optional dict of algorithmic refinement toggles.
+        refinement: Optional RefinementConfig or dict of toggles.
 
     Returns:
         ``(hopset, beta)`` where ``beta`` is the target hopbound.
@@ -329,6 +342,14 @@ def build_hopset_for_sssp(
         equals ``dijkstra(graph, u)[v]`` for the same input.
     """
     with trace("build_hopset", n=graph.num_vertices(), m=graph.num_edges()):
+        f = (
+            RefinementConfig.from_dict(refinement)
+            if refinement is not None and not isinstance(refinement, RefinementConfig)
+            else refinement
+        )
+        if f is None:
+            f = RefinementConfig()
+
         n = graph.num_vertices()
         m = graph.num_edges()
 
@@ -353,7 +374,7 @@ def build_hopset_for_sssp(
             n_global=n,
             level=0,
             random_seed=random_seed,
-            flags=flags,
+            refinement=f,
         ), beta
 
 

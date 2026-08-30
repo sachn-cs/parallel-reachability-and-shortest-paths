@@ -33,7 +33,7 @@ log = get_logger("reachq.span")
 
 
 def measure_one(n: int, density: float, seed: int) -> dict[str, float]:
-    from reachq.core.algorithm import build_shortcut_set_for_reachability
+    from reachq.core.shortcut import build_shortcut_set_for_reachability
 
     g = random_dag(n=n, edge_probability=density, random_seed=seed)
     n_vertices = g.num_vertices()

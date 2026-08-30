@@ -7,7 +7,7 @@ calibrated on the test suite.
 
 These are heuristic defaults; the user can always override the
 returned value with an explicit argument to
-:func:`reachq.core.algorithm.build_shortcut_set_for_reachability` or
+:func:`reachq.core.shortcut.build_shortcut_set_for_reachability` or
 :func:`reachq.core.hopset.build_hopset_for_sssp`.
 """
 

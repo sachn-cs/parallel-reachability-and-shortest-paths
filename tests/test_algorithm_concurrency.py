@@ -11,7 +11,7 @@ from __future__ import annotations
 import threading
 import time
 
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag
 from reachq.core.reachability import bfs_reachability, parallel_bfs
 
@@ -22,8 +22,7 @@ def _build(graph, seed: int):
         omega=3.0,
         random_seed=seed,
         parallel_workers=4,
-        flags={"parallel": True},
-    )
+        refinement={"parallel": True}, )
     return shortcuts, beta
 
 
@@ -83,8 +82,7 @@ def test_reentrant_concurrent_builds_with_workers():
             omega=3.0,
             random_seed=7,
             parallel_workers=2,
-            flags={"parallel": True},
-        )
+            refinement={"parallel": True}, )
         for v in g.vertices():
             assert bfs_reachability(g, v) == parallel_bfs(g, v, shortcuts), (
                 f"thread {idx}: reachability mismatch"

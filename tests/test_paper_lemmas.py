@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag
 from reachq.core.reachability import bfs_reachability, parallel_bfs
 
@@ -31,9 +31,9 @@ NO_TC = {**PAPER_TC, "enable_tc_pruning": False}
 HOP_BOUNDED = {**NO_TC, "hop_bounded_bfs": True}
 
 
-def run(g, flags: dict, seed: int):
+def run(g, refinement: dict, seed: int):
     return build_shortcut_set_for_reachability(
-        g, omega=3.0, random_seed=seed, flags=flags
+        g, omega=3.0, random_seed=seed, refinement=refinement
     )
 
 
@@ -76,7 +76,7 @@ def test_lemma_2_1_tc_soundness(seed: int) -> None:
             original = bfs_reachability(g, v)
             augmented = parallel_bfs(g, v, shortcuts)
             assert original == augmented, (
-                f"seed={seed} flags={flags}: mismatch from {v}"
+                f"seed={seed} refinement={flags}: mismatch from {v}"
             )
 
 

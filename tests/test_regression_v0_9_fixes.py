@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import pytest
 
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.graph import Digraph, WeightedDigraph
 from reachq.core.hopset import build_hopset_for_sssp
 from reachq.core.reachability import bfs_reachability, parallel_bfs
@@ -152,12 +152,12 @@ class TestRemovedModulesAndShims:
 
     def test_jls_shortcut_set_not_present(self):
         """The legacy wrapper has been removed."""
-        from reachq.core.algorithm import jls_with_tc_pruning
+        from reachq.core.shortcut import jls_with_tc_pruning
 
         assert callable(jls_with_tc_pruning)
-        import reachq.core.algorithm as algo
+        import reachq.core.shortcut as mod
 
-        assert not hasattr(algo, "jls_shortcut_set"), (
+        assert not hasattr(mod, "jls_shortcut_set"), (
             "thinned wrapper jls_shortcut_set should be removed"
         )
 

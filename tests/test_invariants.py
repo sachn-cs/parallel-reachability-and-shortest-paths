@@ -2,7 +2,7 @@
 
 import pytest
 
-from reachq.core.algorithm import (
+from reachq.core.shortcut import (
     build_shortcut_set_for_reachability,
     jls_with_tc_pruning,
 )
@@ -31,7 +31,7 @@ class TestReachabilityPreserved:
             max_level=3,
             n_global=10,
             random_seed=1,
-            flags={"tight_tc_trigger": False},  # tiny r_ball case
+            refinement={"tight_tc_trigger": False}, # tiny r_ball case
         )
         assert_reachability_preserved(g, shortcuts)
 

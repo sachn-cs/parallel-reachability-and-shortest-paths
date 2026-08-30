@@ -11,7 +11,7 @@ Bugs covered:
   4. TC self-loops: (i, i) entries were leaking into the shortcut set.
 """
 
-from reachq.core.algorithm import (
+from reachq.core.shortcut import (
     build_shortcut_set_for_reachability,
 )
 from reachq.core.bfs import csr_reachable_backward, csr_reachable_forward

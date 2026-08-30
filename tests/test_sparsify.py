@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.generators import petersen_graph, random_dag
 from reachq.core.graph import Digraph
 from reachq.core.reachability import bfs_reachability, parallel_bfs

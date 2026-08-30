@@ -14,7 +14,7 @@ from importlib.util import find_spec
 import pytest
 
 from reachq import RefinementConfig as Flags
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag, weighted_random_dag
 from reachq.core.hopset import build_hopset_for_sssp
 from reachq.core.reachability import bfs_reachability, parallel_bfs
@@ -34,7 +34,7 @@ def test_shortcut_set_correctness_with_each_flag_off(off: str) -> None:
         g,
         omega=3.0,
         random_seed=7,
-        flags=flags,
+        refinement=flags,
     )
     assert beta > 0
     for v in g.vertices():
@@ -48,7 +48,7 @@ def test_hopset_correctness_with_each_flag_off(off: str) -> None:
     """Disabling any single flag must still preserve (1+eps) hopbound."""
     g = weighted_random_dag(n=60, edge_probability=0.2, random_seed=7)
     flags = {name: name != off for name in all_flag_names()}
-    hopset, _ = build_hopset_for_sssp(g, epsilon=0.1, random_seed=7, flags=flags)
+    hopset, _ = build_hopset_for_sssp(g, epsilon=0.1, random_seed=7, refinement=flags)
     src = next(iter(g.vertices()))
     orig = dijkstra(g, src)
     approx = shortest_path_hopbound(g, hopset, src, max_hops=1000)
@@ -69,7 +69,7 @@ def test_flags_dataclass_rejects_unknown_names() -> None:
 
 def test_density_aware_constant_scales_with_rho() -> None:
     """The density-aware sampling constant is non-decreasing in rho."""
-    from reachq.core.algorithm import density_aware_constant
+    from reachq.core.shortcut import density_aware_constant
 
     SAMPLING_DEFAULT = 10.0
     assert density_aware_constant(rho=10.0, k=4.0) == SAMPLING_DEFAULT
@@ -90,14 +90,13 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
     """
     import math
 
-    from reachq.core.algorithm import jls_with_tc_pruning
+    from reachq.core.shortcut import jls_with_tc_pruning
 
     g = random_dag(n=60, edge_probability=0.4, random_seed=7)
     build_shortcut_set_for_reachability(
         g,
         random_seed=7,
-        flags={"adaptive_sampling": True},
-    )
+        refinement={"adaptive_sampling": True}, )
 
     k = max(2.0, math.log2(g.num_vertices()))
     baseline = jls_with_tc_pruning(
@@ -107,8 +106,7 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
         max_level=3,
         n_global=g.num_vertices(),
         random_seed=7,
-        flags={"adaptive_sampling": True},
-        sampling_constant=10.0,
+        refinement={"adaptive_sampling": True}, sampling_constant=10.0,
     )
     explicit_default = jls_with_tc_pruning(
         g,
@@ -117,8 +115,7 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
         max_level=3,
         n_global=g.num_vertices(),
         random_seed=7,
-        flags={"adaptive_sampling": True},
-    )
+        refinement={"adaptive_sampling": True}, )
     assert explicit_default == baseline
 
 
