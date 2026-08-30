@@ -23,21 +23,40 @@ State binds the CSR pair, vertex tuple, and ``max_hops`` once per
 call and threads it through every recursion step. There are no
 module-level globals: omega, the sampling constant, and the
 parallel-mode choice all flow as explicit parameters.
+
+Parallel dispatch:
+
+When ``refinement.parallel`` is True and ``parallel_workers > 1``,
+the per-pivot BFS runs across a process pool with ``spawn`` start
+method so numpy/scipy re-import cleanly per worker. Sequential mode
+is otherwise equivalent and avoids the spawn re-import cost, which
+dominates the per-pivot BFS for graphs with fewer than ~1000
+vertices.
 """
 
 from __future__ import annotations
 
 import math
+from collections.abc import Callable, Iterable
+from concurrent.futures import ProcessPoolExecutor
 from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
 
+from reachq.bfs import csr_reachable_backward, csr_reachable_forward
+from reachq.config import get_logger
 from reachq.csr import build_csr_pair
 from reachq.errors import ReachqValueError
 from reachq.graph import Digraph, partition_by_labels
-from reachq.shortcut_parallel import ParallelExecutor, expand_pivot  # noqa: F401 — merged in step 2
+from reachq.reachability import (
+    bfs_reachability,
+    reverse_bfs_reachability,
+)
 from reachq.trace import trace
+
+MIN_CSR_VERTICES = 500
+_PARALLEL_SPAWN_WARN_BELOW = 1000
 
 
 @dataclass(frozen=True)
@@ -50,7 +69,7 @@ class ShortcutState:
     and ``csr_rev_indices`` are the reverse pair. When the graph is
     too small to warrant CSR conversion both pairs are ``None``.
     Workers handle the no-CSR path directly using
-    :func:`reachq.core.shortcut_parallel.deque_hop_limited_bfs`.
+    :func:`_deque_hop_limited_bfs`.
     """
 
     csr_indptr: np.ndarray | None
@@ -65,9 +84,11 @@ class ShortcutState:
 def build_state(graph: Digraph, *, max_hops: int | None = None) -> ShortcutState:
     """Construct a worker-state payload from a Digraph.
 
-    Uses CSR pair when the graph has at least 500 vertices.
+    Uses a CSR pair when the graph has at least
+    :data:`MIN_CSR_VERTICES` vertices; below that threshold the
+    deque-based Python BFS is faster than CSR conversion.
     """
-    if graph.num_vertices() >= 500:
+    if graph.num_vertices() >= MIN_CSR_VERTICES:
         indptr, indices, indptr_rev, indices_rev, n, idx_to_vertex = (
             build_csr_pair(graph)
         )
@@ -251,6 +272,149 @@ def _build_labels(
     }
 
 
+# ---------------------------------------------------------------------------
+# Per-pivot expanders and dispatch.
+#
+# `expand_pivot` is the module-level callable used by both sequential
+# dispatch and the process-pool worker. `_expand_one_pivot` is its body.
+# `run_pivots` chooses sequential or process-pool based on flags +
+# parallel_workers; the spawn cost is logged at most once per call.
+# ---------------------------------------------------------------------------
+
+
+def expand_pivot(
+    args: tuple[Digraph, ShortcutState, object],
+) -> dict[str, Any]:
+    """Worker function: ``expand_pivot((graph, state, pivot))``."""
+    graph, state, pivot = args
+    return _expand_one_pivot(graph, state, pivot)
+
+
+def _expand_one_pivot(
+    graph: Digraph,
+    state: ShortcutState,
+    pivot: object,
+) -> dict[str, Any]:
+    """Expand one pivot via CSR numpy BFS or deque fallback.
+
+    Returns ``{"r_plus": set, "r_minus": set}`` with the pivot
+    itself removed from both sets.
+    """
+    if state.csr_indptr is None or state.csr_indices is None:
+        if state.max_hops is not None:
+            r_plus = _deque_hop_limited_bfs(
+                graph, pivot, state.max_hops, forward=True
+            )
+            r_minus = _deque_hop_limited_bfs(
+                graph, pivot, state.max_hops, forward=False
+            )
+        else:
+            r_plus = bfs_reachability(graph, pivot)
+            r_minus = reverse_bfs_reachability(graph, pivot)
+        r_plus.discard(pivot)
+        r_minus.discard(pivot)
+        return {"r_plus": r_plus, "r_minus": r_minus}
+
+    p_idx: int | None = None
+    for i, v in enumerate(state.idx_to_vertex):
+        if v == pivot:
+            p_idx = i
+            break
+    if p_idx is None:
+        return {"r_plus": set(), "r_minus": set()}
+    r_plus_arr = csr_reachable_forward(
+        state.csr_indptr,
+        state.csr_indices,
+        p_idx,
+        state.n,
+        max_depth=state.max_hops,
+    )
+    rev_indptr = state.csr_rev_indptr
+    rev_indices = state.csr_rev_indices
+    if rev_indptr is None or rev_indices is None:
+        return {"r_plus": set(r_plus_arr), "r_minus": set()}
+    r_minus_arr = csr_reachable_backward(
+        rev_indptr,
+        rev_indices,
+        p_idx,
+        state.n,
+        max_depth=state.max_hops,
+    )
+    r_plus = {state.idx_to_vertex[int(i)] for i in r_plus_arr}
+    r_minus = {state.idx_to_vertex[int(i)] for i in r_minus_arr}
+    r_plus.discard(pivot)
+    r_minus.discard(pivot)
+    return {"r_plus": r_plus, "r_minus": r_minus}
+
+
+def _deque_hop_limited_bfs(
+    graph: Digraph,
+    source: object,
+    max_hops: int,
+    *,
+    forward: bool,
+) -> set[object]:
+    """Hop-bounded deque BFS used when CSR arrays are unavailable."""
+    from collections import deque
+
+    visited: set[object] = {source}
+    queue: deque[tuple[object, int]] = deque([(source, 0)])
+    g = graph if forward else graph.reversed()
+    while queue:
+        u, d = queue.popleft()
+        if d >= max_hops:
+            continue
+        for v in g.out_edges.get(u, ()):
+            if v not in visited:
+                visited.add(v)
+                queue.append((v, d + 1))
+    visited.discard(source)
+    return visited
+
+
+def _run_pivots(
+    graph: Digraph,
+    state: ShortcutState,
+    pivots: Iterable[object],
+    *,
+    parallel: bool,
+    n_workers: int,
+) -> list[dict[str, Any]]:
+    """Dispatch ``pivots`` through :func:`expand_pivot`.
+
+    Sequential when ``parallel`` is False or ``n_workers <= 1``;
+    otherwise a ``ProcessPoolExecutor`` with ``spawn`` start method.
+    """
+    tasks = [(graph, state, item) for item in pivots]
+    if not parallel or n_workers <= 1:
+        return [expand_pivot(t) for t in tasks]
+    if (
+        not _spawn_warn_emitted
+        and graph.num_vertices() < _PARALLEL_SPAWN_WARN_BELOW
+    ):
+        get_logger("reachq.shortcut").info(
+            "process-pool spawn cost may exceed the per-pivot BFS for "
+            "graph with %d vertices (< %d); consider sequential mode "
+            "for small graphs.",
+            graph.num_vertices(),
+            _PARALLEL_SPAWN_WARN_BELOW,
+        )
+    import multiprocessing
+
+    ctx = multiprocessing.get_context("spawn")
+    with ProcessPoolExecutor(max_workers=n_workers, mp_context=ctx) as pool:
+        return list(pool.map(expand_pivot, tasks))
+
+
+_spawn_warn_emitted = False
+
+
+def _reset_spawn_warn_emitted() -> None:
+    """Test hook: clear the spawn-warning latch between calls."""
+    global _spawn_warn_emitted
+    _spawn_warn_emitted = False
+
+
 def jls_recursive(
     graph: Digraph,
     state: ShortcutState,
@@ -263,7 +427,8 @@ def jls_recursive(
     flags,
     sampling_constant: float,
     *,
-    executor: ParallelExecutor,
+    parallel: bool,
+    n_workers: int,
     tc_threshold: float | None = None,
 ) -> set[tuple[object, object]]:
     """JLS recursion body.
@@ -300,7 +465,13 @@ def jls_recursive(
     r_minus_per_pivot: dict[object, set[object]] = {}
     r_plus_per_pivot: dict[object, set[object]] = {}
 
-    pivot_results = executor.run(expand_pivot, graph, state, pivots)
+    pivot_results = _run_pivots(
+        graph,
+        state,
+        pivots,
+        parallel=parallel,
+        n_workers=n_workers,
+    )
 
     from reachq.prune import apply_tc_pruning
 
@@ -345,7 +516,8 @@ def jls_recursive(
             sub_rng,
             flags,
             next_sampling,
-            executor=executor,
+            parallel=parallel,
+            n_workers=n_workers,
             tc_threshold=tc_threshold,
         )
         shortcuts |= sub_shortcuts
@@ -397,19 +569,6 @@ def _params_from_omega(
     return k, rho, max_level, beta, realised_bound
 
 
-def _flags_from(
-    flags: Any,
-    parallel_workers: int,
-) -> tuple[Any, ParallelExecutor]:
-    """Materialise flags, executor; honour ``flags.parallel`` and
-    ``parallel_workers`` for the per-pivot dispatch.
-    """
-    parallel = bool(getattr(flags, "parallel", False))
-    mode = "processes" if (parallel and parallel_workers > 1) else "sequential"
-    executor = ParallelExecutor(mode=mode, n_workers=parallel_workers)
-    return flags, executor
-
-
 def build_shortcut_set_for_reachability(
     graph: Digraph,
     omega: float = 3.0,
@@ -430,11 +589,9 @@ def build_shortcut_set_for_reachability(
 
     Args:
         graph: Input digraph (cycles handled by SCC condensation).
-        omega: Fast matrix multiplication exponent. Use
-            :func:`reachq.core.predict.predict_omega` for a heuristic
-            default based on graph density.
+        omega: Fast matrix multiplication exponent.
         random_seed: Optional seed for reproducibility.
-        refinement: A :class:`reachq.core.config.RefinementConfig`.
+        refinement: A :class:`reachq.config.RefinementConfig`.
         parallel_workers: When ``>1`` and ``refinement.parallel`` is
             True, the per-pivot BFS dispatches across a process pool.
 
@@ -490,7 +647,8 @@ def build_shortcut_set_for_reachability(
             else None
         )
 
-        flags, executor = _flags_from(flags, parallel_workers=parallel_workers)
+        parallel = bool(getattr(flags, "parallel", False))
+        _reset_spawn_warn_emitted()
 
         import random as _random
 
@@ -507,7 +665,8 @@ def build_shortcut_set_for_reachability(
             rng=rng,
             flags=flags,
             sampling_constant=sampling_constant,
-            executor=executor,
+            parallel=parallel,
+            n_workers=parallel_workers,
             tc_threshold=tc_threshold,
         )
 
@@ -576,7 +735,8 @@ def jls_with_tc_pruning(
         if flags.enable_tc_pruning
         else None
     )
-    flags, executor = _flags_from(flags, parallel_workers=parallel_workers)
+    parallel = bool(getattr(flags, "parallel", False))
+    _reset_spawn_warn_emitted()
 
     if sampling_constant is None:
         sampling_constant = 10.0
@@ -595,18 +755,21 @@ def jls_with_tc_pruning(
         rng,
         flags,
         sampling_constant,
-        executor=executor,
+        parallel=parallel,
+        n_workers=parallel_workers,
         tc_threshold=tc_threshold,
     )
 
 
 __all__ = [
+    "MIN_CSR_VERTICES",
     "ShortcutState",
     "adaptive_scale",
     "build_shortcut_set_for_reachability",
     "build_state",
     "condense_to_dag",
     "density_aware_constant",
+    "expand_pivot",
     "intra_scc_shortcuts",
     "jls_recursive",
     "jls_with_tc_pruning",
