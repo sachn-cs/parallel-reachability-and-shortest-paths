@@ -11,9 +11,9 @@ from __future__ import annotations
 import threading
 import time
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.generators import random_dag
-from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.generators import random_dag
+from reachq.reachability import bfs_reachability, parallel_bfs
 
 
 def _build(graph, seed: int):

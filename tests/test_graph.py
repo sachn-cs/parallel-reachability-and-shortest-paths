@@ -2,7 +2,7 @@
 
 import pytest
 
-from reachq.core.graph import (
+from reachq.graph import (
     Digraph,
     WeightedDigraph,
     contract_sccs,
@@ -148,7 +148,7 @@ class TestWeightedDigraph:
         assert g.get_weight(0, 1) == 3
 
     def test_to_unweighted(self):
-        from reachq.core.csr import to_unweighted_digraph
+        from reachq.csr import to_unweighted_digraph
 
         g = WeightedDigraph()
         g.add_edge(0, 1, 5)

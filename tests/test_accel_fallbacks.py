@@ -13,9 +13,9 @@ from __future__ import annotations
 
 import numpy as np
 
-from reachq.core.bfs import csr_reachable_forward
-from reachq.core.csr import build_csr_pair
-from reachq.core.generators import dense_graph
+from reachq.bfs import csr_reachable_forward
+from reachq.csr import build_csr_pair
+from reachq.generators import dense_graph
 
 
 def _setup_graph(

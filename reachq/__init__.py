@@ -27,8 +27,8 @@ logger.
 
 The recommended first test after install:
 
-    >>> from reachq.core.graph import Digraph
-    >>> from reachq.core.shortcut import build_shortcut_set_for_reachability
+    >>> from reachq.graph import Digraph
+    >>> from reachq.shortcut import build_shortcut_set_for_reachability
     >>> g = Digraph(); g.add_edge(0, 1); g.add_edge(1, 2)
     >>> H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     >>> isinstance(H, set)
@@ -44,15 +44,25 @@ by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak (2026).
 
 __version__ = "0.8.0"
 
-from reachq.core import invariants
-from reachq.core.closure import (
+from reachq import invariants
+from reachq.invariants import (
+    assert_distance_approximation,
+    assert_hopbound,
+    assert_hopset_size_bound,
+    assert_partition_correctness,
+    assert_reachability_preserved,
+    assert_scc_shortcuts_form_cliques,
+    assert_shortcut_set_size_bound,
+    check_equivalence_classes,
+)
+from reachq.closure import (
     TransitiveClosureBudgetError,
     transitive_closure,
     transitive_closure_brute_force,
     transitive_closure_on_subset,
 )
-from reachq.core.config import RefinementConfig
-from reachq.core.generators import (
+from reachq.config import RefinementConfig
+from reachq.generators import (
     cycle_graph,
     dense_graph,
     erdos_renyi_digraph,
@@ -69,18 +79,18 @@ from reachq.core.generators import (
     weighted_path_graph,
     weighted_random_dag,
 )
-from reachq.core.graph import Digraph, WeightedDigraph
-from reachq.core.hopset import (
+from reachq.graph import Digraph, WeightedDigraph
+from reachq.hopset import (
     build_hopset_for_sssp,
     cfr_with_truncsssp_pruning,
 )
-from reachq.core.io.json import (
+from reachq.io import (
     dump,
     load,
     weighted_dump,
     weighted_load,
 )
-from reachq.core.reachability import (
+from reachq.reachability import (
     bfs_reachability,
     compute_ancestors,
     compute_bridges,
@@ -90,11 +100,11 @@ from reachq.core.reachability import (
     strongly_connected_components,
     topological_sort,
 )
-from reachq.core.shortcut import (
+from reachq.shortcut import (
     build_shortcut_set_for_reachability,
     jls_with_tc_pruning,
 )
-from reachq.core.shortest_paths import (
+from reachq.shortest_paths import (
     astar,
     compute_d_ancestors,
     compute_d_ball,
@@ -105,7 +115,7 @@ from reachq.core.shortest_paths import (
     shortest_path_tree,
     truncated_dijkstra,
 )
-from reachq.core.work_depth import WorkDepthAccountant
+from reachq.work_depth import WorkDepthAccountant
 
 Flags = RefinementConfig
 

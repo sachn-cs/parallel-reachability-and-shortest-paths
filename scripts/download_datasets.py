@@ -14,7 +14,7 @@ import sys
 import urllib.request
 from pathlib import Path
 
-from reachq.core.config import get_logger
+from reachq.config import get_logger
 
 log = get_logger("reachq.download")
 

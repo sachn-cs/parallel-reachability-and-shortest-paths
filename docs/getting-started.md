@@ -39,7 +39,7 @@ python scripts/demo.py
 ### 1. Build a Graph
 
 ```python
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 
 g = Digraph()
 for i in range(100):
@@ -58,7 +58,7 @@ for i in range(99):
 
 ```python
 from reachq.core.algorithm import build_shortcut_set_for_reachability
-from reachq.core.generators import complete_dag
+from reachq.generators import complete_dag
 
 # Build a 10-vertex complete DAG (a denser graph where the
 # JLS construction produces a non-trivial shortcut set).
@@ -82,7 +82,7 @@ output.)
 ### 3. Query Reachability
 
 ```python
-from reachq.core.reachability import parallel_bfs, bfs_reachability
+from reachq.reachability import parallel_bfs, bfs_reachability
 
 source = 0
 reachable = parallel_bfs(g, source, shortcuts)

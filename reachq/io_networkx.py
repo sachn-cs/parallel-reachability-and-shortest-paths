@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from reachq.core.graph import Digraph
+    from reachq.graph import Digraph
 
 
 def to_networkx(graph: Digraph) -> Any:
@@ -63,7 +63,7 @@ def from_networkx(nx_graph: Any) -> Digraph:
             "Install with: pip install reachq[research]"
         )
 
-    from reachq.core.graph import Digraph
+    from reachq.graph import Digraph
 
     g = Digraph()
     for v in nx_graph.nodes():

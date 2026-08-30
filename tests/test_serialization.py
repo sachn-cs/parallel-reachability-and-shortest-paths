@@ -2,9 +2,9 @@
 
 import pytest
 
-from reachq.core.generators import path_graph, weighted_path_graph
-from reachq.core.graph import Digraph, WeightedDigraph
-from reachq.core.io.json import (
+from reachq.generators import path_graph, weighted_path_graph
+from reachq.graph import Digraph, WeightedDigraph
+from reachq.io import (
     digraph_from_dict,
     digraph_to_dict,
     dump,

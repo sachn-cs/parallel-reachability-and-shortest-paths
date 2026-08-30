@@ -2,7 +2,7 @@
 
 The Protocols here are load-bearing: every public algorithm is
 type-annotated against them, so a third-party graph
-implementation that conforms to ``proto.graph.Graph`` is
+implementation that conforms to ``proto.Graph`` is
 substitutable for the concrete :class:`Digraph`.
 
 These Protocols are intentionally minimal -- they expose only the

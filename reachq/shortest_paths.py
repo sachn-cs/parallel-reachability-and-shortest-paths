@@ -28,10 +28,10 @@ import itertools
 from collections.abc import Callable
 from typing import TYPE_CHECKING
 
-from reachq.core.errors import ReachqGraphError, ReachqValueError
+from reachq.errors import ReachqGraphError, ReachqValueError
 
 if TYPE_CHECKING:
-    from reachq.core.graph import WeightedDigraph
+    from reachq.graph import WeightedDigraph
 
 UNREACHABLE: int = 1 << 62
 """Sentinel larger than any polynomial weight. Returned by

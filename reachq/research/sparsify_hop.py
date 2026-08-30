@@ -38,9 +38,9 @@ __experimental__ = True
 from collections import deque
 from typing import Any
 
-from reachq.core.config import get_logger
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability
+from reachq.config import get_logger
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability
 
 log = get_logger("reachq.sparsify_hop")
 
@@ -103,7 +103,7 @@ def _beta_for(graph: Digraph, omega: float) -> float:
 
     Mirrors :func:`reachq.core.shortcut._params_from_omega`.
     """
-    from reachq.core.shortcut import _params_from_omega
+    from reachq.shortcut import _params_from_omega
 
     n = graph.num_vertices()
     m = graph.num_edges()

@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from reachq.core.graph import Digraph
+    from reachq.graph import Digraph
 
 
 def dump_arrow(graph: Digraph, path: str) -> None:
@@ -73,7 +73,7 @@ def load_arrow(path: str) -> Digraph:
             "Install with: pip install reachq[research]"
         ) from e
 
-    from reachq.core.graph import Digraph
+    from reachq.graph import Digraph
 
     reader = ipc.open_file(path)
     table = reader.read_all()

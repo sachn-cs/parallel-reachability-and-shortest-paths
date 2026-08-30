@@ -33,11 +33,11 @@ from typing import Any
 
 import numpy as np
 
-from reachq.core.csr import build_csr_pair
-from reachq.core.errors import ReachqValueError
-from reachq.core.graph import Digraph, partition_by_labels
-from reachq.core.shortcut_parallel import ParallelExecutor, expand_pivot
-from reachq.core.trace import trace
+from reachq.csr import build_csr_pair
+from reachq.errors import ReachqValueError
+from reachq.graph import Digraph, partition_by_labels
+from reachq.shortcut_parallel import ParallelExecutor, expand_pivot  # noqa: F401 — merged in step 2
+from reachq.trace import trace
 
 
 @dataclass(frozen=True)
@@ -133,7 +133,7 @@ def condense_to_dag(
     :func:`build_shortcut_set_for_reachability` constructs the
     condensation DAG explicitly.
     """
-    from reachq.core.reachability import strongly_connected_components
+    from reachq.reachability import strongly_connected_components
 
     components = strongly_connected_components(graph)
     sccs = [
@@ -302,7 +302,7 @@ def jls_recursive(
 
     pivot_results = executor.run(expand_pivot, graph, state, pivots)
 
-    from reachq.core.prune import apply_tc_pruning
+    from reachq.prune import apply_tc_pruning
 
     for pivot, result in zip(pivots, pivot_results):
         r_minus = result.get("r_minus", set())
@@ -444,8 +444,8 @@ def build_shortcut_set_for_reachability(
         ``realised_bound`` is the algorithm's actual guarantee
         based on the chosen ``rho`` and recursion depth.
     """
-    from reachq.core.config import RefinementConfig
-    from reachq.core.prune import compute_tc_pruning_threshold
+    from reachq.config import RefinementConfig
+    from reachq.prune import compute_tc_pruning_threshold
 
     with trace("build_shortcut_set", n=graph.num_vertices(), m=graph.num_edges()):
         flags = (
@@ -557,8 +557,8 @@ def jls_with_tc_pruning(
     Returns:
         Set of shortcut edges.
     """
-    from reachq.core.config import RefinementConfig
-    from reachq.core.prune import compute_tc_pruning_threshold
+    from reachq.config import RefinementConfig
+    from reachq.prune import compute_tc_pruning_threshold
 
     _validate_algorithm_params(k, rho, max_level)
 

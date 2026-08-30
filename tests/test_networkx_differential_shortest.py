@@ -12,10 +12,10 @@ from importlib.util import find_spec
 
 import pytest
 
-from reachq.core.generators import random_dag, weighted_random_dag
-from reachq.core.graph import WeightedDigraph
-from reachq.core.hopset import build_hopset_for_sssp
-from reachq.core.shortest_paths import (
+from reachq.generators import random_dag, weighted_random_dag
+from reachq.graph import WeightedDigraph
+from reachq.hopset import build_hopset_for_sssp
+from reachq.shortest_paths import (
     UNREACHABLE,
     dijkstra,
     shortest_path,

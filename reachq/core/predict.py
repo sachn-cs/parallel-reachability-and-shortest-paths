@@ -23,7 +23,7 @@ from __future__ import annotations
 
 import math
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 
 
 def _runtime_omega() -> float:

@@ -25,7 +25,7 @@ __experimental__ = True
 
 from typing import Any
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 
 
 def path_shortcut_set(n: int) -> set[tuple[Any, Any]]:

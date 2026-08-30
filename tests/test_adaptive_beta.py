@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reachq.core.generators import (
+from reachq.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
@@ -18,7 +18,7 @@ class TestAdaptiveBeta:
         assert beta >= 1.0
 
     def test_returns_zero_on_empty_graph(self):
-        from reachq.core.graph import Digraph
+        from reachq.graph import Digraph
 
         beta = adaptive_beta(Digraph(), n_samples=5)
         assert beta == 0.0

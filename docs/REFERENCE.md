@@ -11,94 +11,94 @@ docstrings, so they should never lie about the API.
 
 ## Graph primitives
 
-::: reachq.core.graph.Digraph
+::: reachq.graph.Digraph
     options:
       show_root_heading: true
       show_symbol_class_heading: true
       show_symbol_class_toc: true
 
-::: reachq.core.graph.WeightedDigraph
+::: reachq.graph.WeightedDigraph
     options:
       show_root_heading: true
       show_symbol_class_heading: true
 
 ## Shortcut-set construction
 
-::: reachq.core.shortcut.build_shortcut_set_for_reachability
+::: reachq.shortcut.build_shortcut_set_for_reachability
     options:
       show_root_heading: true
 
-::: reachq.core.shortcut.jls_with_tc_pruning
+::: reachq.shortcut.jls_with_tc_pruning
     options:
       show_root_heading: true
 
-::: reachq.core.shortcut.jls_with_tc_pruning
+::: reachq.shortcut.jls_with_tc_pruning
     options:
       show_root_heading: true
 
 ## Hopset construction
 
-::: reachq.core.hopset.build_hopset_for_sssp
+::: reachq.hopset.build_hopset_for_sssp
     options:
       show_root_heading: true
 
-::: reachq.core.hopset.cfr_hopset
+::: reachq.hopset.cfr_hopset
     options:
       show_root_heading: true
 
-::: reachq.core.hopset.cfr_with_truncsssp_pruning
+::: reachq.hopset.cfr_with_truncsssp_pruning
     options:
       show_root_heading: true
 
 ## Reachability and graph algorithms
 
-::: reachq.core.reachability.bfs_reachability
+::: reachq.reachability.bfs_reachability
     options:
       show_root_heading: true
 
-::: reachq.core.reachability.parallel_bfs
+::: reachq.reachability.parallel_bfs
     options:
       show_root_heading: true
 
-::: reachq.core.reachability.strongly_connected_components
+::: reachq.reachability.strongly_connected_components
     options:
       show_root_heading: true
 
-::: reachq.core.reachability.topological_sort
+::: reachq.reachability.topological_sort
     options:
       show_root_heading: true
 
 ## Shortest paths
 
-::: reachq.core.shortest_paths.dijkstra
+::: reachq.shortest_paths.dijkstra
     options:
       show_root_heading: true
 
-::: reachq.core.shortest_paths.shortest_path_hopbound
+::: reachq.shortest_paths.shortest_path_hopbound
     options:
       show_root_heading: true
 
 ## CSR numpy BFS kernels
 
-::: reachq.core.bfs.csr_reachable_forward
+::: reachq.bfs.csr_reachable_forward
     options:
       show_root_heading: true
 
-::: reachq.core.bfs.csr_reachable_backward
+::: reachq.bfs.csr_reachable_backward
     options:
       show_root_heading: true
 
-::: reachq.core.bfs.csr_bfs_layered
+::: reachq.bfs.csr_bfs_layered
     options:
       show_root_heading: true
 
 ## TC-pruning internals
 
-::: reachq.core.prune.compute_tc_pruning_threshold
+::: reachq.prune.compute_tc_pruning_threshold
     options:
       show_root_heading: true
 
-::: reachq.core.prune.apply_tc_pruning
+::: reachq.prune.apply_tc_pruning
     options:
       show_root_heading: true
 
@@ -114,88 +114,88 @@ docstrings, so they should never lie about the API.
 
 ## Graph generators
 
-::: reachq.core.generators.random_dag
+::: reachq.generators.random_dag
     options:
       show_root_heading: true
 
 ## Configuration, errors, logging
 
-::: reachq.core.config.RefinementConfig
+::: reachq.config.RefinementConfig
     options:
       show_root_heading: true
       show_symbol_class_toc: true
       members: [from_dict]
 
-::: reachq.core.config.configure_logging
+::: reachq.config.configure_logging
     options:
       show_root_heading: true
 
-::: reachq.core.config.get_logger
+::: reachq.config.get_logger
     options:
       show_root_heading: true
 
-::: reachq.core.errors.ReachqError
+::: reachq.errors.ReachqError
     options:
       show_root_heading: true
 
-::: reachq.core.errors.ReachqValueError
+::: reachq.errors.ReachqValueError
     options:
       show_root_heading: true
 
-::: reachq.core.errors.ReachqTypeError
+::: reachq.errors.ReachqTypeError
     options:
       show_root_heading: true
 
-::: reachq.core.errors.ReachqGraphError
+::: reachq.errors.ReachqGraphError
     options:
       show_root_heading: true
 
-::: reachq.core.errors.ReachqBackendError
+::: reachq.errors.ReachqBackendError
     options:
       show_root_heading: true
 
-::: reachq.core.errors.ReachqConfigError
+::: reachq.errors.ReachqConfigError
     options:
       show_root_heading: true
 
 ## Work-depth accounting
 
-::: reachq.core.work_depth.WorkDepthAccountant
+::: reachq.work_depth.WorkDepthAccountant
     options:
       show_root_heading: true
       show_symbol_class_toc: true
 
 ## Serialisation
 
-::: reachq.core.io.json.dump
+::: reachq.io.dump
     options:
       show_root_heading: true
 
-::: reachq.core.io.json.load
+::: reachq.io.load
     options:
       show_root_heading: true
 
-::: reachq.core.io.json.digraph_to_dict
+::: reachq.io.digraph_to_dict
     options:
       show_root_heading: true
 
-::: reachq.core.io.json.digraph_from_dict
+::: reachq.io.digraph_from_dict
     options:
       show_root_heading: true
 
-::: reachq.core.io.arrow.dump_arrow
+::: reachq.io_arrow.dump_arrow
     options:
       show_root_heading: true
 
-::: reachq.core.io.arrow.load_arrow
+::: reachq.io_arrow.load_arrow
     options:
       show_root_heading: true
 
-::: reachq.core.io.networkx.to_networkx
+::: reachq.io_networkx.to_networkx
     options:
       show_root_heading: true
 
-::: reachq.core.io.networkx.from_networkx
+::: reachq.io_networkx.from_networkx
     options:
       show_root_heading: true
 
@@ -206,15 +206,15 @@ docstrings, so they should never lie about the API.
 
 ## Invariants
 
-::: reachq.core.invariants.assert_reachability_preserved
+::: reachq.invariants.assert_reachability_preserved
     options:
       show_root_heading: true
 
-::: reachq.core.invariants.assert_hopbound
+::: reachq.invariants.assert_hopbound
     options:
       show_root_heading: true
 
-::: reachq.core.invariants.assert_scc_shortcuts_form_cliques
+::: reachq.invariants.assert_scc_shortcuts_form_cliques
     options:
       show_root_heading: true
 
@@ -222,11 +222,11 @@ docstrings, so they should never lie about the API.
 
 The CLI is exposed via the `reachq` console-script entry point
 (declared in `pyproject.toml`). See [`docs/getting-started.md`](getting-started.md)
-for usage; the handlers live in `reachq.cli.main`.
+for usage; the handlers live in `reachq.cli`.
 
 ## Protocols
 
-::: reachq.proto.graph.Graph
+::: reachq.proto.Graph
     options:
       show_root_heading: true
 

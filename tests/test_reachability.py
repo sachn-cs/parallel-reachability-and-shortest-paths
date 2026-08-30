@@ -2,9 +2,9 @@
 
 import pytest
 
-from reachq.core.errors import ReachqGraphError
-from reachq.core.graph import Digraph
-from reachq.core.reachability import (
+from reachq.errors import ReachqGraphError
+from reachq.graph import Digraph
+from reachq.reachability import (
     bfs_reachability,
     compute_ancestors,
     compute_bridges,

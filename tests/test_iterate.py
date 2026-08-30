@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.generators import petersen_graph, random_dag
-from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.generators import petersen_graph, random_dag
+from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.research.iterate import iterative_shortcut_set
 
 
@@ -22,7 +22,7 @@ class TestIterativeSoundness:
             assert bfs_reachability(g, v) == parallel_bfs(g, v, H)
 
     def test_iterative_preserves_reachability_on_graph_with_sccs(self):
-        from reachq.core.graph import Digraph
+        from reachq.graph import Digraph
 
         g = Digraph()
         for i in range(5):

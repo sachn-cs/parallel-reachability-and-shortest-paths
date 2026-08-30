@@ -10,8 +10,8 @@ multiplication exponent omega.
 
 from __future__ import annotations
 
-from reachq.core.closure import transitive_closure_on_subset
-from reachq.core.graph import Digraph
+from reachq.closure import transitive_closure_on_subset
+from reachq.graph import Digraph
 
 
 def compute_tc_pruning_threshold(

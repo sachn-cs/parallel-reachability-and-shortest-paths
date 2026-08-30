@@ -14,8 +14,8 @@ from pathlib import Path
 
 import pytest
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.graph import Digraph
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.graph import Digraph
 
 
 REPO_ROOT = Path(__file__).parent.parent
@@ -25,8 +25,8 @@ SCRIPT = textwrap.dedent(
     """
     import sys
     sys.path.insert(0, %r)
-    from reachq.core.shortcut import build_shortcut_set_for_reachability
-    from reachq.core.graph import Digraph
+    from reachq.shortcut import build_shortcut_set_for_reachability
+    from reachq.graph import Digraph
 
     g = Digraph()
     for i in range(20):
@@ -86,8 +86,8 @@ def test_default_subprocess_shortcuts_match_main_process():
         f"""
         import sys
         sys.path.insert(0, '{REPO_ROOT}')
-        from reachq.core.shortcut import build_shortcut_set_for_reachability
-        from reachq.core.graph import Digraph
+        from reachq.shortcut import build_shortcut_set_for_reachability
+        from reachq.graph import Digraph
         g = Digraph()
         for i in range(15):
             g.add_vertex(i)

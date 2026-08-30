@@ -7,9 +7,9 @@ from collections.abc import Callable
 
 import pytest
 
-from reachq.core.graph import Digraph
-from reachq.core.shortcut import ShortcutState
-from reachq.core.shortcut_parallel import ParallelExecutor, expand_pivot
+from reachq.graph import Digraph
+from reachq.shortcut import ShortcutState
+from reachq.shortcut_parallel import ParallelExecutor, expand_pivot
 
 
 def _trivial_state(graph: Digraph) -> ShortcutState:

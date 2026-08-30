@@ -10,9 +10,9 @@ still preserved after removal.
 
 from __future__ import annotations
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.generators import random_dag
-from reachq.core.graph import Digraph
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.generators import random_dag
+from reachq.graph import Digraph
 from reachq.research.sparsify_hop import (
     sparsify_hop_bounded,
     verify_hopbound_preserved,
@@ -52,7 +52,7 @@ class TestSparsifyHopBounded:
         assert verify_hopbound_preserved(g, H2, int(beta))
 
     def test_soundness_preserved(self):
-        from reachq.core.reachability import bfs_reachability, parallel_bfs
+        from reachq.reachability import bfs_reachability, parallel_bfs
 
         g = random_dag(30, edge_probability=0.3, random_seed=42)
         H, beta, _ = build_shortcut_set_for_reachability(

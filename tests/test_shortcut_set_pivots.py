@@ -5,13 +5,13 @@ Pivots are sampled with probability C * k * log n / n. The
 density-aware constant C depends on graph density.
 """
 
-from reachq.core.shortcut import (
+from reachq.shortcut import (
     build_shortcut_set_for_reachability,
     density_aware_constant,
     jls_with_tc_pruning,
 )
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability, parallel_bfs
 
 
 class TestPivotSampling:

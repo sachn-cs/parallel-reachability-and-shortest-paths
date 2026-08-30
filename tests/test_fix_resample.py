@@ -2,13 +2,13 @@
 
 from __future__ import annotations
 
-from reachq.core.generators import (
+from reachq.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
     random_dag,
 )
-from reachq.core.reachability import bfs_reachability
+from reachq.reachability import bfs_reachability
 from reachq.research.fix_resample import (
     fix_resample_reachable,
     fix_resample_shortcut_set,
@@ -42,7 +42,7 @@ class TestFixResampleBasic:
                 assert fix_resample_reachable(g, v, shortcuts) == bfs_reachability(g, v)
 
     def test_empty_graph(self):
-        from reachq.core.graph import Digraph
+        from reachq.graph import Digraph
 
         g = Digraph()
         shortcuts = fix_resample_shortcut_set(g)

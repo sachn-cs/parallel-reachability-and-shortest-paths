@@ -34,8 +34,8 @@ __experimental__ = True
 from collections import deque
 from typing import Any
 
-from reachq.core.config import get_logger
-from reachq.core.graph import Digraph
+from reachq.config import get_logger
+from reachq.graph import Digraph
 
 log = get_logger("reachq.sparsify")
 
@@ -84,7 +84,7 @@ def sparsify_shortcut_set(
     typical inputs.
 
     Examples:
-        >>> from reachq.core.graph import Digraph
+        >>> from reachq.graph import Digraph
         >>> g = Digraph()
         >>> g.add_edge(0, 1)
         >>> g.add_edge(1, 2)

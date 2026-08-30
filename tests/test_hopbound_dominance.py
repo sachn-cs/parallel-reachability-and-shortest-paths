@@ -10,9 +10,9 @@ shorter-hop arrival that is also cheaper, leaving ``t`` as
 state must return ``t == 0``.
 """
 
-from reachq.core.generators import path_graph
-from reachq.core.graph import WeightedDigraph
-from reachq.core.shortest_paths import (
+from reachq.generators import path_graph
+from reachq.graph import WeightedDigraph
+from reachq.shortest_paths import (
     dijkstra,
     shortest_path_hopbound,
     truncated_dijkstra,

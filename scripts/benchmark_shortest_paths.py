@@ -20,8 +20,8 @@ import time
 from collections.abc import Sequence
 from typing import Any
 
-from reachq.core.config import configure_logging, get_logger
-from reachq.core.generators import (
+from reachq.config import configure_logging, get_logger
+from reachq.generators import (
     dense_graph,
     random_dag,
     weighted_dense_graph,
@@ -29,10 +29,10 @@ from reachq.core.generators import (
     graph_with_sccs,
     path_graph,
 )
-from reachq.core.graph import Digraph, WeightedDigraph
-from reachq.core.hopset import build_hopset_for_sssp
-from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.graph import Digraph, WeightedDigraph
+from reachq.hopset import build_hopset_for_sssp
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
 
 configure_logging()

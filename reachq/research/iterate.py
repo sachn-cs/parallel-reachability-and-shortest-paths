@@ -46,9 +46,9 @@ __experimental__ = True
 
 
 
-from reachq.core.config import get_logger
-from reachq.core.graph import Digraph
-from reachq.core.shortcut import jls_with_tc_pruning
+from reachq.config import get_logger
+from reachq.graph import Digraph
+from reachq.shortcut import jls_with_tc_pruning
 
 log = get_logger("reachq.iterate")
 
@@ -87,7 +87,7 @@ def iterative_shortcut_set(
     import time
 
     if random_seed is not None:
-        from reachq.core.config import configure_logging
+        from reachq.config import configure_logging
 
         configure_logging()
 
@@ -99,7 +99,7 @@ def iterative_shortcut_set(
     rho = max(1.0, math.sqrt(n) / beta) if beta > 0 else 1.0
     rho = min(rho, math.sqrt(n))
     max_level = max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
-    from reachq.core.shortcut import density_aware_constant
+    from reachq.shortcut import density_aware_constant
 
     sampling_constant = density_aware_constant(rho, k)
 

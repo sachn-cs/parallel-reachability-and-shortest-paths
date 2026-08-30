@@ -28,8 +28,8 @@ build dependencies (`cython`), it does not compile anything.
   the speedups in this document are illustrative, not measured against
   the shipped package.
 - The only behavior guaranteed and tested is the fallback: every wrapper
-  falls back to the pure-Python implementations in `reachq.core.bfs` and
-  `reachq.core.shortest_paths` when the compiled extension is absent
+  falls back to the pure-Python implementations in `reachq.bfs` and
+  `reachq.shortest_paths` when the compiled extension is absent
   (covered by `tests/test_accel_fallbacks.py`).
 - Do not rely on the native kernels for correctness or performance until
   a build + test path is added and CI-verified.

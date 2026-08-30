@@ -11,7 +11,7 @@ sampling, partition, recursion, and CSR all consume a stable
 sequence of vertices regardless of hash randomization. ``vertices()``
 returns that sequence as a tuple.
 
-The classes conform to :class:`reachq.proto.graph.Graph` (and
+The classes conform to :class:`reachq.proto.Graph` (and
 :class:`WeightedGraph`), so any third-party graph implementation that
 satisfies the protocol can be substituted into reachq algorithms.
 """
@@ -20,7 +20,7 @@ from __future__ import annotations
 
 from collections.abc import Iterator
 
-from reachq.core.errors import ReachqTypeError, ReachqValueError
+from reachq.errors import ReachqTypeError, ReachqValueError
 
 
 class Digraph:
@@ -372,7 +372,7 @@ def contract_sccs(graph: Digraph) -> tuple[list[list[object]], dict[object, int]
     operating on ``graph.iter_vertices()``; vertices inside each SCC
     follow the original insertion order.
     """
-    from reachq.core.reachability import strongly_connected_components
+    from reachq.reachability import strongly_connected_components
 
     components = strongly_connected_components(graph)
     sccs = [

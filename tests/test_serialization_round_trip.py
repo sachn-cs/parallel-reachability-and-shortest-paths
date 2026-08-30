@@ -11,8 +11,8 @@ import random
 from hypothesis import HealthCheck, given, settings
 from hypothesis import strategies as st
 
-from reachq.core.graph import Digraph
-from reachq.core.io.json import dump, load
+from reachq.graph import Digraph
+from reachq.io import dump, load
 
 
 @given(

@@ -41,7 +41,7 @@ class TestBoundGap:
     these constructions. This documents the bound gap empirically."""
 
     def test_jls_overshoots_bound_on_long_path(self):
-        from reachq.core.shortcut import build_shortcut_set_for_reachability
+        from reachq.shortcut import build_shortcut_set_for_reachability
 
         g = long_path_dag(20)
         H, _, _ = build_shortcut_set_for_reachability(

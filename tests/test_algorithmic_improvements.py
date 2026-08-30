@@ -14,11 +14,11 @@ from importlib.util import find_spec
 import pytest
 
 from reachq import RefinementConfig
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.generators import random_dag, weighted_random_dag
-from reachq.core.hopset import build_hopset_for_sssp
-from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.generators import random_dag, weighted_random_dag
+from reachq.hopset import build_hopset_for_sssp
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
 
 def all_flag_names() -> list[str]:
@@ -69,7 +69,7 @@ def test_flags_dataclass_rejects_unknown_names() -> None:
 
 def test_density_aware_constant_scales_with_rho() -> None:
     """The density-aware sampling constant is non-decreasing in rho."""
-    from reachq.core.shortcut import density_aware_constant
+    from reachq.shortcut import density_aware_constant
 
     SAMPLING_DEFAULT = 10.0
     assert density_aware_constant(rho=10.0, k=4.0) == SAMPLING_DEFAULT
@@ -90,7 +90,7 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
     """
     import math
 
-    from reachq.core.shortcut import jls_with_tc_pruning
+    from reachq.shortcut import jls_with_tc_pruning
 
     g = random_dag(n=60, edge_probability=0.4, random_seed=7)
     build_shortcut_set_for_reachability(
@@ -137,7 +137,7 @@ def test_networkx_cross_check_shortcut_set() -> None:
 
     import networkx as nx
 
-    from reachq.core.graph import Digraph
+    from reachq.graph import Digraph
 
     g = Digraph()
     for i in range(50):

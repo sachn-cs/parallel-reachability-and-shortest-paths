@@ -35,7 +35,7 @@ to the regression test that pins the new behavior.
 * ``dijkstra(g, source)``: unreachable vertices are **absent**
   from the returned mapping. ``shortest_path(g, source, target)``
   returns the new sentinel
-  :data:`reachq.core.shortest_paths.UNREACHABLE`.
+  :data:`reachq.shortest_paths.UNREACHABLE`.
 * All SSSP entry points raise ``KeyError`` for sources not in
   the graph and ``ValueError`` for negative
   ``max_distance``/``max_hops``.
@@ -53,7 +53,7 @@ to the regression test that pins the new behavior.
   on the original weighted graph. Every emitted hopset edge
   weight equals the original shortest-path distance.
 * ``cfr_hopset`` is no longer exported from the top-level
-  package; the functions still exist in ``reachq.core.hopset``
+  package; the functions still exist in ``reachq.hopset``
   for tests and direct callers.
 
 ### 6. Transitive closure
@@ -72,7 +72,7 @@ to the regression test that pins the new behavior.
   ``algorithm/{state,pivots,partition,recursion,scc_lift,
   parallel,adaptive,wrap}.py``.
 * Old ``Flags`` import path is gone. Use
-  :class:`reachq.core.config.RefinementConfig`.
+  :class:`reachq.config.RefinementConfig`.
 * Parallel dispatch uses ``spawn`` and binds state per-task;
   no module-level globals.
 * ``adaptive_sampling`` actually changes the next-level
@@ -88,7 +88,7 @@ to the regression test that pins the new behavior.
 ### 9. Logging
 
 * Library code never touches the root logger. CLI entry points
-  must call :func:`reachq.core.config.configure_logging`
+  must call :func:`reachq.config.configure_logging`
   explicitly.
 
 ## Backward compatibility
@@ -103,7 +103,7 @@ listed above are hard cuts.
    ``graph.iter_vertices()``.
 2. Replace the old "absent vs. ``inf``" judgment with membership
    checks against the returned dict, or comparison against
-   :data:`reachq.core.shortest_paths.UNREACHABLE`.
+   :data:`reachq.shortest_paths.UNREACHABLE`.
 3. Replace ``transitive_closure_matrix`` with
    ``transitive_closure_boolean`` and add a ``max_pairs`` budget
    if the caller cannot guarantee output stays well-behaved.

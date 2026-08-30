@@ -30,7 +30,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.config import get_logger
+from reachq.config import get_logger
 
 log = get_logger("reachq.reproduce")
 
@@ -146,11 +146,11 @@ def run_sampling(
     out_dir: Path,
 ) -> list[dict[str, object]]:
     """Run synthetic random DAGs. Per-graph timeouts land in `error`."""
-    from reachq.core.shortcut import build_shortcut_set_for_reachability
-    from reachq.core.generators import random_dag, weighted_random_dag
-    from reachq.core.hopset import build_hopset_for_sssp
-    from reachq.core.reachability import bfs_reachability, parallel_bfs
-    from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
+    from reachq.shortcut import build_shortcut_set_for_reachability
+    from reachq.generators import random_dag, weighted_random_dag
+    from reachq.hopset import build_hopset_for_sssp
+    from reachq.reachability import bfs_reachability, parallel_bfs
+    from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
     rows: list[dict[str, object]] = []
     for n in sizes:
@@ -276,9 +276,9 @@ def run_snap(
     out_dir: Path,
 ) -> list[dict[str, object]]:
     """Run SNAP datasets. Skips datasets with no cached file. Per-graph timeouts land in `error`."""
-    from reachq.core.shortcut import build_shortcut_set_for_reachability
-    from reachq.core.generators import load_dataset
-    from reachq.core.reachability import bfs_reachability, parallel_bfs
+    from reachq.shortcut import build_shortcut_set_for_reachability
+    from reachq.generators import load_dataset
+    from reachq.reachability import bfs_reachability, parallel_bfs
 
     rows: list[dict[str, object]] = []
     for name in datasets:
@@ -507,7 +507,7 @@ def main() -> int:
         )
 
     if not args.skip_snap:
-        from reachq.core.generators import SNAP_DATASETS
+        from reachq.generators import SNAP_DATASETS
 
         data_dir = Path("data")
         if args.datasets is not None:

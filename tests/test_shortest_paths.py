@@ -2,8 +2,8 @@
 
 import pytest
 
-from reachq.core.graph import WeightedDigraph
-from reachq.core.shortest_paths import (
+from reachq.graph import WeightedDigraph
+from reachq.shortest_paths import (
     astar,
     compute_d_ancestors,
     compute_d_ball,

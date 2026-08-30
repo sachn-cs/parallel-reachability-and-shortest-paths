@@ -16,7 +16,7 @@ import time
 from contextlib import contextmanager
 from typing import Any
 
-from reachq.core.config import get_logger
+from reachq.config import get_logger
 
 log = get_logger("reachq.core.trace")
 

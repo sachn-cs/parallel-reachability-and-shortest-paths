@@ -11,7 +11,7 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from reachq.core.algorithm import build_shortcut_set_for_reachability
-from reachq.core.generators import random_dag
+from reachq.generators import random_dag
 
 
 def time_jls_path_n50():

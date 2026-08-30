@@ -27,7 +27,7 @@ the survey covers adjacent areas where reachq draws on prior work.
    work cost of computing the TC on the r-ball is implicit in the
    construction and not separately analysed. **Direct citation in
    reachq: paper Theorem 2; we reproduce the bound in
-   ``reachq.core.work_depth.theoretical_shortcut_work``.**
+   ``reachq.work_depth.theoretical_shortcut_work``.**
 
 2. **Ashvinkumar, Bernstein, Probst Gutenberg, Saranurak.**
    "Parallel Reachability and Shortest Paths on Non-sparse Digraphs:
@@ -192,7 +192,7 @@ the survey covers adjacent areas where reachq draws on prior work.
 26. **Spiro.** "The Shrikhande graph." *Topics in Algebraic Graph
     Theory, Cambridge Univ. Press, 2004*. Cited for the
     definition and properties of the Shrikhande graph that
-    ``reachq.core.generators.shrikhande_cayley`` constructs.
+    ``reachq.generators.shrikhande_cayley`` constructs.
 
 27. **Brouwer, Cohen, Neumaier.** "Regular Graphs." *Oxford
     University Press, 1989*. The standard reference for
@@ -203,11 +203,11 @@ the survey covers adjacent areas where reachq draws on prior work.
 28. **Even, Tarjan.** "Network flows and testing graph
     connectivity." *SIAM J. Comput. 4, 4 (1975)*. Cited for the
     classical connected-components algorithm that underlies our
-    SCC implementation in ``reachq.core.reachability``.
+    SCC implementation in ``reachq.reachability``.
 
 29. **Tarjan.** "Depth-first search and linear graph
     algorithms." *SIAM J. Comput. 1, 2 (1972)*. The original SCC
-    paper. Our SCC implementation in ``reachq.core.reachability``
+    paper. Our SCC implementation in ``reachq.reachability``
     is a Tarjan-style iterative variant.
 
 ### Hypergraph reachability

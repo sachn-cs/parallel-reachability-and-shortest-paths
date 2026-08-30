@@ -23,7 +23,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.config import get_logger
+from reachq.config import get_logger
 
 log = get_logger("reachq.eval_refinements")
 
@@ -75,8 +75,8 @@ def hopbound_actual(graph, source: object, shortcuts, beta: float) -> tuple[int,
 def run_one(
     graph, flags: dict[str, bool], seed: int, omega: float, max_seconds: int
 ) -> dict[str, object]:
-    from reachq.core.shortcut import build_shortcut_set_for_reachability
-    from reachq.core.reachability import bfs_reachability, parallel_bfs
+    from reachq.shortcut import build_shortcut_set_for_reachability
+    from reachq.reachability import bfs_reachability, parallel_bfs
 
     row: dict[str, object] = {
         "n": graph.num_vertices(),
@@ -134,7 +134,7 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    from reachq.core.generators import random_dag
+    from reachq.generators import random_dag
 
     configurations: list[tuple[str, dict[str, bool]]] = [
         # Lemma 7 — TC trigger
@@ -221,7 +221,7 @@ def main() -> int:
 
     # SNAP datasets, if requested.
     if args.datasets:
-        from reachq.core.generators import load_dataset
+        from reachq.generators import load_dataset
 
         for name in args.datasets:
             try:

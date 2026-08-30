@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reachq.core.generators import shrikhande_cayley
+from reachq.generators import shrikhande_cayley
 
 
 def test_shrikhande_cayley_returns_graph():

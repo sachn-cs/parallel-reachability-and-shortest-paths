@@ -39,7 +39,7 @@ __experimental__ = True
 from collections import deque
 from collections.abc import Callable, Iterable
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 
 Hyperedge = tuple[frozenset[object], frozenset[object]]
 """A directed hyperedge: (tail set, head set). Both non-empty."""

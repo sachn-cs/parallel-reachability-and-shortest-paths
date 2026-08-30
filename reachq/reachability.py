@@ -21,10 +21,10 @@ from __future__ import annotations
 from collections import deque
 from typing import TYPE_CHECKING
 
-from reachq.core.errors import ReachqGraphError
+from reachq.errors import ReachqGraphError
 
 if TYPE_CHECKING:
-    from reachq.core.graph import Digraph
+    from reachq.graph import Digraph
 
 
 def bfs_reachability(graph: Digraph, source: object) -> set[object]:

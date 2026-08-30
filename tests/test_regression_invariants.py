@@ -18,19 +18,19 @@ from __future__ import annotations
 import pytest
 
 pass  # placeholder
-from reachq.core.config import RefinementConfig
-from reachq.core.closure import (
+from reachq.config import RefinementConfig
+from reachq.closure import (
     TransitiveClosureBudgetError,
     transitive_closure,
     transitive_closure_brute_force,
 )
-from reachq.core.errors import ReachqGraphError
-from reachq.core.graph import Digraph, WeightedDigraph
-from reachq.core.closure import (  # type alias kept for clarity
+from reachq.errors import ReachqGraphError
+from reachq.graph import Digraph, WeightedDigraph
+from reachq.closure import (  # type alias kept for clarity
     transitive_closure as closure_transitive,
     decode_pairs as closure_decode_pairs,
 )
-from reachq.core.shortest_paths import (
+from reachq.shortest_paths import (
     UNREACHABLE,
     astar,
     dijkstra,
@@ -124,7 +124,7 @@ class TestLayeredHopbound:
 
 class TestClosureBudget:
     def test_path_closure_under_budget(self):
-        from reachq.core.graph import Digraph as _Digraph
+        from reachq.graph import Digraph as _Digraph
 
         g = _Digraph()
         for i in range(15):
@@ -135,7 +135,7 @@ class TestClosureBudget:
         assert (0, 14) in tc
 
     def test_budget_strict_raises(self):
-        from reachq.core.graph import Digraph as _Digraph
+        from reachq.graph import Digraph as _Digraph
 
         g = _Digraph()
         for i in range(15):
@@ -146,7 +146,7 @@ class TestClosureBudget:
             transitive_closure(g, max_pairs=10)
 
     def test_closure_matches_brute_force_small(self):
-        from reachq.core.graph import Digraph as _Digraph
+        from reachq.graph import Digraph as _Digraph
 
         g = _Digraph()
         for i in range(5):
@@ -161,8 +161,8 @@ class TestBuildReturnsThreeTuple:
     ``(shortcuts, beta, realised_bound)``."""
 
     def test_three_tuple_on_small_dag(self):
-        from reachq.core.shortcut import build_shortcut_set_for_reachability
-        from reachq.core.generators import path_graph
+        from reachq.shortcut import build_shortcut_set_for_reachability
+        from reachq.generators import path_graph
 
         g = path_graph(10)
         result = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
@@ -175,8 +175,8 @@ class TestBuildReturnsThreeTuple:
         assert realised >= beta or realised >= 1.0
 
     def test_three_tuple_on_dense_dag(self):
-        from reachq.core.shortcut import build_shortcut_set_for_reachability
-        from reachq.core.generators import random_dag
+        from reachq.shortcut import build_shortcut_set_for_reachability
+        from reachq.generators import random_dag
 
         g = random_dag(n=30, edge_probability=0.375, random_seed=0)
         shortcuts, beta, realised = build_shortcut_set_for_reachability(
@@ -234,13 +234,13 @@ class TestHeapAndReach:
 class TestRemovedModulesAndShims:
     def test_jls_shortcut_set_not_present(self):
         """The legacy ``jls_shortcut_set`` wrapper is removed."""
-        import reachq.core.shortcut as mod
+        import reachq.shortcut as mod
 
         assert callable(mod.jls_with_tc_pruning)
         assert not hasattr(mod, "jls_shortcut_set")
 
     def test_transitive_closure_module_renamed(self):
-        import reachq.core.closure as mod
+        import reachq.closure as mod
 
         assert hasattr(mod, "transitive_closure")
         assert not hasattr(mod, "transitive_closure_matrix")
@@ -250,6 +250,6 @@ class TestRemovedModulesAndShims:
         type-annotate against; the concrete ``Digraph`` conforms.
         """
         from reachq.proto import Graph
-        from reachq.core.graph import Digraph as _Digraph
+        from reachq.graph import Digraph as _Digraph
 
         assert isinstance(_Digraph(), Graph)

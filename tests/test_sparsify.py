@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.generators import petersen_graph, random_dag
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.generators import petersen_graph, random_dag
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.research.sparsify import sparsify_shortcut_set
 
 
@@ -131,7 +131,7 @@ class TestSparsifyCorrectnessInvariant:
 
     def test_scc_clique_after_sparsify(self):
         """After sparsification, every SCC is still mutually reachable."""
-        from reachq.core.invariants import assert_scc_shortcuts_form_cliques
+        from reachq.invariants import assert_scc_shortcuts_form_cliques
 
         g = random_dag(80, edge_probability=0.2, random_seed=42)
         # Build a graph with cycles.

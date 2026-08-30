@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reachq.core.generators import path_graph
+from reachq.generators import path_graph
 from reachq.research.attributed import (
     attributed_bfs,
     attributed_reachable_pairs,

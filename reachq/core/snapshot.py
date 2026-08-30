@@ -31,7 +31,7 @@ class Snapshot:
     @classmethod
     def from_graph(cls, graph: object) -> Snapshot:
         """Build a snapshot from a Digraph (or any object with the right attrs)."""
-        from reachq.core.graph import Digraph
+        from reachq.graph import Digraph
 
         if not isinstance(graph, Digraph):
             raise TypeError(f"Expected Digraph, got {type(graph).__name__}")
@@ -43,7 +43,7 @@ class Snapshot:
         max_out = max(
             (len(graph.out_edges.get(v, set())) for v in graph.vertices()), default=0
         )
-        from reachq.core.reachability import strongly_connected_components
+        from reachq.reachability import strongly_connected_components
 
         sccs = strongly_connected_components(graph)
         num_sccs = len(sccs)

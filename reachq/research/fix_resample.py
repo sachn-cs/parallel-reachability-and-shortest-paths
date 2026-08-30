@@ -29,9 +29,9 @@ __experimental__ = True
 import random
 from typing import Any
 
-from reachq.core.config import get_logger
-from reachq.core.graph import Digraph
-from reachq.core.reachability import (
+from reachq.config import get_logger
+from reachq.graph import Digraph
+from reachq.reachability import (
     bfs_reachability,
     reverse_bfs_reachability,
 )

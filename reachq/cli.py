@@ -16,8 +16,8 @@ import math
 import sys
 import time
 
-from reachq.core.config import get_logger
-from reachq.core.generators import (
+from reachq.config import get_logger
+from reachq.generators import (
     SNAP_DATASETS,
     complete_dag,
     cycle_graph,
@@ -30,18 +30,18 @@ from reachq.core.generators import (
     weighted_path_graph,
     weighted_random_dag,
 )
-from reachq.core.graph import Digraph, WeightedDigraph
-from reachq.core.hopset import build_hopset_for_sssp
-from reachq.core.io.json import (
+from reachq.graph import Digraph, WeightedDigraph
+from reachq.hopset import build_hopset_for_sssp
+from reachq.io import (
     dump,
     load,
     weighted_dump,
     weighted_load,
 )
-from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
-from reachq.core.work_depth import (
+from reachq.reachability import bfs_reachability, parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.work_depth import (
     WorkDepthAccountant,
     theoretical_hopset_depth,
     theoretical_hopset_work,
@@ -204,7 +204,7 @@ def cmd_benchmark_large(args: argparse.Namespace) -> None:
 
 
 def cmd_generate_graph(args: argparse.Namespace) -> None:
-    from reachq.core.graph import Digraph as _Digraph
+    from reachq.graph import Digraph as _Digraph
 
     graph: _Digraph
     if args.weighted:
@@ -403,4 +403,4 @@ def cli_main() -> None:
 
 
 if __name__ == "__main__":
-    cli_main()
+    main()

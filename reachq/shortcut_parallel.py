@@ -25,8 +25,8 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from reachq.core.graph import Digraph
-    from reachq.core.shortcut import ShortcutState
+    from reachq.graph import Digraph
+    from reachq.shortcut import ShortcutState
 
 
 def expand_pivot(
@@ -47,7 +47,7 @@ def _expand_one_pivot(
     Returns a dict ``{"r_plus": set, "r_minus": set}``. The pivot
     itself is removed from both sets.
     """
-    from reachq.core.reachability import (
+    from reachq.reachability import (
         bfs_reachability,
         reverse_bfs_reachability,
     )
@@ -67,7 +67,7 @@ def _expand_one_pivot(
         r_minus.discard(pivot)
         return {"r_plus": r_plus, "r_minus": r_minus}
 
-    from reachq.core.bfs import (
+    from reachq.bfs import (
         csr_reachable_backward,
         csr_reachable_forward,
     )

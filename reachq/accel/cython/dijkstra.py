@@ -22,7 +22,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from reachq.core.shortest_paths import dijkstra
+from reachq.shortest_paths import dijkstra
 
 _ext_available = False
 try:
@@ -43,7 +43,7 @@ def _numpy_fallback(
     n: int,
 ) -> np.ndarray:
     """Pure-Python Dijkstra fallback using the WeightedDigraph wrapper."""
-    from reachq.core.graph import WeightedDigraph
+    from reachq.graph import WeightedDigraph
 
     g = WeightedDigraph()
     for u in range(n):

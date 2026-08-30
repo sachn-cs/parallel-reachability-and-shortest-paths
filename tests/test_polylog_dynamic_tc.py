@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 from reachq.research.polylog_dynamic_tc import (
     PolylogDynamicTC,
     polylog_incremental_tc,

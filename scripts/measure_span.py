@@ -21,9 +21,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.config import get_logger
-from reachq.core.generators import random_dag
-from reachq.core.work_depth import (
+from reachq.config import get_logger
+from reachq.generators import random_dag
+from reachq.work_depth import (
     SpanProfiler,
     theoretical_shortcut_depth,
     theoretical_shortcut_work,
@@ -33,7 +33,7 @@ log = get_logger("reachq.span")
 
 
 def measure_one(n: int, density: float, seed: int) -> dict[str, float]:
-    from reachq.core.shortcut import build_shortcut_set_for_reachability
+    from reachq.shortcut import build_shortcut_set_for_reachability
 
     g = random_dag(n=n, edge_probability=density, random_seed=seed)
     n_vertices = g.num_vertices()

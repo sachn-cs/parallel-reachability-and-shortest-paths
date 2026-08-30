@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import math
 
-from reachq.core.generators import dense_graph, path_graph
-from reachq.core.graph import Digraph
+from reachq.generators import dense_graph, path_graph
+from reachq.graph import Digraph
 from reachq.core.predict import predict_epsilon, predict_omega, predict_rho
 
 

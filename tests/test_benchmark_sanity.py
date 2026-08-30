@@ -125,7 +125,7 @@ class TestCliSanity:
             [
                 sys.executable,
                 "-m",
-                "reachq.cli.main",
+                "reachq.cli",
                 "reachability",
                 "--n",
                 "20",
@@ -147,7 +147,7 @@ class TestCliSanity:
             [
                 sys.executable,
                 "-m",
-                "reachq.cli.main",
+                "reachq.cli",
                 "shortest-paths",
                 "--n",
                 "20",
@@ -169,7 +169,7 @@ class TestCliSanity:
             [
                 sys.executable,
                 "-m",
-                "reachq.cli.main",
+                "reachq.cli",
                 "generate-graph",
                 "path",
                 "--n",

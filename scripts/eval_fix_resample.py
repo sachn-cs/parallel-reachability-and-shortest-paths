@@ -24,16 +24,16 @@ from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.config import get_logger
-from reachq.core.generators import (
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.config import get_logger
+from reachq.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
     random_dag,
     shrikhande_graph,
 )
-from reachq.core.reachability import bfs_reachability
+from reachq.reachability import bfs_reachability
 from reachq.research.fix_resample import (
     fix_resample_reachable,
     fix_resample_shortcut_set,

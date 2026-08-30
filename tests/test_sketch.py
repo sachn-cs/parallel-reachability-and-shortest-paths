@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reachq.core.generators import dense_graph, path_graph
+from reachq.generators import dense_graph, path_graph
 from reachq.research.sketch import (
     HyperLogLogSketch,
     sketch_reachability_estimate,

@@ -6,8 +6,8 @@ instances are incomparable (``object().__lt__`` raises
 comparison and raised.
 """
 
-from reachq.core.graph import WeightedDigraph
-from reachq.core.shortest_paths import (
+from reachq.graph import WeightedDigraph
+from reachq.shortest_paths import (
     astar,
     dijkstra,
     shortest_path_hopbound,
@@ -101,7 +101,7 @@ def test_astar_incomparable_target():
 def test_unreachable_object_target_returns_sentinel():
     import pytest
 
-    from reachq.core.errors import ReachqGraphError
+    from reachq.errors import ReachqGraphError
 
     g, a, b, _c, _d = _build_object_graph()
     target = object()

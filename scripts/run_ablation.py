@@ -20,7 +20,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.config import get_logger
+from reachq.config import get_logger
 
 log = get_logger("reachq.ablation")
 
@@ -63,9 +63,9 @@ def main() -> int:
     parser.add_argument("--out", default="results/ablation.csv")
     args = parser.parse_args()
 
-    from reachq.core.shortcut import build_shortcut_set_for_reachability
-    from reachq.core.generators import random_dag, weighted_random_dag
-    from reachq.core.hopset import build_hopset_for_sssp
+    from reachq.shortcut import build_shortcut_set_for_reachability
+    from reachq.generators import random_dag, weighted_random_dag
+    from reachq.hopset import build_hopset_for_sssp
 
     rows: list[dict[str, object]] = []
     all_on = {n: True for n in FLAG_NAMES}

@@ -16,16 +16,16 @@ import time
 from collections.abc import Sequence
 from typing import Any
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.config import configure_logging, get_logger
-from reachq.core.generators import (
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.config import configure_logging, get_logger
+from reachq.generators import (
     dense_graph,
     graph_with_sccs,
     path_graph,
     random_dag,
 )
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability, parallel_bfs
 
 
 configure_logging()

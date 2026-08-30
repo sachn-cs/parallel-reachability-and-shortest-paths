@@ -21,7 +21,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from reachq.core.graph import Digraph, WeightedDigraph
+    from reachq.graph import Digraph, WeightedDigraph
 
 
 def build_csr_pair(
@@ -91,7 +91,7 @@ def digraph_from_csr(
     Returns:
         A :class:`Digraph` with the same adjacency as the CSR pair.
     """
-    from reachq.core.graph import Digraph
+    from reachq.graph import Digraph
 
     g = Digraph()
     for v in idx_to_vertex:
@@ -109,7 +109,7 @@ def to_unweighted_digraph(graph: WeightedDigraph) -> Digraph:
 
     Insertion order is preserved.
     """
-    from reachq.core.graph import Digraph
+    from reachq.graph import Digraph
 
     g = Digraph()
     g.restore_indices(graph.index_of_map, graph.insertion_order)

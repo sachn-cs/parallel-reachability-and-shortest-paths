@@ -18,7 +18,7 @@ from typing import TYPE_CHECKING
 import numpy as np
 
 if TYPE_CHECKING:
-    from reachq.core.graph import Digraph
+    from reachq.graph import Digraph
 
 
 def spectrum(graph: Digraph) -> np.ndarray:

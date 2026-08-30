@@ -10,14 +10,14 @@ The test suite pins every invariant below in
 ## Architecture
 
 * `reachq.core.algorithm/` is gone. The JLS shortcut-set
-  construction lives in `reachq.core.shortcut`; the per-call
-  process-pool dispatcher lives in `reachq.core.shortcut_parallel`.
-* `reachq.core.tc` is renamed `reachq.core.closure`.
+  construction lives in `reachq.shortcut`; the per-call
+  process-pool dispatcher lives in `reachq.shortcut_parallel`.
+* `reachq.core.tc` is renamed `reachq.closure`.
 * `reachq.core.metrics` is deleted (no callers).
 * `reachq.core.tuner` is deleted (`auto_tune` had no callers).
 * `reachq.core.predictor` is renamed `reachq.core.predict`.
 * `reachq.core.backends` is deleted. The dispatcher is
-  `reachq.core.shortcut_parallel.ParallelExecutor`.
+  `reachq.shortcut_parallel.ParallelExecutor`.
 
 ## SSSP and reachability contracts
 
@@ -70,7 +70,7 @@ The test suite pins every invariant below in
 
 ## Build / CLI
 
-* `python -m scripts.cli` is replaced by `python -m reachq.cli.main`.
+* `python -m scripts.cli` is replaced by `python -m reachq.cli`.
 * `benchmarks/bench_sparsify.py` no longer passes
   `sparsify_shortcuts=False`; that switch was removed.
 
@@ -82,8 +82,8 @@ from reachq.core.tc import transitive_closure_matrix
 from reachq.core.algorithm import build_shortcut_set_for_reachability
 from reachq import Flags
 # New
-from reachq.core.closure import transitive_closure
-from reachq.core.shortcut import build_shortcut_set_for_reachability
+from reachq.closure import transitive_closure
+from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq import RefinementConfig
 ```
 

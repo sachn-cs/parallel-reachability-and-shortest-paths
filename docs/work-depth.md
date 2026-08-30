@@ -16,7 +16,7 @@ they are never conflated.
 The central type is `WorkDepthAccountant` in `reachq/core/work_depth.py`.
 
 ```python
-from reachq.core.work_depth import WorkDepthAccountant, record_bfs
+from reachq.work_depth import WorkDepthAccountant, record_bfs
 
 wd = WorkDepthAccountant()
 wd.start_timer()
@@ -85,7 +85,7 @@ the theoretical bounds side by side, so you can compare observed
 span against the bound for your hardware.
 
 ```python
-from reachq.core.work_depth import SpanProfiler, theoretical_shortcut_work
+from reachq.work_depth import SpanProfiler, theoretical_shortcut_work
 
 sp = SpanProfiler()
 sp.theoretical_work = theoretical_shortcut_work(n=1000, m=5000, rho=2.0)

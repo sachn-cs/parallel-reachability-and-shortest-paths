@@ -4,23 +4,23 @@ from __future__ import annotations
 
 import numpy as np
 
-from reachq.core.bfs import (
+from reachq.bfs import (
     csr_reachable_backward,
     csr_reachable_forward,
     should_use_csr,
 )
-from reachq.core.csr import build_csr_pair
-from reachq.core.generators import (
+from reachq.csr import build_csr_pair
+from reachq.generators import (
     cycle_graph,
     path_graph,
     random_dag,
 )
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability, reverse_bfs_reachability
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability, reverse_bfs_reachability
 
 
 def test_to_csr_returns_arrays() -> None:
-    from reachq.core.csr import digraph_from_csr_indices
+    from reachq.csr import digraph_from_csr_indices
 
     g = path_graph(5)
     indptr, indices, n, _ = digraph_from_csr_indices(g)
@@ -36,7 +36,7 @@ def test_to_csr_returns_arrays() -> None:
 
 
 def test_to_csr_neighbors_match_out_edges() -> None:
-    from reachq.core.csr import digraph_from_csr_indices
+    from reachq.csr import digraph_from_csr_indices
 
     g = path_graph(5)
     indptr, indices, _, _ = digraph_from_csr_indices(g)

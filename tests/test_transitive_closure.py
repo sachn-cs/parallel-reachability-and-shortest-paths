@@ -2,8 +2,8 @@
 
 import pytest
 
-from reachq.core.graph import Digraph
-from reachq.core.closure import (
+from reachq.graph import Digraph
+from reachq.closure import (
     TransitiveClosureBudgetError,
     transitive_closure,
     transitive_closure_brute_force,

@@ -28,7 +28,7 @@ from collections import deque
 from collections.abc import Callable
 from typing import Any
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 
 VertexPredicate = Callable[[Any], bool]
 """Predicate over vertex objects. Returns True to allow visit."""
@@ -150,7 +150,7 @@ def vertex_attribute_index(
         Dict ``{attribute_value: [vertex1, vertex2, ...]}``.
 
     Example:
-        >>> from reachq.core.graph import Digraph
+        >>> from reachq.graph import Digraph
         >>> g = Digraph()
         >>> for v in [0, 1, 2]:
         ...     g.add_vertex(v)

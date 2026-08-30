@@ -50,7 +50,7 @@ import math
 from collections import deque
 from collections.abc import Iterable
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 
 # Bias-correction constant from the HyperLogLog paper (Flajolet et
 # al. 2007, Table 1). Different p values use different constants.

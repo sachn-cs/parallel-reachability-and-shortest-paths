@@ -24,7 +24,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from reachq.core.bfs import csr_reachable_backward, csr_reachable_forward
+from reachq.bfs import csr_reachable_backward, csr_reachable_forward
 
 _ext_available = False
 try:

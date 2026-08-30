@@ -26,9 +26,9 @@ from collections.abc import Iterable
 
 import numpy as np
 
-from reachq.core.errors import ReachqValueError
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability
+from reachq.errors import ReachqValueError
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability
 
 
 class TransitiveClosureBudgetError(Exception):

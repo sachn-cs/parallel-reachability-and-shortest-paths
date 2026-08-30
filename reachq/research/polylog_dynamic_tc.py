@@ -64,7 +64,7 @@ __experimental__ = True
 from collections import deque
 from collections.abc import Iterable
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 
 
 def chunk_count(n: int) -> int:

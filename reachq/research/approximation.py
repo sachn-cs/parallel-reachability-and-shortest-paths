@@ -25,8 +25,8 @@ __experimental__ = True
 from collections import deque
 from typing import Any
 
-from reachq.core.config import get_logger
-from reachq.core.graph import Digraph
+from reachq.config import get_logger
+from reachq.graph import Digraph
 
 log = get_logger("reachq.research.approximation")
 

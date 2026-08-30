@@ -41,7 +41,7 @@ __experimental__ = True
 
 from collections.abc import Iterable
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 
 
 class DynamicTransitiveClosure:

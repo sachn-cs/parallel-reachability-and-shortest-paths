@@ -23,8 +23,8 @@ from __future__ import annotations
 
 import numpy as np
 
-from reachq.core.bfs import csr_reachable_forward
-from reachq.core.shortest_paths import dijkstra
+from reachq.bfs import csr_reachable_forward
+from reachq.shortest_paths import dijkstra
 
 _numba_available = False
 try:
@@ -239,7 +239,7 @@ def njit_dijkstra(
         result = _jit_dijkstra_kernel(indptr, indices, weights, source, n)
         if isinstance(result, np.ndarray):
             return result
-    from reachq.core.graph import WeightedDigraph
+    from reachq.graph import WeightedDigraph
 
     g = WeightedDigraph()
     for u in range(n):

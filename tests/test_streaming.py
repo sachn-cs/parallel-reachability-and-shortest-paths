@@ -9,8 +9,8 @@ to behave correctly.
 
 from __future__ import annotations
 
-from reachq.core.graph import Digraph
-from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.graph import Digraph
+from reachq.reachability import bfs_reachability, parallel_bfs
 from reachq.research.streaming import StreamingShortcutSet
 
 

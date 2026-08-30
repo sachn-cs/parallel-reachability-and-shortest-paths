@@ -54,7 +54,7 @@ __experimental__ = True
 
 
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 
 
 def barbell_graph(k: int) -> Digraph:

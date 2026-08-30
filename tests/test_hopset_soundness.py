@@ -9,10 +9,10 @@ the exact Dijkstra distance for every reachable pair.
 
 from __future__ import annotations
 
-from reachq.core.generators import random_dag
-from reachq.core.graph import WeightedDigraph
-from reachq.core.hopset import build_hopset_for_sssp
-from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
+from reachq.generators import random_dag
+from reachq.graph import WeightedDigraph
+from reachq.hopset import build_hopset_for_sssp
+from reachq.shortest_paths import dijkstra, shortest_path_hopbound
 
 
 def test_empty_graph_with_hopset():

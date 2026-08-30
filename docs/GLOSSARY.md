@@ -19,7 +19,7 @@ adds shortcuts `(pivot, v)` for every v in r_plus(pivot) and
 
 **r_plus(v), r_minus(v).** The forward- and backward-reachable sets
 of v, respectively. Computed by BFS / CSR-BFS.
-(reachq.core.reachability)
+(reachq.reachability)
 
 **ρ (rho).** The shortcut-set construction's density parameter:
 `rho = sqrt(n) / beta`. Used in the paper's bound
@@ -30,7 +30,7 @@ uses ω = 3 (standard schoolbook). Faster ω (Strassen, Strassen-like)
 tightens the bound. (reachq.research.blas_omega)
 
 **SCC.** Strongly connected component. Computed via Kosaraju's
-algorithm. (reachq.core.reachability)
+algorithm. (reachq.reachability)
 
 **Trivial condensation.** When all SCCs of a graph have size 1
 (typical for DAGs), the condensation step is a no-op and is skipped.
@@ -56,19 +56,19 @@ minimum-β-hop-bounded shortcut set. (reachq.research.approximation)
 removes shortcuts that break reachability; β-sparsification
 (our name) additionally preserves the hopbound.
 
-**SP.** Shortest path. (reachq.core.shortest_paths)
+**SP.** Shortest path. (reachq.shortest_paths)
 
-**DAG.** Directed acyclic graph. (reachq.core.generators.random_dag)
+**DAG.** Directed acyclic graph. (reachq.generators.random_dag)
 
-**SRG.** Strongly regular graph. (reachq.core.generators.petersen_graph
+**SRG.** Strongly regular graph. (reachq.generators.petersen_graph
 and similar)
 
 **CSR.** Compressed sparse row. A matrix storage format used for
-BFS frontier expansion. (reachq.core.bfs)
+BFS frontier expansion. (reachq.bfs)
 
 **Flags.** A dataclass of boolean toggles for each algorithmic
 refinement in the shortcut-set construction.
-(reachq.core.config.RefinementConfig, exported as reachq.Flags)
+(reachq.config.RefinementConfig, exported as reachq.Flags)
 
 **TC-pruning.** Transitive-closure pruning. Adds all-pairs reachability
 shortcuts within the pivot's reachable ball when the ball is small
@@ -78,7 +78,7 @@ enough that the work is bounded. (reachq.core.tc)
 Jambulapati, Liu, Sidford 2019. (reachq.core.algorithm.jls_shortcut_set)
 
 **CFR construction.** The hopset construction of Cao, Fineman,
-Russell 2020. (reachq.core.hopset.cfr_hopset)
+Russell 2020. (reachq.hopset.cfr_hopset)
 
 **ω (different).** In [reachq.research.blas_omega] the symbol is used for
 the matrix-multiplication exponent, while in some literature it
@@ -90,7 +90,7 @@ The wrapper `build_shortcut_set_for_reachability` reads the flags
 and dispatches them to the JLS recursion.
 
 **RefinementConfig.** The canonical name of the `Flags` toggle
-structure. `reachq.Flags = reachq.core.config.RefinementConfig`;
+structure. `reachq.Flags = reachq.config.RefinementConfig`;
 the `Flags` alias is preserved for backward compatibility.
 
 **ParallelContext.** A selector for the parallel-execution mode
@@ -109,7 +109,7 @@ location: `reachq.core.backends.Backend`.
 the *empirical* parallel span of a sequential run. Wraps
 each phase of the shortcut-set construction in `begin_phase` /
 `end_phase`. The sum of phase times is a lower bound on the
-true PRAM span. (reachq.core.work_depth.SpanProfiler)
+true PRAM span. (reachq.work_depth.SpanProfiler)
 
 **Snapshot.** A dataclass (`reachq.core.snapshot.Snapshot`) that
 captures per-call inputs and outputs. Useful for
@@ -117,7 +117,7 @@ regression-testing where you want to compare exact constructor
 behaviour across versions.
 
 **Recorder / `record_*`.** The 14 `record_*` helpers in
-`reachq.core.work_depth` (`record_bfs`, `record_dijkstra`,
+`reachq.work_depth` (`record_bfs`, `record_dijkstra`,
 `record_matrix_multiply`, `record_tc_pruning`, …) that add
 asymptotic work/depth estimates to a `WorkDepthAccountant`. Each
 accepts `accountant=None` for a no-op.

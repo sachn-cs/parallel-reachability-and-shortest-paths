@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 from reachq.research.hyper import (
     DirectedHypergraph,
     hyper_reachable,

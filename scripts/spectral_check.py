@@ -22,15 +22,15 @@ from typing import cast
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.config import get_logger
-from reachq.core.generators import (
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.config import get_logger
+from reachq.generators import (
     hamming_graph,
     paley_graph,
     petersen_graph,
     shrikhande_graph,
 )
-from reachq.core.graph import Digraph
+from reachq.graph import Digraph
 from reachq.core.spectrum import spectral_gap, spectrum
 
 log = get_logger("reachq.spectral_check")

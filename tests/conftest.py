@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from reachq.core.generators import cycle_graph, path_graph, random_dag
-from reachq.core.graph import Digraph, WeightedDigraph
+from reachq.generators import cycle_graph, path_graph, random_dag
+from reachq.graph import Digraph, WeightedDigraph
 
 
 @pytest.fixture

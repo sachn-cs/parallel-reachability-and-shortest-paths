@@ -9,7 +9,7 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.core.generators import random_dag
+from reachq.generators import random_dag
 from reachq.research.iterate import iterative_shortcut_set
 
 

@@ -18,13 +18,13 @@ from __future__ import annotations
 import math
 import random
 
-from reachq.core.config import RefinementConfig
-from reachq.core.graph import WeightedDigraph
-from reachq.core.shortest_paths import (
+from reachq.config import RefinementConfig
+from reachq.graph import WeightedDigraph
+from reachq.shortest_paths import (
     compute_d_descendants,
     dijkstra,
 )
-from reachq.core.trace import trace
+from reachq.trace import trace
 
 OMEGA_DEFAULT = 2.5
 OMEGA_RUNTIME: float | None = None
@@ -65,7 +65,7 @@ def _compute_ancestors_with_rev(
     distance: int,
 ) -> set[object]:
     """Ancestors under ``distance`` using the precomputed reverse graph."""
-    from reachq.core.shortest_paths import truncated_dijkstra
+    from reachq.shortest_paths import truncated_dijkstra
 
     return set(truncated_dijkstra(rev, vertex, distance).keys())
 

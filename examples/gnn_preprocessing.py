@@ -13,9 +13,9 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
-from reachq.core.graph import Digraph
-from reachq.core.reachability import parallel_bfs
+from reachq.shortcut import build_shortcut_set_for_reachability
+from reachq.graph import Digraph
+from reachq.reachability import parallel_bfs
 
 
 def build_citation_graph(n_papers, density, seed):
@@ -77,7 +77,7 @@ def main():
     print(f"shortcut set: {len(H)} shortcuts (beta={beta:.2f})")
     # Verify soundness
     for s in range(0, n, 50):
-        from reachq.core.reachability import bfs_reachability
+        from reachq.reachability import bfs_reachability
 
         if bfs_reachability(g, s) != parallel_bfs(g, s, H):
             print(f"soundness VIOLATED at {s}")

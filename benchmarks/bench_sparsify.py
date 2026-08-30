@@ -10,8 +10,8 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from reachq.core.generators import random_dag
-from reachq.core.shortcut import build_shortcut_set_for_reachability
+from reachq.generators import random_dag
+from reachq.shortcut import build_shortcut_set_for_reachability
 from reachq.research.iterate import iterative_shortcut_set
 from reachq.research.sparsify import sparsify_shortcut_set
 from reachq.research.sparsify_hop import sparsify_hop_bounded

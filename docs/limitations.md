@@ -15,7 +15,7 @@ This page lists what reachq 0.9.0 does NOT do.
 | Backward compatibility shims | None. v0.9.0 is a hard cut from v0.8.0. | [`docs/migration_0_9.md`](migration_0_9.md) |
 | Real-world graph scale (web-Google, n ≈ 875k) | Memory is unblocked, but wall-clock is dominated by Python's per-edge overhead. | [`README.md`](https://github.com/sachncs/parallel-reachability-and-shortest-paths/blob/master/README.md) |
 | Pretrained / cached predictions | Not implemented. `predict_omega` and `predict_epsilon` are heuristics. | [`reachq.core.predictor`](https://github.com/sachncs/parallel-reachability-and-shortest-paths/blob/master/reachq/core/predictor.py) |
-| Reporting / visualisation beyond printed logs | Not implemented. The CLI prints results; there is no plotting, no dashboard, no HTML report. | [`reachq.cli.main`](https://github.com/sachncs/parallel-reachability-and-shortest-paths/blob/master/reachq/cli/main.py) |
+| Reporting / visualisation beyond printed logs | Not implemented. The CLI prints results; there is no plotting, no dashboard, no HTML report. | [`reachq.cli`](https://github.com/sachncs/parallel-reachability-and-shortest-paths/blob/master/reachq/cli/main.py) |
 
 ## What IS supported
 
