@@ -99,9 +99,9 @@ from reachq.core.shortest_paths import (
     shortest_path_tree,
     truncated_dijkstra,
 )
-from reachq.core.tc import (
+from reachq.core.closure import (
     TransitiveClosureBudgetError,
-    transitive_closure_boolean,
+    transitive_closure,
     transitive_closure_brute_force,
     transitive_closure_on_subset,
 )
@@ -151,8 +151,8 @@ __all__ = [
     "strongly_connected_components",
     "topological_sort",
     "TransitiveClosureBudgetError",
-    "transitive_closure_boolean",
     "transitive_closure_brute_force",
+    "transitive_closure",
     "transitive_closure_on_subset",
     "truncated_dijkstra",
     "weighted_dense_graph",

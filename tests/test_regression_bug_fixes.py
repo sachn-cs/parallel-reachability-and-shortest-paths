@@ -18,11 +18,11 @@ from reachq.core.bfs import csr_reachable_backward, csr_reachable_forward
 from reachq.core.csr import build_csr_pair
 from reachq.core.graph import Digraph
 from reachq.core.reachability import bfs_reachability, parallel_bfs
-from reachq.core.tc import transitive_closure_boolean
+from reachq.core.closure import transitive_closure
 
 
 class TestRegressionTcMatrixSparsity:
-    """Bug 1: transitive_closure_matrix used a dense OOM-causing matrix.
+    """Bug 1: transitive closure used a dense OOM-causing matrix.
 
     The original implementation used np.zeros((n, n)) which is OOM for
     n > ~50k. Fix: scipy.sparse.csr_matrix. A regression would use
@@ -42,7 +42,7 @@ class TestRegressionTcMatrixSparsity:
             g.add_vertex(i)
         for i in range(99):
             g.add_edge(i, i + 1)
-        tc = transitive_closure_boolean(g)
+        tc = transitive_closure(g)
         # Every pair (i, j) with i <= j should be reachable.
         for i in range(100):
             for j in range(i, 100):
@@ -56,7 +56,7 @@ class TestRegressionTcMatrixSparsity:
             for j in range(n):
                 if i != j:
                     g.add_edge(i, j)
-        tc = transitive_closure_boolean(g)
+        tc = transitive_closure(g)
         for i in range(n):
             for j in range(n):
                 if i != j:
@@ -189,7 +189,7 @@ class TestRegressionTcSelfLoops:
     """Bug 4: TC-pruning self-loops were leaking into the shortcut set.
 
     A self-loop (v, v) is useless for reachability (you're already at v).
-    They were included in transitive_closure_boolean output and
+    They were included in transitive closure output and
     propagated into the shortcut set. Fix: filter (u, v) with u == v.
 
     The fix lives in shortcut_set.py line 379: the TC result is

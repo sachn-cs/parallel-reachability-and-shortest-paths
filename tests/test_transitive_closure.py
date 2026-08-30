@@ -3,9 +3,9 @@
 import pytest
 
 from reachq.core.graph import Digraph
-from reachq.core.tc import (
+from reachq.core.closure import (
     TransitiveClosureBudgetError,
-    transitive_closure_boolean,
+    transitive_closure,
     transitive_closure_brute_force,
     transitive_closure_on_subset,
 )
@@ -55,24 +55,24 @@ class TestTransitiveClosureBruteForce:
         assert transitive_closure_brute_force(g) == expected
 
 
-class TestTransitiveClosureBoolean:
+class TestTransitiveClosure:
     """Boolean-semiring tests for transitive closure."""
 
     def test_empty_graph(self):
         g = Digraph()
-        assert transitive_closure_boolean(g) == set()
+        assert transitive_closure(g) == set()
 
     def test_single_vertex(self):
         g = Digraph()
         g.add_vertex(0)
-        assert transitive_closure_boolean(g) == {(0, 0)}
+        assert transitive_closure(g) == {(0, 0)}
 
     def test_simple_path(self):
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         expected = {(0, 0), (0, 1), (0, 2), (1, 1), (1, 2), (2, 2)}
-        assert transitive_closure_boolean(g) == expected
+        assert transitive_closure(g) == expected
 
     def test_cycle(self):
         g = Digraph()
@@ -81,14 +81,14 @@ class TestTransitiveClosureBoolean:
         g.add_edge(2, 0)
         vertices = {0, 1, 2}
         expected = {(u, v) for u in vertices for v in vertices}
-        assert transitive_closure_boolean(g) == expected
+        assert transitive_closure(g) == expected
 
     def test_disconnected(self):
         g = Digraph()
         g.add_edge(0, 1)
         g.add_edge(2, 3)
         expected = {(0, 0), (0, 1), (1, 1), (2, 2), (2, 3), (3, 3)}
-        assert transitive_closure_boolean(g) == expected
+        assert transitive_closure(g) == expected
 
     def test_agrees_with_brute_force(self):
         g = Digraph()
@@ -97,7 +97,7 @@ class TestTransitiveClosureBoolean:
             for j in range(i + 1, n):
                 if (i + j) % 3 == 0:
                     g.add_edge(i, j)
-        assert transitive_closure_boolean(g) == transitive_closure_brute_force(g)
+        assert transitive_closure(g) == transitive_closure_brute_force(g)
 
     def test_large_agrees_with_brute_force(self):
         g = Digraph()
@@ -106,7 +106,7 @@ class TestTransitiveClosureBoolean:
             g.add_edge(i, i + 1)
             if i % 2 == 0 and i + 2 < n:
                 g.add_edge(i, i + 2)
-        assert transitive_closure_boolean(g) == transitive_closure_brute_force(g)
+        assert transitive_closure(g) == transitive_closure_brute_force(g)
 
     def test_budget_raises_strict(self):
         g = Digraph()
@@ -114,14 +114,14 @@ class TestTransitiveClosureBoolean:
         for i in range(n - 1):
             g.add_edge(i, i + 1)
         with pytest.raises(TransitiveClosureBudgetError):
-            transitive_closure_boolean(g, max_pairs=10)
+            transitive_closure(g, max_pairs=10)
 
     def test_budget_non_strict_returns_partial(self):
         g = Digraph()
         n = 50
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        result = transitive_closure_boolean(g, max_pairs=50, budget_strict=False)
+        result = transitive_closure(g, max_pairs=50, budget_strict=False)
         assert len(result) <= 50
         assert (0, 0) in result
 
@@ -156,7 +156,7 @@ class TestLargeGraphOverflow:
         g = Digraph()
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        tc = transitive_closure_boolean(g)
+        tc = transitive_closure(g)
         assert len(tc) == n * (n + 1) // 2
         for i in range(n):
             for j in range(i, n):
@@ -170,5 +170,5 @@ class TestLargeGraphOverflow:
         for i in range(n):
             for j in range(i + 1, n):
                 g.add_edge(i, j)
-        tc = transitive_closure_boolean(g)
+        tc = transitive_closure(g)
         assert len(tc) == n * (n + 1) // 2

@@ -6,17 +6,12 @@ and add all non-self pairs as shortcuts. This replaces individual
 shortcut sampling with an exact all-pairs computation, which is
 cheaper when the subset is small relative to the matrix
 multiplication exponent omega.
-
-The closure is now in the Boolean semiring
-(:mod:`reachq.core.tc`) and respects an explicit
-``max_pairs`` budget; see
-:class:`reachq.core.tc.TransitiveClosureBudgetError`.
 """
 
 from __future__ import annotations
 
+from reachq.core.closure import transitive_closure_on_subset
 from reachq.core.graph import Digraph
-from reachq.core.tc import transitive_closure_on_subset
 
 
 def compute_tc_pruning_threshold(
@@ -28,9 +23,9 @@ def compute_tc_pruning_threshold(
 ) -> float:
     """Compute the threshold below which TC-pruning is cost-effective.
 
-    The paper's analysis: TC(G[R]) costs O(|R|^ω) ops; the
-    alternative (sampling shortcuts for every vertex in R) costs
-    O(|R| * k * log n). Trigger TC when the former is cheaper.
+    TC(G[R]) costs ``O(|R|^ω)`` ops; the alternative (sampling
+    shortcuts for every vertex in R) costs ``O(|R| * k * log n)``.
+    Trigger TC when the former is cheaper.
 
     Args:
         k: Hopbound parameter.
@@ -49,15 +44,6 @@ def compute_tc_pruning_threshold(
     return threshold
 
 
-def default_max_pairs(n: int) -> int:
-    """Default ``max_pairs`` budget for a graph with ``n`` vertices.
-
-    Caps at 2 million pairs and at the all-pairs upper bound so
-    that TC-pruning does not silently request O(n^2) memory.
-    """
-    return min(2 * 10**6, n * (n - 1))
-
-
 def apply_tc_pruning(
     graph: Digraph,
     r_ball,
@@ -67,31 +53,33 @@ def apply_tc_pruning(
 ) -> set[tuple[object, object]]:
     """Apply TC-pruning to a single pivot's r-ball.
 
-    If ``|r_ball| <= threshold``, compute TC on the induced
-    subgraph, apply the budget, and emit non-self pairs as
-    shortcuts. Otherwise returns an empty set.
-
     Args:
         graph: The input digraph ``G``.
         r_ball: The pivot's r-ball as a container of vertices.
         threshold: Maximum ``|r_ball|`` for which TC-pruning is
             applied.
         max_pairs: Maximum number of TC pairs to emit; defaults to
-            :func:`default_max_pairs` for ``len(r_ball)``.
+            ``min(2_000_000, n*(n-1))`` for ``n = |r_ball|``.
 
     Returns:
-        Set of ``(u, v)`` shortcut pairs from TC-pruning. Empty
-        when ``|r_ball|`` exceeds ``threshold`` or when the budget
-        is exhausted.
+        Set of non-self ``(u, v)`` shortcut pairs from TC-pruning.
+        Empty when ``|r_ball|`` exceeds ``threshold`` or when the
+        budget is exhausted.
     """
     r_ball_set = set(r_ball)
     if len(r_ball_set) == 0 or len(r_ball_set) > threshold:
         return set()
-    budget = max_pairs if max_pairs is not None else default_max_pairs(
-        len(r_ball_set)
+    budget = max_pairs if max_pairs is not None else min(
+        2_000_000,
+        len(r_ball_set) * (len(r_ball_set) - 1),
     )
-    try:
-        tc = transitive_closure_on_subset(graph, r_ball_set, max_pairs=budget)
-    except Exception:
-        return set()
+    if budget == len(r_ball_set) * (len(r_ball_set) - 1):
+        budget = 2_000_000
+    tc = transitive_closure_on_subset(graph, r_ball_set, max_pairs=budget)
     return {(u, v) for u, v in tc if u != v}
+
+
+__all__ = [
+    "apply_tc_pruning",
+    "compute_tc_pruning_threshold",
+]

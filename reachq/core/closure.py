@@ -1,21 +1,21 @@
 """Transitive closure computation for directed graphs.
 
-The paper uses fast matrix multiplication for transitive closure:
+The paper uses fast matrix multiplication for transitive closure::
 
-    "TC(G) can be computed in eO(|V(G)|^omega) time using repeated
-    squaring of the adjacency matrix of G" (Section 4.2).
+    TC(G) can be computed in eO(|V(G)|^omega) time using repeated
+    squaring of the adjacency matrix of G (Section 4.2).
 
-This implementation uses the Boolean semiring strictly: the sparse
-datatype is ``bool`` (via ``int8``) and squaring is
-``((A @ A) > 0)``, so overflow is impossible by construction.
-Output size is inherently quadratic in the worst case and is
-bounded by ``max_pairs``; graphs whose projected closure exceeds
-the budget raise ``TransitiveClosureBudgetError``.
+This implementation uses the Boolean semiring: the sparse datatype is
+``int8`` and squaring is ``(A @ A) > 0`` followed by a coalesce.
+Overflow is impossible by construction. Output size is inherently
+quadratic in the worst case and is bounded by ``max_pairs``; graphs
+whose projected closure exceeds the budget raise
+:class:`TransitiveClosureBudgetError`.
 
 Memory characteristics:
 
-    * adjacency / closure CSR: O(|TC|) entries.
-    * Python set of (i, j) pairs: O(|TC|).
+* adjacency / closure CSR: O(|TC|) entries.
+* Python set of (i, j) pairs: O(|TC|).
 
 There is no dense n x n backup; exact TC is honestly O(|TC|) memory.
 """
@@ -28,15 +28,15 @@ import numpy as np
 
 from reachq.core.errors import ReachqValueError
 from reachq.core.graph import Digraph
+from reachq.core.reachability import bfs_reachability
 
 
-class TransitiveClosureBudgetError(MemoryError):
+class TransitiveClosureBudgetError(Exception):
     """Raised when the projected TC exceeds the configured ``max_pairs``.
 
     The Boolean semiring makes TC scale-free w.r.t. edge weights, but
-    worst-case |TC| is O(n^2). Callers that need partial output can
-    inspect ``partial_pairs`` for the reach set accumulated before
-    the threshold was crossed.
+    worst-case |TC| is O(n^2). Carries ``partial_pairs`` so callers
+    can recover progress.
     """
 
     def __init__(self, message: str, *, partial_pairs: int | None = None) -> None:
@@ -59,8 +59,6 @@ def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]
 
     Complexity: O(n * m) time, O(n^2) space in the worst case.
     """
-    from reachq.core.reachability import bfs_reachability
-
     result: set[tuple[object, object]] = set()
     for u in graph.iter_vertices():
         result.add((u, u))
@@ -70,13 +68,13 @@ def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]
     return result
 
 
-def transitive_closure_boolean(
+def transitive_closure(
     graph: Digraph,
     *,
     max_pairs: int | None = None,
     budget_strict: bool = True,
 ) -> set[tuple[object, object]]:
-    """Compute ``TC(G)`` in the Boolean semiring.
+    """Compute ``TC(G)`` in the Boolean semiring with sparse repeated squaring.
 
     Args:
         graph: The input digraph.
@@ -100,7 +98,7 @@ def transitive_closure_boolean(
     if max_pairs is not None and max_pairs < 0:
         raise ReachqValueError(f"max_pairs must be non-negative (got {max_pairs})")
 
-    vertices = list(graph.vertices())
+    vertices = list(graph.iter_vertices())
     n = len(vertices)
     if n == 0:
         return set()
@@ -138,14 +136,14 @@ def transitive_closure_boolean(
     if max_pairs is not None and len(reach) > max_pairs:
         if budget_strict:
             raise TransitiveClosureBudgetError(
-                f"transitive_closure_max_pairs={max_pairs} exceeded by initial "
-                f"adjacency (|adj|={len(reach)})",
+                f"max_pairs={max_pairs} exceeded by initial adjacency "
+                f"(|adj|={len(reach)})",
                 partial_pairs=len(reach),
             )
-        return _decode(reach, vertices, max_pairs)
+        return decode_pairs(reach, vertices, max_pairs)
 
     if n <= 1:
-        return _decode(reach, vertices, max_pairs)
+        return decode_pairs(reach, vertices, max_pairs)
 
     max_iterations = max(1, (n - 1).bit_length())
     for _ in range(max_iterations):
@@ -171,21 +169,21 @@ def transitive_closure_boolean(
         if max_pairs is not None and len(reach) + len(new_pairs) > max_pairs:
             if budget_strict:
                 raise TransitiveClosureBudgetError(
-                    f"transitive_closure_max_pairs={max_pairs} exceeded "
+                    f"max_pairs={max_pairs} exceeded "
                     f"(|reach|={len(reach)}, pending={len(new_pairs)})",
                     partial_pairs=len(reach),
                 )
             for p in new_pairs:
                 reach.add(p)
                 if len(reach) >= max_pairs:
-                    return _decode(reach, vertices, max_pairs)
+                    return decode_pairs(reach, vertices, max_pairs)
             break
         reach |= new_pairs
 
-    return _decode(reach, vertices, max_pairs)
+    return decode_pairs(reach, vertices, max_pairs)
 
 
-def _decode(
+def decode_pairs(
     reach: set[tuple[int, int]],
     vertices: list[object],
     budget: int | None,
@@ -210,10 +208,18 @@ def transitive_closure_on_subset(
     Args:
         graph: The input digraph ``G``.
         subset: Iterable of vertices already in ``graph``.
-        max_pairs: Forwarded to :func:`transitive_closure_boolean`.
+        max_pairs: Forwarded to :func:`transitive_closure`.
 
     Returns:
         Set of reachable pairs in ``graph.induced_subgraph(subset)``.
     """
     subgraph = graph.induced_subgraph(set(subset))
-    return transitive_closure_boolean(subgraph, max_pairs=max_pairs)
+    return transitive_closure(subgraph, max_pairs=max_pairs)
+
+
+__all__ = [
+    "TransitiveClosureBudgetError",
+    "transitive_closure_brute_force",
+    "transitive_closure",
+    "transitive_closure_on_subset",
+]

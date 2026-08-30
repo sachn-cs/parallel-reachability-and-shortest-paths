@@ -18,9 +18,9 @@ from reachq.core.shortest_paths import (
     shortest_path_hopbound,
     truncated_dijkstra,
 )
-from reachq.core.tc import (
+from reachq.core.closure import (
     TransitiveClosureBudgetError,
-    transitive_closure_boolean,
+    transitive_closure,
 )
 
 
@@ -119,7 +119,7 @@ class TestTransitiveClosureBoolean:
             g.add_vertex(i)
             if i > 0:
                 g.add_edge(i - 1, i)
-        tc = transitive_closure_boolean(g, max_pairs=10_000)
+        tc = transitive_closure(g, max_pairs=10_000)
         assert (0, 19) in tc
 
     def test_budget_strict_raises(self):
@@ -129,7 +129,7 @@ class TestTransitiveClosureBoolean:
             if i > 0:
                 g.add_edge(i - 1, i)
         with pytest.raises(TransitiveClosureBudgetError):
-            transitive_closure_boolean(g, max_pairs=10, budget_strict=True)
+            transitive_closure(g, max_pairs=10, budget_strict=True)
 
 
 class TestShortcutSetReproducibility:
@@ -161,9 +161,10 @@ class TestRemovedModulesAndShims:
             "thinned wrapper jls_shortcut_set should be removed"
         )
 
-    def test_transitive_closure_matrix_not_present(self):
-        import reachq.core.tc as tc
+    def test_closure_module_is_renamed(self):
+        import reachq.core.closure as mod
 
-        assert not hasattr(tc, "transitive_closure_matrix"), (
-            "old int32-typed TC should be replaced by transitive_closure_boolean"
+        assert hasattr(mod, "transitive_closure")
+        assert not hasattr(mod, "transitive_closure_matrix"), (
+            "old int32-typed TC was replaced by transitive_closure"
         )
