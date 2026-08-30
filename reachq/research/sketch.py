@@ -64,7 +64,7 @@ _ALPHA_PP: dict[int, float] = {
 }
 
 
-def _alpha(p: int) -> float:
+def alpha(p: int) -> float:
     """Bias-correction constant for HyperLogLog precision ``p``."""
     if p < 4:
         raise ValueError(f"precision must be >= 4; got {p}")
@@ -101,14 +101,14 @@ class HyperLogLogSketch:
 
     def add(self, item: object) -> None:
         """Add an item to the sketch, updating the affected register."""
-        h = self._hash(item)
+        h = self.hash(item)
         p = self.precision
         idx = h >> (64 - p)
         # The remaining 64 - p bits are the "tail"; we count the
         # position of the leftmost 1-bit in the tail (1-indexed:
         # "w" in the paper ranges from 1 to 64-p+1).
         tail = (h << p) & ((1 << 64) - 1)  # zero out the index bits
-        w = _leading_zero_count(tail, 64 - p) + 1
+        w = leading_zero_count(tail, 64 - p) + 1
         self.registers[idx] = max(self.registers[idx], w)
 
     def update(self, items: Iterable[object]) -> int:
@@ -122,7 +122,7 @@ class HyperLogLogSketch:
         return self.cardinality()
 
     @staticmethod
-    def _hash(item: object) -> int:
+    def hash(item: object) -> int:
         """Hash an arbitrary item to 64 bits. Uses SHA-256 for stability."""
         # We need a deterministic hash that produces the same value
         # for the same item across runs. SHA-256 truncated to 64
@@ -145,7 +145,9 @@ class HyperLogLogSketch:
         corrections from the original paper.
         """
         m = len(self.registers)
-        alpha = _alpha(self.precision)
+        from reachq.research.sketch import alpha as alpha_func
+
+        bias = alpha_func(self.precision)
         # Indicator sum: sum of 2^-M[j] across all registers.
         indicator = 0.0
         zeros = 0
@@ -155,7 +157,7 @@ class HyperLogLogSketch:
                 zeros += 1
         if indicator == 0.0:
             return 0
-        raw = alpha * m * m / indicator
+        raw = bias * m * m / indicator
         # Small-range correction: when raw <= 2.5 * m and there are
         # zero registers, use linear counting.
         if raw <= 2.5 * m and zeros > 0:
@@ -195,7 +197,7 @@ class HyperLogLogSketch:
         )
 
 
-def _leading_zero_count(value: int, total_bits: int) -> int:
+def leading_zero_count(value: int, total_bits: int) -> int:
     """Count the number of leading zero bits in ``value`` (MSB first).
 
     ``total_bits`` is the number of bits to consider (i.e., the

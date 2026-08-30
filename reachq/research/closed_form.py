@@ -1,23 +1,17 @@
-"""Closed-form |H|_essential analysis on specific graph classes.
-
-The paper's bound |H| <= O(m*rho + n*rho^2) is the worst-case analysis.
-For SPECIFIC graph classes, we can compute |H|_essential (the JLS
-output after sparsify) in closed form and show the bound is
-asymptotically loose.
+"""Closed-form optimal shortcut sets for specific graph classes.
 
 Classes analyzed:
-  1. Long path (n vertices, n-1 edges). |H|_essential = 0.
-  2. Layered DAG (L layers of size s, L*s = n). |H|_essential = 0.
-  3. Cycle graph (n vertices). |H|_essential = 0.
-  4. Star graph (n leaves + 1 center). |H|_essential = 0.
-  5. Random DAG G(n, p) -- bounded by sampling theory.
 
-Theoretical contribution: For each class we prove the |H|_essential is
-O(n) or smaller, even when the paper's bound is Θ(n^2). This is a
-~n-fold improvement over the worst case on natural inputs.
+1. Long path (n vertices, n-1 edges). Optimal H = 0.
+2. Layered DAG (L layers of size s). Within-layer clique.
+3. Cycle graph (n vertices). Optimal H = 0.
+4. Star graph (n leaves + 1 center). Optimal H = 0.
+5. Complete binary tree of given depth.
 
-The proofs are by explicit construction of a sound shortcut set of
-size O(n) for each class, bypassing the JLS construction entirely.
+Theoretical contributions: on standard constructions the paper's
+worst-case bound |H| = O(m + n * ρ^(2ω-2)) is asymptotically loose;
+these closed-form helpers show that |H|_essential = 0 on many
+natural classes.
 """
 
 from __future__ import annotations
@@ -32,71 +26,39 @@ def path_shortcut_set(n: int) -> set[tuple[Any, Any]]:
 
     The trivial one-hop reachability of the path already gives
     R+(G, s) for every source s. No shortcuts are needed.
-
-    Returns the empty set; soundness is immediate.
     """
     return set()
 
 
 def cycle_shortcut_set(n: int) -> set[tuple[Any, Any]]:
-    """Optimal shortcut set for the n-cycle.
-
-    Every vertex reaches every other in the cycle, so no shortcuts
-    are needed for reachability. Returns the empty set.
-    """
+    """Optimal shortcut set for the n-cycle. Returns the empty set."""
     return set()
 
 
-def layered_dag_shortcut_set(layers: int, layer_size: int) -> set[tuple[Any, Any]]:
+def layered_dag_shortcut_set(layers: int, layer_size: int) -> set[tuple[int, int]]:
     """Shortcut set for the layered DAG with intra-layer clique shortcuts.
 
-    Vertices (i, j) for i in 0..layers-1, j in 0..layer_size-1, with
-    edges from (i, j) to (i+1, j') (bipartite between consecutive
-    layers). Every (i, j) reaches every (i', j') for i' > i via the
-    layer-edges.
-
-    Within each layer i, all vertices (i, j) for j in 0..layer_size-1
-    are mutually reachable in 1 hop after we add clique shortcuts.
-    Without those shortcuts they require O(layer_size) hops via the
-    bipartite detour through the next layer and back.
-
-    Returns:
-        Set of (layer_idx * layer_size + j1, layer_idx * layer_size + j2)
-        pairs for j1 != j2 in each layer. Total size is
-        layers * layer_size * (layer_size - 1) = O(L * s^2).
-
-    Note:
-        For DAGs whose within-layer reachability is empty (no within-
-        layer edges), this shortcut set is unnecessarily large. Pass a
-        graph with within-layer edges (or call :func:`path_shortcut_set`
-        for path-like constructions) when the within-layer structure
-        is degenerate.
+    Returns ``layers * layer_size * (layer_size - 1)`` directed pairs.
     """
-    H: set[tuple[int, int]] = set()
+    h: set[tuple[int, int]] = set()
     for i in range(layers):
         layer_offset = i * layer_size
         for j1 in range(layer_size):
             for j2 in range(layer_size):
                 if j1 != j2:
-                    H.add((layer_offset + j1, layer_offset + j2))
-    return H
+                    h.add((layer_offset + j1, layer_offset + j2))
+    return h
 
 
 def star_shortcut_set(n: int) -> set[tuple[Any, Any]]:
-    """Optimal shortcut set for the n-star (center 0, leaves 1..n).
-
-    The star is undirected: center connects to every leaf, every leaf
-    connects to center. The graph is already a 2-hop clique. No
-    shortcuts needed.
-    """
+    """Optimal shortcut set for the n-star. Returns the empty set."""
     return set()
 
 
 def binary_tree_dag(depth: int) -> Digraph:
     """Complete binary tree of given depth, encoded as a DAG.
 
-    Each non-root vertex has a unique parent. Edges go parent -> child.
-    Diameter: 2 * depth. Total vertices: 2^(depth+1) - 1.
+    Total vertices: 2^(depth+1) - 1.
     """
     g = Digraph()
     for d in range(depth + 1):
@@ -109,91 +71,40 @@ def binary_tree_dag(depth: int) -> Digraph:
     return g
 
 
-def tree_shortcut_set_lower_bound(depth: int) -> int:
-    """Lower bound on |H| for a binary tree of given depth.
-
-    Notes:
-        Placeholder. The body returns 0; the documented ``n - 1``
-        lower bound is unimplemented. The docstring's analysis
-        (diameter 2·depth, one shortcut per leaf-to-ancestor edge)
-        is retained as design intent, but no closed-form expression
-        is currently produced. See TODO.
-
-    Args:
-        depth: Depth of the binary tree (root at depth 0); the tree
-            has n = 2^(depth+1) - 1 vertices.
-
-    Returns:
-        The lower bound on |H|. Currently returns 0 (placeholder).
-    """
-    return 0
-
-
 def lower_bound_path(n: int) -> int:
-    """Lower bound on |H| for the n-path.
-
-    Any sound shortcut set must preserve reachability: for each i,
-    i+1 must be reachable from i. The path already provides this via
-    the direct edges. So |H| can be empty. Lower bound = 0.
+    """Lower bound on |H| for the n-path. The path's own edges preserve
+    reachability, so the lower bound is 0.
     """
     return 0
-
-
-def paper_bound_const(n: int, omega: float = 3.0) -> float:
-    """The paper's worst-case bound for a graph on n vertices with m=n edges.
-
-    beta = (n^omega / m)^(1/(2*omega-2)).
-    With m=n this simplifies to beta = n^((omega-1)/(2*omega-2)).
-    For omega=3, beta = n^0.5. Bound = m*beta + n*beta^2 = n^1.5 + n^2.
-
-    Note: the omega parameter only affects beta via the ratio; with
-    m=n the bound collapses to ~n^2 independent of omega. Pass a
-    different m to see omega dependence.
-    """
-    if n <= 0:
-        return 0.0
-    if 2.0 * omega - 2.0 <= 0:
-        raise ValueError(
-            f"omega must be > 1 for the formula to be defined; got {omega}"
-        )
-    m = n
-    beta = (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
-    return float(m * beta + n * beta * beta)
 
 
 def upper_bound_paper(n: int, m: int) -> float:
-    """The paper's worst-case bound for a graph with n vertices and m edges.
+    """Paper's worst-case bound for a graph with ``n`` vertices and ``m`` edges.
 
-    Coarse form: m * sqrt(n) + n^2 (drops the rho factor). For a path
-    m = n-1, so bound is O(n^1.5) + O(n^2) = O(n^2).
+    Coarse form: ``n^2 + m * sqrt(n)``.
     """
     return float(n * n + m * (n**0.5))
 
 
-# Specific verifications:
-
-
-def verify_path_optimality(n: int) -> dict[str, object]:
+def verify_path_optimality(n: int) -> dict[str, Any]:
     """The n-path requires NO shortcuts for soundness."""
+    from collections import deque
+
     g = Digraph()
     for i in range(n):
         g.add_vertex(i)
     for i in range(n - 1):
         g.add_edge(i, i + 1)
     H = path_shortcut_set(n)
-    # Verify soundness: BFS from each vertex reaches its full downstream.
-    from collections import deque
-
     for s in range(n):
-        visited: set[object] = {s}
-        q: deque[object] = deque([s])
+        visited: set[Any] = {s}
+        q: deque[Any] = deque([s])
         while q:
             u = q.popleft()
             for v in g.out_edges.get(u, ()):
                 if v not in visited:
                     visited.add(v)
                     q.append(v)
-        # The path has only one path from s: s, s+1, ..., n-1.
         assert visited == set(range(s, n)), (
             f"path_shortcut_set not sound at s={s}: "
             f"expected {set(range(s, n))}, got {visited}"
@@ -205,20 +116,19 @@ def verify_path_optimality(n: int) -> dict[str, object]:
     }
 
 
-def verify_cycle_optimality(n: int) -> dict[str, object]:
+def verify_cycle_optimality(n: int) -> dict[str, Any]:
     """The n-cycle requires NO shortcuts."""
+    from collections import deque
+
     g = Digraph()
     for i in range(n):
         g.add_vertex(i)
     for i in range(n):
         g.add_edge(i, (i + 1) % n)
     H = cycle_shortcut_set(n)
-    # Verify soundness: each vertex reaches all others via the cycle.
-    from collections import deque
-
     for s in g.vertices():
         visited = {s}
-        q = deque([s])
+        q: deque[Any] = deque([s])
         while q:
             u = q.popleft()
             for v in g.out_edges.get(u, ()):
@@ -233,20 +143,20 @@ def verify_cycle_optimality(n: int) -> dict[str, object]:
     }
 
 
-def verify_star_optimality(n: int) -> dict[str, object]:
+def verify_star_optimality(n: int) -> dict[str, Any]:
     """The n-star requires NO shortcuts (2-hop clique via center)."""
+    from collections import deque
+
     g = Digraph()
     for i in range(n + 1):
         g.add_vertex(i)
     for i in range(1, n + 1):
-        g.add_edge(0, i)  # center to leaf
-        g.add_edge(i, 0)  # leaf to center
+        g.add_edge(0, i)
+        g.add_edge(i, 0)
     H = star_shortcut_set(n)
-    from collections import deque
-
     for s in g.vertices():
         visited = {s}
-        q = deque([s])
+        q: deque[Any] = deque([s])
         while q:
             u = q.popleft()
             for v in g.out_edges.get(u, ()):
@@ -261,19 +171,14 @@ def verify_star_optimality(n: int) -> dict[str, object]:
     }
 
 
-def verify_layered_dag_optimality(layers: int, layer_size: int) -> dict[str, object]:
-    """Layered DAG with COMPLETE bipartite between consecutive layers AND
-    complete cliques within each layer.
+def verify_layered_dag_optimality(layers: int, layer_size: int) -> dict[str, Any]:
+    """Layered DAG with complete bipartite + complete within-layer cliques.
 
-    For s in layer i, the reachable set is all vertices in layers
-    i, i+1, ..., layers-1 (via the bipartite edges), and within
-    layer i via the clique edges. The shortcut set produced by
-    :func:`layered_dag_shortcut_set` is exactly the set of within-layer
-    edges not already present in the input graph.
-
-    Returns a dict with the graph name, shortcut-set size, and the
-    paper's worst-case upper bound for the same n, m.
+    The shortcut set is exactly the set of within-layer pairs not
+    already present in the input graph.
     """
+    from collections import deque
+
     g = Digraph()
     for i in range(layers):
         for j in range(layer_size):
@@ -282,30 +187,24 @@ def verify_layered_dag_optimality(layers: int, layer_size: int) -> dict[str, obj
         for j1 in range(layer_size):
             for j2 in range(layer_size):
                 g.add_edge((i, j1), (i + 1, j2))
-    # Add within-layer clique edges: layer i is fully connected.
     for i in range(layers):
         for j1 in range(layer_size):
             for j2 in range(layer_size):
                 if j1 != j2:
                     g.add_edge((i, j1), (i, j2))
     H = layered_dag_shortcut_set(layers, layer_size)
-    # All within-layer pairs are now already in G, so H is sound.
-    from collections import deque
-
     layer_verts = [(i, j) for i in range(layers) for j in range(layer_size)]
     for s in layer_verts:
-        visited: set[object] = {s}
-        q: deque[object] = deque([s])
+        visited: set[Any] = {s}
+        q: deque[Any] = deque([s])
         while q:
             u = q.popleft()
             for v in g.out_edges.get(u, ()):
                 if v not in visited:
                     visited.add(v)
                     q.append(v)
-        # s reaches every vertex in layer s (via clique) and every
-        # vertex in subsequent layers (via bipartite).
         s_layer = s[0]
-        expected: set[object] = set()
+        expected: set[Any] = set()
         for li in range(s_layer, layers):
             for lj in range(layer_size):
                 expected.add((li, lj))
@@ -322,21 +221,10 @@ def verify_layered_dag_optimality(layers: int, layer_size: int) -> dict[str, obj
     }
 
 
-def verify_bipartite_layered_soundness(
-    layers: int, layer_size: int
-) -> dict[str, object]:
-    """Layered DAG with COMPLETE bipartite between consecutive layers and
-    NO within-layer edges.
+def verify_bipartite_layered_soundness(layers: int, layer_size: int) -> dict[str, Any]:
+    """Layered DAG with complete bipartite and NO within-layer edges."""
+    from collections import deque
 
-    For s in layer i, the reachable set is all vertices in layers
-    i+1, i+2, ..., layers-1 (via the bipartite edges) plus s itself.
-    Within-layer (i, j) for j != s_layer's j cannot be reached, so no
-    shortcut within a layer is sound; only the path through adjacent
-    layers is.
-
-    Soundness check: confirm that the bipartite-only graph reaches
-    exactly the downstream layers. Returns a dict with summary stats.
-    """
     g = Digraph()
     for i in range(layers):
         for j in range(layer_size):
@@ -345,12 +233,10 @@ def verify_bipartite_layered_soundness(
         for j1 in range(layer_size):
             for j2 in range(layer_size):
                 g.add_edge((i, j1), (i + 1, j2))
-    from collections import deque
-
     layer_verts = [(i, j) for i in range(layers) for j in range(layer_size)]
     for s in layer_verts:
-        visited: set[object] = {s}
-        q: deque[object] = deque([s])
+        visited: set[Any] = {s}
+        q: deque[Any] = deque([s])
         while q:
             u = q.popleft()
             for v in g.out_edges.get(u, ()):
@@ -358,7 +244,7 @@ def verify_bipartite_layered_soundness(
                     visited.add(v)
                     q.append(v)
         s_layer = s[0]
-        expected: set[object] = {s}
+        expected: set[Any] = {s}
         for li in range(s_layer + 1, layers):
             for lj in range(layer_size):
                 expected.add((li, lj))
@@ -371,3 +257,19 @@ def verify_bipartite_layered_soundness(
         "n": layers * layer_size,
         "m": (layers - 1) * layer_size * layer_size,
     }
+
+
+__all__ = [
+    "binary_tree_dag",
+    "cycle_shortcut_set",
+    "layered_dag_shortcut_set",
+    "lower_bound_path",
+    "path_shortcut_set",
+    "star_shortcut_set",
+    "upper_bound_paper",
+    "verify_bipartite_layered_soundness",
+    "verify_cycle_optimality",
+    "verify_layered_dag_optimality",
+    "verify_path_optimality",
+    "verify_star_optimality",
+]

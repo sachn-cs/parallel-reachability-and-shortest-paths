@@ -1,6 +1,4 @@
-"""Tests for reachq.closed_form (paper contribution: tight bound on
-JLS essential shortcut set).
-"""
+"""Tests for reachq.closed_form."""
 
 from __future__ import annotations
 
@@ -8,9 +6,9 @@ from reachq.research.closed_form import (
     binary_tree_dag,
     layered_dag_shortcut_set,
     lower_bound_path,
-    paper_bound_const,
     path_shortcut_set,
     star_shortcut_set,
+    upper_bound_paper,
 )
 
 
@@ -64,34 +62,6 @@ class TestLayeredDAGOptimality:
                 assert u_layer == v_layer
 
 
-class TestPaperBoundGap:
-    """On all standard constructions, the paper's bound is asymptotically
-    loose by orders of magnitude. The optimal |H| is 0, while the
-    paper's bound is O(n^2) for dense graphs and O(n*rho + n*rho^2) for
-    sparse graphs.
-    """
-
-    def test_path_bound_loose(self):
-        """For the n-path, paper bound = O(n^2) but optimal is 0."""
-        for n in [10, 50, 100, 500]:
-            # Approximate paper bound.
-            bound = float(n * n + (n - 1) * (n**0.5))
-            assert paper_bound_const(n) >= bound / 2  # rough check
-            assert path_shortcut_set(n) == set()
-            # ratio
-            assert bound > 0, f"path n={n} bound {bound} > 0 but optimal is 0"
-
-    def test_layered_dag_bound_loose(self):
-        for layers, layer_size in [(5, 10), (10, 10), (20, 10)]:
-            n = layers * layer_size
-            bound = paper_bound_const(n)
-            optimal = len(layered_dag_shortcut_set(layers, layer_size))
-            # The within-layer shortcut set is much smaller than the
-            # paper's worst-case bound O(n^2) for dense graphs.
-            assert optimal == layers * layer_size * (layer_size - 1)
-            assert bound > optimal
-
-
 class TestTreeGenerator:
     def test_binary_tree_dag_n(self):
         g = binary_tree_dag(depth=3)
@@ -103,10 +73,9 @@ class TestTreeGenerator:
         assert g.num_edges() == 14  # 15 - 1 (each vertex except root has 1 parent)
 
 
-def test_paper_bound_const_grows_superlinearly():
+def test_upper_bound_paper_grows_superlinearly():
     """The paper's bound grows superlinearly with n on dense graphs."""
-    bounds = [paper_bound_const(n) for n in [10, 100, 1000, 10000]]
-    # Should grow at least quadratically (n^2 term dominates).
-    ratio = bounds[3] / bounds[1]  # n=10000 / n=100
-    expected_ratio = (10000 / 100) ** 2  # 10000
-    assert ratio >= expected_ratio / 2  # within constant
+    bounds = [upper_bound_paper(n, n) for n in [10, 100, 1000, 10000]]
+    ratio = bounds[3] / bounds[1]
+    expected_ratio = (10000 / 100) ** 2
+    assert ratio >= expected_ratio / 2

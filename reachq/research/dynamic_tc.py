@@ -56,9 +56,9 @@ class DynamicTransitiveClosure:
         self.graph = graph
         self.vertices: tuple[object, ...] = tuple(graph.vertices())
         self._index: dict[object, int] = {v: i for i, v in enumerate(self.vertices)}
-        self._reach: set[tuple[int, int]] = self._compute_full_tc()
+        self._reach: set[tuple[int, int]] = self.compute_full_tc()
 
-    def _compute_full_tc(self) -> set[tuple[int, int]]:
+    def compute_full_tc(self) -> set[tuple[int, int]]:
         """Recompute the full transitive closure from scratch via BFS."""
         from collections import deque
 
@@ -149,11 +149,11 @@ class DynamicTransitiveClosure:
         if not self.graph.has_edge(u, v):
             return
         # Remove edge from graph (manually since Digraph lacks delete).
-        self._remove_edge_from_graph(u, v)
+        self.remove_edge_from_graph(u, v)
         # Recompute full TC.
-        self._reach = self._compute_full_tc()
+        self._reach = self.compute_full_tc()
 
-    def _remove_edge_from_graph(self, u: object, v: object) -> None:
+    def remove_edge_from_graph(self, u: object, v: object) -> None:
         """Remove edge (u, v) from the underlying Digraph in-place."""
         out = self.graph.out_edges
         if u in out and v in out[u]:
@@ -234,11 +234,11 @@ def incremental_tc(
             dtc.graph.add_vertex(u)
             dtc.vertices = dtc.graph.vertices()
             dtc._index = {vtx: i for i, vtx in enumerate(dtc.vertices)}
-            dtc._reach = dtc._compute_full_tc()
+            dtc._reach = dtc.compute_full_tc()
         if v not in dtc.graph:
             dtc.graph.add_vertex(v)
             dtc.vertices = dtc.graph.vertices()
             dtc._index = {vtx: i for i, vtx in enumerate(dtc.vertices)}
-            dtc._reach = dtc._compute_full_tc()
+            dtc._reach = dtc.compute_full_tc()
         dtc.insert_edge(u, v)
     return dtc

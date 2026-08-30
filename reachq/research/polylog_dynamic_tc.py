@@ -60,12 +60,12 @@ from collections.abc import Iterable
 from reachq.core.graph import Digraph
 
 
-def _chunk_count(n: int) -> int:
+def chunk_count(n: int) -> int:
     """Number of 64-bit chunks needed to store ``n`` bits."""
     return (n + 63) // 64
 
 
-def _bit_index(v: int) -> tuple[int, int]:
+def bit_index(v: int) -> tuple[int, int]:
     """Return (chunk_index, bit_within_chunk) for vertex v."""
     return v >> 6, v & 63
 
@@ -93,7 +93,7 @@ class PolylogDynamicTC:
         self.n = len(self._vertices)
         # _rows[i] is the bitset of vertices reachable from i.
         self._rows: list[list[int]] = [
-            [0] * _chunk_count(self.n) for _ in range(self.n)
+            [0] * chunk_count(self.n) for _ in range(self.n)
         ]
         # _out[i] is the adjacency list of vertex i (for BFS during
         # delete operations).
@@ -104,35 +104,35 @@ class PolylogDynamicTC:
         # Initialise with the identity matrix (each vertex reaches itself)
         # and the direct edges.
         for v in range(self.n):
-            chunk, bit = _bit_index(v)
+            chunk, bit = bit_index(v)
             self._rows[v][chunk] |= 1 << bit
         # Add direct edges.
         for u, w in graph.edges():
             iu = self._index[u]
             iw = self._index[w]
-            chunk, bit = _bit_index(iw)
+            chunk, bit = bit_index(iw)
             self._rows[iu][chunk] |= 1 << bit
         # Compute the full TC via repeated squaring of the bitset
         # matrix. For small n this is fast; for large n the user
         # should switch to :class:`DynamicTransitiveClosure`.
-        self._compute_full_tc()
+        self.compute_full_tc()
 
-    def _set_bit(self, row: int, col: int) -> None:
+    def set_bit(self, row: int, col: int) -> None:
         """Set bit (row, col) in the matrix."""
-        chunk, bit = _bit_index(col)
+        chunk, bit = bit_index(col)
         self._rows[row][chunk] |= 1 << bit
 
-    def _clear_bit(self, row: int, col: int) -> None:
+    def clear_bit(self, row: int, col: int) -> None:
         """Clear bit (row, col) in the matrix."""
-        chunk, bit = _bit_index(col)
+        chunk, bit = bit_index(col)
         self._rows[row][chunk] &= ~(1 << bit)
 
-    def _test_bit(self, row: int, col: int) -> bool:
+    def test_bit(self, row: int, col: int) -> bool:
         """Return True iff (row, col) is in the matrix."""
-        chunk, bit = _bit_index(col)
+        chunk, bit = bit_index(col)
         return bool(self._rows[row][chunk] & (1 << bit))
 
-    def _row_bits(self, row: int) -> set[int]:
+    def row_bits(self, row: int) -> set[int]:
         """Return the set of vertex indices reachable from ``row``."""
         bits: set[int] = set()
         for chunk_idx, chunk in enumerate(self._rows[row]):
@@ -146,7 +146,7 @@ class PolylogDynamicTC:
                         bits.add(v)
         return bits
 
-    def _compute_full_tc(self) -> None:
+    def compute_full_tc(self) -> None:
         """Recompute the full TC via Warshall-style iteration.
 
         For each pair (i, j) in the current matrix, if there's an
@@ -207,7 +207,7 @@ class PolylogDynamicTC:
             self._out[iu].append(iv)
             self._out[iu].sort()
         # If (iu, iv) already in TC, nothing to do.
-        if self._test_bit(iu, iv):
+        if self.test_bit(iu, iv):
             return
         # For every predecessor x of iu, add (x, iv).
         # For every successor y of iv, add (iu, y).
@@ -219,17 +219,17 @@ class PolylogDynamicTC:
             # Predecessors of iu (including iu itself).
             preds: set[int] = set()
             for x in range(self.n):
-                if self._test_bit(x, iu):
+                if self.test_bit(x, iu):
                     preds.add(x)
             # Successors of iv (including iv itself).
             succs: set[int] = set()
             for y in range(self.n):
-                if self._test_bit(iv, y):
+                if self.test_bit(iv, y):
                     succs.add(y)
             for x in preds:
                 for y in succs:
-                    if not self._test_bit(x, y):
-                        self._set_bit(x, y)
+                    if not self.test_bit(x, y):
+                        self.set_bit(x, y)
                         changed = True
 
     def delete_edge(self, u: object, v: object) -> None:
@@ -252,32 +252,32 @@ class PolylogDynamicTC:
         if not self.graph.has_edge(u, v):
             return
         # Remove edge from graph.
-        self._remove_edge_from_graph(u, v)
+        self.remove_edge_from_graph(u, v)
         # Recompute reachability from iu by BFS over current adjacency.
-        new_r_plus = self._bfs_forward(iu)
+        new_r_plus = self.bfs_forward(iu)
         # Old reachability from iu:
-        old_r_plus = self._row_bits(iu)
+        old_r_plus = self.row_bits(iu)
         # Predecessors of iu: vertices x that reached iu (so that
         # (x, y) for y in old_r_plus might now be invalid).
         preds: set[int] = set()
         for x in range(self.n):
-            if self._test_bit(x, iu):
+            if self.test_bit(x, iu):
                 preds.add(x)
         # For every predecessor x of iu and every y that was in
         # old_r_plus but NOT in new_r_plus, clear (x, y).
         removed = old_r_plus - new_r_plus
         for x in preds:
             for y in removed:
-                if self._test_bit(x, y):
-                    self._clear_bit(x, y)
+                if self.test_bit(x, y):
+                    self.clear_bit(x, y)
         # Now propagate: for every y in new_r_plus, restore (iu, y)
         # (since we just cleared some), then fix predecessors.
         for y in new_r_plus:
-            self._set_bit(iu, y)
+            self.set_bit(iu, y)
         # Re-run the closure fixpoint to fill in any missed pairs.
-        self._compute_full_tc()
+        self.compute_full_tc()
 
-    def _remove_edge_from_graph(self, u: object, v: object) -> None:
+    def remove_edge_from_graph(self, u: object, v: object) -> None:
         """Remove edge (u, v) from the underlying Digraph in-place."""
         out = self.graph.out_edges
         if u in out and v in out[u]:
@@ -292,7 +292,7 @@ class PolylogDynamicTC:
         if iv in self._out[iu]:
             self._out[iu].remove(iv)
 
-    def _bfs_forward(self, source: int) -> set[int]:
+    def bfs_forward(self, source: int) -> set[int]:
         """BFS from ``source`` over the current adjacency."""
         visited: set[int] = {source}
         q: deque[int] = deque([source])
@@ -308,14 +308,14 @@ class PolylogDynamicTC:
         """Test whether ``target`` is reachable from ``source`` in O(1)."""
         if source not in self._index or target not in self._index:
             return False
-        return self._test_bit(self._index[source], self._index[target])
+        return self.test_bit(self._index[source], self._index[target])
 
     def reachable_from(self, source: object) -> set[object]:
         """Return all vertices reachable from ``source``."""
         if source not in self._index:
             return set()
         idx = self._index[source]
-        return {self.vertices[j] for j in self._row_bits(idx)}
+        return {self.vertices[j] for j in self.row_bits(idx)}
 
     def reach_set(self) -> set[tuple[object, object]]:
         """Return the full transitive closure as a set of vertex pairs."""
@@ -377,25 +377,25 @@ def polylog_incremental_tc(
             # Extend the matrix.
             new_n = len(pdtc._vertices)
             for row in pdtc._rows:
-                while len(row) < _chunk_count(new_n):
+                while len(row) < chunk_count(new_n):
                     row.append(0)
             while len(pdtc._rows) < new_n:
-                pdtc._rows.append([0] * _chunk_count(new_n))
+                pdtc._rows.append([0] * chunk_count(new_n))
                 pdtc._out.append([])
             pdtc.n = new_n
-            pdtc._compute_full_tc()
+            pdtc.compute_full_tc()
         if v not in pdtc._index:
             pdtc.graph.add_vertex(v)
             pdtc._vertices = tuple(pdtc.graph.vertices())
             pdtc._index = {vtx: i for i, vtx in enumerate(pdtc._vertices)}
             new_n = len(pdtc._vertices)
             for row in pdtc._rows:
-                while len(row) < _chunk_count(new_n):
+                while len(row) < chunk_count(new_n):
                     row.append(0)
             while len(pdtc._rows) < new_n:
-                pdtc._rows.append([0] * _chunk_count(new_n))
+                pdtc._rows.append([0] * chunk_count(new_n))
                 pdtc._out.append([])
             pdtc.n = new_n
-            pdtc._compute_full_tc()
+            pdtc.compute_full_tc()
         pdtc.insert_edge(u, v)
     return pdtc

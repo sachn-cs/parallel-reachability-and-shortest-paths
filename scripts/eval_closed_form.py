@@ -21,7 +21,7 @@ from reachq.core.graph import Digraph
 from reachq.research.closed_form import (
     binary_tree_dag,
     layered_dag_shortcut_set,
-    paper_bound_const,
+    upper_bound_paper,
     path_shortcut_set,
 )
 from reachq.research.sparsify import sparsify_shortcut_set
@@ -39,7 +39,7 @@ def measure(name: str, g: Digraph, optimal_H: set) -> dict[str, object]:
         sparsify_shortcuts=False,
     )
     H_ess = sparsify_shortcut_set(g, H)
-    bound = paper_bound_const(n)
+    bound = upper_bound_paper(n, n)
     return {
         "construction": name,
         "n": n,
