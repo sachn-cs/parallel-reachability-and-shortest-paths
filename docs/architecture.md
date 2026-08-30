@@ -13,7 +13,7 @@ reachq is organized into six layers, each with clear responsibilities:
 ├─────────────────────────────────────────────────────┤
 │      Parallel Simulation Layer (core/work_depth)    │
 ├─────────────────────────────────────────────────────┤
-│    Shortcut/Hopset Layer (core/algorithm, hopset)    │
+│    Shortcut/Hopset Layer (core/shortcut, core/hopset, core/shortcut_parallel)    │
 ├─────────────────────────────────────────────────────┤
 │  Generator/Serialization Layer (core/generators,     │
 │                                core/io/json)         │
@@ -75,7 +75,7 @@ Standard graph primitives used by higher-level constructions:
 
 The paper's main algorithmic contributions:
 
-- **`core/algorithm.py`**: JLS shortcut set algorithm with TC-Pruning (Theorem 2).
+- **`core/shortcut.py`**: JLS shortcut set algorithm with TC-Pruning (Theorem 2).
   Constructs beta-shortcut sets in near-linear time.
 - **`core/hopset.py`**: CFR hopset algorithm with TruncSSSP-Pruning (Theorem 4).
   Constructs (beta, epsilon)-hopsets in near-linear time.
@@ -127,7 +127,7 @@ A typical workflow follows this pattern:
 Input Graph
     │
     ▼
-[SCC Contraction]  (core/algorithm.py / core/hopset.py)
+[SCC Contraction]  (core/shortcut.py / core/hopset.py)
     │
     ▼
 [Algorithm Construction]  (JLS + TC-Pruning / CFR + TruncSSSP-Pruning)
@@ -179,7 +179,7 @@ core/graph.py       (no internal dependencies; contract_sccs lazily imports
     │       │
     │       └── core/tc.py
     │
-    ├── core/algorithm.py
+    ├── core/shortcut.py
     │       │
     │       └── core/hopset.py
     │
@@ -223,5 +223,5 @@ critical path of the API:
   or `ray`).
 - **Fast Matrix Multiplication**: TC uses sparse Boolean matmul (scipy.sparse).
   Runtime ω detection exists (`reachq/research/blas_omega.py`, feeding the
-  work-comparison analysis in `core/algorithm.py`), but the TC kernel itself
+  work-comparison analysis in `core/shortcut.py`), but the TC kernel itself
   does not switch to a fast-MM library; that remains future work.

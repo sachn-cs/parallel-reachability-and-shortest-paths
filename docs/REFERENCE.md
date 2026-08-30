@@ -24,15 +24,15 @@ docstrings, so they should never lie about the API.
 
 ## Shortcut-set construction
 
-::: reachq.core.algorithm.build_shortcut_set_for_reachability
+::: reachq.core.shortcut.build_shortcut_set_for_reachability
     options:
       show_root_heading: true
 
-::: reachq.core.algorithm.jls_shortcut_set
+::: reachq.core.shortcut.jls_with_tc_pruning
     options:
       show_root_heading: true
 
-::: reachq.core.algorithm.jls_with_tc_pruning
+::: reachq.core.shortcut.jls_with_tc_pruning
     options:
       show_root_heading: true
 

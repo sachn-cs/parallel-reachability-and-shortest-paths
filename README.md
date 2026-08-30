@@ -1,7 +1,7 @@
 <p align="center">
   <h1 align="center">reachq</h1>
   <p align="center"><em>reachq: graph reachability, queryable.</em></p>
-  <p align="center">Pure-Python reimplementation of the JLS shortcut-set and CFR hopset constructions, with seven toggleable algorithmic refinements and four documented correctness fixes.</p>
+  <p align="center">Pure-Python reimplementation of the JLS shortcut-set and CFR hopset constructions. Insertion-order vertex indexing, deterministic cross-process reproducibility, Boolean-semiring transitive closure.</p>
   <p align="center">
     <a href="#installation"><img src="https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12%20%7C%203.13-blue" alt="Python"></a>
     <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green" alt="License"></a>
@@ -81,7 +81,7 @@ No JIT, no native extensions; the wheel is pure-Python.
 ## Quick start
 
 ```python
-from reachq.core.algorithm import build_shortcut_set_for_reachability
+from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag
 from reachq.core.reachability import bfs_reachability, parallel_bfs
 
@@ -162,7 +162,7 @@ not hard-code counts in user-facing docs.
 
 ```python
 from reachq import RefinementConfig as Flags, Digraph, WeightedDigraph
-from reachq.core.algorithm import (
+from reachq.core.shortcut import (
     build_shortcut_set_for_reachability,  # Theorem-2 wrapper
     jls_with_tc_pruning,  # direct recursion
 )

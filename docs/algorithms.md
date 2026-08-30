@@ -68,7 +68,7 @@ subgraph. Used by TC-Pruning.
 
 ### JLS Shortcut Set (Baseline)
 
-`jls_shortcut_set(graph, k, max_level, n_global)` implements the Jambulapati,
+`jls_with_tc_pruning(graph, k, rho, max_level, n_global, refinement=RefinementConfig(enable_tc_pruning=False))` implements the Jambulapati,
 Liu, Sidford [JLS19] shortcut set algorithm (Section 4.1, Proposition 4.1).
 
 Algorithm outline:
@@ -128,7 +128,7 @@ and GIL-bound.
 
 ### CFR Hopset (Baseline)
 
-`cfr_hopset(graph, k, epsilon, max_level, n_global)` implements the Cao,
+`cfr_with_truncsssp_pruning(graph, k, epsilon, rho, max_level, n_global, refinement=RefinementConfig(enable_tc_pruning=True))` implements the Cao,
 Fineman, Russell [CFR20] hopset algorithm (reconstructed from Section 6.1).
 
 Algorithm outline:
