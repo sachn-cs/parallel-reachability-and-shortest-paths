@@ -15,7 +15,15 @@ gate vertex/edge acceptance. Both predicates default to "always
 true" (no filtering).
 """
 
+
+
+
 from __future__ import annotations
+
+
+__experimental__ = True
+
+
 
 from collections import deque
 from collections.abc import Callable

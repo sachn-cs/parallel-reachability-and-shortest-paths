@@ -16,7 +16,15 @@ an upper bound in the Lemma 2.2 trigger; the actual achievable
 omega may be lower (faster) on the running hardware.
 """
 
+
+
+
 from __future__ import annotations
+
+
+__experimental__ = True
+
+
 
 import numpy as np
 

@@ -52,7 +52,15 @@ force O(n^2) per delete). For pathological workloads, use the
 naive implementation.
 """
 
+
+
+
 from __future__ import annotations
+
+
+__experimental__ = True
+
+
 
 from collections import deque
 from collections.abc import Iterable

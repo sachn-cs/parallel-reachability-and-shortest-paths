@@ -14,7 +14,15 @@ these closed-form helpers show that |H|_essential = 0 on many
 natural classes.
 """
 
+
+
+
 from __future__ import annotations
+
+
+__experimental__ = True
+
+
 
 from typing import Any
 
