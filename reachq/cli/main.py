@@ -16,7 +16,6 @@ import math
 import sys
 import time
 
-from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.config import get_logger
 from reachq.core.generators import (
     SNAP_DATASETS,
@@ -40,6 +39,7 @@ from reachq.core.io.json import (
     weighted_load,
 )
 from reachq.core.reachability import bfs_reachability, parallel_bfs
+from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
 from reachq.core.work_depth import (
     WorkDepthAccountant,

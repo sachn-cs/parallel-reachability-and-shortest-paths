@@ -27,7 +27,7 @@ if TYPE_CHECKING:
     from reachq.core.graph import Digraph
 
 
-def bfs_reachability(graph: "Digraph", source: object) -> set[object]:
+def bfs_reachability(graph: Digraph, source: object) -> set[object]:
     """Compute ``R^+(G, source)``: all vertices reachable from ``source``.
 
     Args:
@@ -55,7 +55,7 @@ def bfs_reachability(graph: "Digraph", source: object) -> set[object]:
     return visited
 
 
-def reverse_bfs_reachability(graph: "Digraph", target: object) -> set[object]:
+def reverse_bfs_reachability(graph: Digraph, target: object) -> set[object]:
     """Compute ``R^-(G, target)``: all vertices that can reach ``target``.
 
     Runs BFS on the reversed graph.
@@ -86,7 +86,7 @@ def reverse_bfs_reachability(graph: "Digraph", target: object) -> set[object]:
 
 
 def compute_r_sets_for_vertices(
-    graph: "Digraph", vertices: list[object]
+    graph: Digraph, vertices: list[object]
 ) -> tuple[set[object], set[object]]:
     """Compute the union of ``R^-`` and ``R^+`` for a set of vertices.
 
@@ -105,26 +105,26 @@ def compute_r_sets_for_vertices(
     return r_minus, r_plus
 
 
-def compute_ancestors(graph: "Digraph", path_vertices: list[object]) -> set[object]:
+def compute_ancestors(graph: Digraph, path_vertices: list[object]) -> set[object]:
     r"""Compute ``R^-(G, P) \ R^+(G, P)``: ancestors of path ``P``."""
     r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_minus - r_plus
 
 
-def compute_descendants(graph: "Digraph", path_vertices: list[object]) -> set[object]:
+def compute_descendants(graph: Digraph, path_vertices: list[object]) -> set[object]:
     r"""Compute ``R^+(G, P) \ R^-(G, P)``: descendants of path ``P``."""
     r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_plus - r_minus
 
 
-def compute_bridges(graph: "Digraph", path_vertices: list[object]) -> set[object]:
+def compute_bridges(graph: Digraph, path_vertices: list[object]) -> set[object]:
     """Compute ``R^-(G, P) ∩ R^+(G, P)``: bridges of path ``P``."""
     r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_minus & r_plus
 
 
 def parallel_bfs(
-    graph: "Digraph",
+    graph: Digraph,
     source: object,
     shortcut_edges: set[tuple[object, object]] | None = None,
 ) -> set[object]:
@@ -170,7 +170,7 @@ def parallel_bfs(
     return visited
 
 
-def strongly_connected_components(graph: "Digraph") -> list[list[object]]:
+def strongly_connected_components(graph: Digraph) -> list[list[object]]:
     """Compute SCCs using Kosaraju's algorithm.
 
     Uses iterative DFS to avoid stack overflow on large graphs.
@@ -191,7 +191,7 @@ def strongly_connected_components(graph: "Digraph") -> list[list[object]]:
     for v in graph.iter_vertices():
         if v in visited:
             continue
-        stack: list[tuple[object, "object"]] = [
+        stack: list[tuple[object, object]] = [
             (v, iter(out.get(v, set())))
         ]
         visited.add(v)
@@ -230,7 +230,7 @@ def strongly_connected_components(graph: "Digraph") -> list[list[object]]:
     return sccs
 
 
-def topological_sort(graph: "Digraph") -> list[object]:
+def topological_sort(graph: Digraph) -> list[object]:
     """Return a topological ordering of a DAG.
 
     Uses Kahn's algorithm.

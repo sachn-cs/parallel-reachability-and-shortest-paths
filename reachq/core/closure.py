@@ -219,7 +219,7 @@ def transitive_closure_on_subset(
 
 __all__ = [
     "TransitiveClosureBudgetError",
-    "transitive_closure_brute_force",
     "transitive_closure",
+    "transitive_closure_brute_force",
     "transitive_closure_on_subset",
 ]

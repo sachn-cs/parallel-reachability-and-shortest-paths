@@ -17,12 +17,10 @@ from __future__ import annotations
 
 import math
 import random
-from typing import Any
 
 from reachq.core.config import RefinementConfig
 from reachq.core.graph import WeightedDigraph
 from reachq.core.shortest_paths import (
-    compute_d_ball,
     compute_d_descendants,
     dijkstra,
 )
@@ -213,7 +211,6 @@ def cfr_partition(
     des_of: dict[object, set[object]] = {v: set() for v in vertices}
 
     rev = graph.reversed()
-    distance_scale = 1
     d = 1
     for pivot in pivots:
         d_ancestors = _compute_ancestors_with_rev(graph, rev, pivot, d)
@@ -378,4 +375,14 @@ def build_hopset_for_sssp(
         ), beta
 
 
-Any = Any
+__all__ = [
+    "OMEGA_DEFAULT",
+    "bernoulli_weighted",
+    "build_hopset_for_sssp",
+    "cfr_hopset",
+    "cfr_partition",
+    "cfr_recursive",
+    "cfr_with_truncsssp_pruning",
+    "compute_truncated_sssp_structure",
+    "get_runtime_omega",
+]

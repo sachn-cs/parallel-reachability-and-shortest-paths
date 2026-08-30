@@ -29,7 +29,7 @@ class RefinementConfig:
     parallel: bool = False
 
     @classmethod
-    def from_dict(cls, d: dict[str, bool] | None = None) -> "RefinementConfig":
+    def from_dict(cls, d: dict[str, bool] | None = None) -> RefinementConfig:
         """Construct from a partial dict. Missing keys default to True."""
         if not d:
             return cls()

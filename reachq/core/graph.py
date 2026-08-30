@@ -34,8 +34,8 @@ class Digraph:
     __slots__ = (
         "edge_count",
         "in_edges",
-        "insertion_order",
         "index_of_map",
+        "insertion_order",
         "out_edges",
     )
 
@@ -154,7 +154,7 @@ class Digraph:
         """Return in-degree of v."""
         return len(self.in_edges.get(v, set()))
 
-    def reversed(self) -> "Digraph":
+    def reversed(self) -> Digraph:
         """Return ``G^R`` where all edges are flipped."""
         g = self.__class__()
         g.restore_indices(self.index_of_map, self.insertion_order)
@@ -167,7 +167,7 @@ class Digraph:
             g.edge_count += 1
         return g
 
-    def copy(self) -> "Digraph":
+    def copy(self) -> Digraph:
         """Return a deep copy."""
         g = self.__class__()
         g.restore_indices(self.index_of_map, self.insertion_order)
@@ -181,7 +181,7 @@ class Digraph:
                 g.edge_count += 1
         return g
 
-    def induced_subgraph(self, vertex_subset) -> "Digraph":
+    def induced_subgraph(self, vertex_subset) -> Digraph:
         """Return ``G[vertex_subset]``.
 
         ``vertex_subset`` is any iterable of vertices already in the
@@ -214,7 +214,7 @@ class Digraph:
 
 def partition_by_labels(
     vertices,
-    labels: dict[object, object],
+    labels: dict[object, object] | dict[object, tuple[frozenset[object], frozenset[object]]],
 ) -> list[set[object]]:
     """Partition vertices into equivalence classes by exact label equality.
 
@@ -318,7 +318,7 @@ class WeightedDigraph(Digraph):
     def degree_in(self, v: object) -> int:
         return len(self.in_edges.get(v, {}))
 
-    def reversed(self) -> "WeightedDigraph":  # type: ignore[override]
+    def reversed(self) -> WeightedDigraph:  # type: ignore[override]
         g = self.__class__()
         g.restore_indices(self.index_of_map, self.insertion_order)
         for v in self.insertion_order:
@@ -330,7 +330,7 @@ class WeightedDigraph(Digraph):
             g.edge_count += 1
         return g
 
-    def copy(self) -> "WeightedDigraph":  # type: ignore[override]
+    def copy(self) -> WeightedDigraph:  # type: ignore[override]
         g = self.__class__()
         g.restore_indices(self.index_of_map, self.insertion_order)
         for v in self.insertion_order:
@@ -339,7 +339,7 @@ class WeightedDigraph(Digraph):
         g.edge_count = self.edge_count
         return g
 
-    def induced_subgraph(self, vertex_subset) -> "WeightedDigraph":  # type: ignore[override]
+    def induced_subgraph(self, vertex_subset) -> WeightedDigraph:  # type: ignore[override]
         valid = {v for v in vertex_subset if v in self.index_of_map}
         order = [v for v in self.insertion_order if v in valid]
         idx = {v: i for i, v in enumerate(order)}
@@ -388,6 +388,6 @@ def contract_sccs(graph: Digraph) -> tuple[list[list[object]], dict[object, int]
 __all__ = [
     "Digraph",
     "WeightedDigraph",
-    "partition_by_labels",
     "contract_sccs",
+    "partition_by_labels",
 ]

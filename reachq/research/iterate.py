@@ -39,9 +39,9 @@ core* (shortcuts present in every iteration).
 
 from __future__ import annotations
 
-from reachq.core.shortcut import jls_with_tc_pruning
 from reachq.core.config import get_logger
 from reachq.core.graph import Digraph
+from reachq.core.shortcut import jls_with_tc_pruning
 
 log = get_logger("reachq.iterate")
 

@@ -24,7 +24,7 @@ if TYPE_CHECKING:
 
 
 def expand_pivot(
-    args: tuple["Digraph", "ShortcutState", object],
+    args: tuple[Digraph, ShortcutState, object],
 ) -> dict[str, Any]:
     """Worker function: ``expand_pivot((graph, state, pivot))``."""
     graph, state, pivot = args
@@ -32,8 +32,8 @@ def expand_pivot(
 
 
 def _expand_one_pivot(
-    graph: "Digraph",
-    state: "ShortcutState",
+    graph: Digraph,
+    state: ShortcutState,
     pivot: object,
 ) -> dict[str, Any]:
     """Expand one pivot via CSR numpy BFS or deque fallback.
@@ -80,9 +80,13 @@ def _expand_one_pivot(
         state.n,
         max_depth=state.max_hops,
     )
+    rev_indptr = state.csr_rev_indptr
+    rev_indices = state.csr_rev_indices
+    if rev_indptr is None or rev_indices is None:
+        return {'r_plus': r_plus, 'r_minus': set()}
     r_minus_arr = csr_reachable_backward(
-        state.csr_rev_indptr,
-        state.csr_rev_indices,
+        rev_indptr,
+        rev_indices,
         p_idx,
         state.n,
         max_depth=state.max_hops,
@@ -95,7 +99,7 @@ def _expand_one_pivot(
 
 
 def deque_hop_limited_bfs(
-    graph: "Digraph",
+    graph: Digraph,
     source: object,
     max_hops: int,
     *,
@@ -142,8 +146,8 @@ class ParallelExecutor:
     def run(
         self,
         func: Callable[..., dict[str, Any]],
-        graph: "Digraph",
-        state: "ShortcutState",
+        graph: Digraph,
+        state: ShortcutState,
         items: Iterable[object],
     ) -> list[dict[str, Any]]:
         """Dispatch ``items`` through ``func((graph, state, item))``."""
@@ -164,4 +168,4 @@ class ParallelExecutor:
         return f"ParallelExecutor(mode={self.mode!r}, n_workers={self.n_workers})"
 
 
-__all__ = ["ParallelExecutor", "expand_pivot", "deque_hop_limited_bfs"]
+__all__ = ["ParallelExecutor", "deque_hop_limited_bfs", "expand_pivot"]

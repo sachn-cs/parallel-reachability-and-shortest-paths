@@ -38,7 +38,7 @@ UNREACHABLE: int = 1 << 62
 :func:`shortest_path` when the target is unreachable from the source."""
 
 
-def dijkstra(graph: "WeightedDigraph", source: object) -> dict[object, int]:
+def dijkstra(graph: WeightedDigraph, source: object) -> dict[object, int]:
     """Compute exact shortest-path distances from ``source``.
 
     Args:
@@ -76,7 +76,7 @@ def dijkstra(graph: "WeightedDigraph", source: object) -> dict[object, int]:
 
 
 def astar(
-    graph: "WeightedDigraph",
+    graph: WeightedDigraph,
     source: object,
     target: object,
     heuristic: Callable[[object], int],
@@ -144,7 +144,7 @@ def astar(
 
 
 def truncated_dijkstra(
-    graph: "WeightedDigraph", source: object, max_distance: int
+    graph: WeightedDigraph, source: object, max_distance: int
 ) -> dict[object, int]:
     """Compute distances from ``source``, truncated at ``max_distance``.
 
@@ -188,18 +188,18 @@ def truncated_dijkstra(
 
 
 def compute_d_descendants(
-    graph: "WeightedDigraph", vertex: object, distance: int
+    graph: WeightedDigraph, vertex: object, distance: int
 ) -> set[object]:
     """Compute ``R^+_d(G, v) = {{t : v <=_d t}}``."""
     return set(truncated_dijkstra(graph, vertex, distance).keys())
 
 
 def compute_d_ancestors(
-    graph: "WeightedDigraph",
+    graph: WeightedDigraph,
     vertex: object,
     distance: int,
     *,
-    rev: "WeightedDigraph | None" = None,
+    rev: WeightedDigraph | None = None,
 ) -> set[object]:
     """Compute ``R^-_d(G, v) = {{s : s <=_d v}}``.
 
@@ -213,11 +213,11 @@ def compute_d_ancestors(
 
 
 def compute_d_ball(
-    graph: "WeightedDigraph",
+    graph: WeightedDigraph,
     vertex: object,
     distance: int,
     *,
-    rev: "WeightedDigraph | None" = None,
+    rev: WeightedDigraph | None = None,
 ) -> set[object]:
     """Compute ``R_d(G, v) = R^+_d(G, v) ∪ R^-_d(G, v)``."""
     return compute_d_descendants(graph, vertex, distance) | compute_d_ancestors(
@@ -226,7 +226,7 @@ def compute_d_ball(
 
 
 def shortest_path_hopbound(
-    graph: "WeightedDigraph",
+    graph: WeightedDigraph,
     hopset_edges,
     source: object,
     max_hops: int,
@@ -319,7 +319,7 @@ def shortest_path_hopbound(
 
 
 def shortest_path_tree(
-    graph: "WeightedDigraph", source: object
+    graph: WeightedDigraph, source: object
 ) -> dict[object, object | None]:
     """Compute a shortest-path tree from ``source``.
 
@@ -362,7 +362,7 @@ def shortest_path_tree(
 
 
 def shortest_path(
-    graph: "WeightedDigraph", source: object, target: object
+    graph: WeightedDigraph, source: object, target: object
 ) -> int:
     """Return the shortest distance from ``source`` to ``target``.
 

@@ -43,10 +43,10 @@ class ReachqConfigError(ReachqError):
 
 
 __all__ = [
-    "ReachqError",
-    "ReachqValueError",
-    "ReachqTypeError",
-    "ReachqGraphError",
     "ReachqBackendError",
     "ReachqConfigError",
+    "ReachqError",
+    "ReachqGraphError",
+    "ReachqTypeError",
+    "ReachqValueError",
 ]

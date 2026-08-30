@@ -70,13 +70,13 @@ class WorkDepthAccountant:
         self.depth = max(self.depth, depth)
         self.records.append(OperationRecord(name, work, depth, details))
 
-    def sequential_composition(self, other: "WorkDepthAccountant") -> None:
+    def sequential_composition(self, other: WorkDepthAccountant) -> None:
         """Combine another accountant sequentially (work + depth add)."""
         self.work += other.work
         self.depth += other.depth
         self.records.extend(other.records)
 
-    def parallel_composition(self, others: list["WorkDepthAccountant"]) -> None:
+    def parallel_composition(self, others: list[WorkDepthAccountant]) -> None:
         """Combine several accountants in parallel.
 
         Work sums across branches; depth is the max (bounded by

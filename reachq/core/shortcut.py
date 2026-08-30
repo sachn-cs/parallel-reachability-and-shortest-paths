@@ -28,20 +28,16 @@ parallel-mode choice all flow as explicit parameters.
 from __future__ import annotations
 
 import math
-from collections.abc import Callable
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Any
+from typing import Any
 
 import numpy as np
 
 from reachq.core.csr import build_csr_pair
 from reachq.core.errors import ReachqValueError
-from reachq.core.graph import Digraph, WeightedDigraph, partition_by_labels
+from reachq.core.graph import Digraph, partition_by_labels
 from reachq.core.shortcut_parallel import ParallelExecutor, expand_pivot
 from reachq.core.trace import trace
-
-if TYPE_CHECKING:
-    pass
 
 
 @dataclass(frozen=True)
@@ -372,8 +368,8 @@ def _validate_algorithm_params(
 
 def _params_from_omega(
     n: int, m: int, omega: float
-) -> tuple[float, float, int]:
-    """Standard parameter selection for JLS: k, rho, max_level."""
+) -> tuple[float, float, int, float]:
+    """Standard parameter selection for JLS: ``(k, rho, max_level, beta)``."""
     k = max(2.0, math.log2(n))
     beta = (
         (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
@@ -389,8 +385,7 @@ def _params_from_omega(
 
 
 def _flags_from(
-    flags,
-    *,
+    flags: Any,
     parallel_workers: int,
 ) -> tuple[Any, ParallelExecutor]:
     """Materialise flags, executor; honour ``flags.parallel`` and
@@ -495,9 +490,9 @@ def build_shortcut_set_for_reachability(
             if trivial:
                 shortcuts.add((u_idx, v_idx))
             else:
-                shortcuts.add(
-                    (representatives[u_idx], representatives[v_idx])
-                )
+                u_rep = representatives[int(u_idx)]
+                v_rep = representatives[int(v_idx)]
+                shortcuts.add((u_rep, v_rep))
 
         return shortcuts, beta
 

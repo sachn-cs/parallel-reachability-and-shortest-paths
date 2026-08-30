@@ -45,6 +45,12 @@ by Ashvinkumar, Bernstein, Probst Gutenberg, and Saranurak (2026).
 __version__ = "0.8.0"
 
 from reachq.core import invariants
+from reachq.core.closure import (
+    TransitiveClosureBudgetError,
+    transitive_closure,
+    transitive_closure_brute_force,
+    transitive_closure_on_subset,
+)
 from reachq.core.config import RefinementConfig
 from reachq.core.generators import (
     cycle_graph,
@@ -99,12 +105,6 @@ from reachq.core.shortest_paths import (
     shortest_path_tree,
     truncated_dijkstra,
 )
-from reachq.core.closure import (
-    TransitiveClosureBudgetError,
-    transitive_closure,
-    transitive_closure_brute_force,
-    transitive_closure_on_subset,
-)
 from reachq.core.work_depth import WorkDepthAccountant
 
 Flags = RefinementConfig
@@ -113,6 +113,7 @@ __all__ = [
     "Digraph",
     "Flags",
     "RefinementConfig",
+    "TransitiveClosureBudgetError",
     "WeightedDigraph",
     "WorkDepthAccountant",
     "astar",
@@ -150,9 +151,8 @@ __all__ = [
     "shrikhande_graph",
     "strongly_connected_components",
     "topological_sort",
-    "TransitiveClosureBudgetError",
-    "transitive_closure_brute_force",
     "transitive_closure",
+    "transitive_closure_brute_force",
     "transitive_closure_on_subset",
     "truncated_dijkstra",
     "weighted_dense_graph",

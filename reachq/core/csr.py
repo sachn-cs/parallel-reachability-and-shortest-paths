@@ -25,7 +25,7 @@ if TYPE_CHECKING:
 
 
 def build_csr_pair(
-    graph: "Digraph",
+    graph: Digraph,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray, int, tuple[object, ...]]:
     """Build forward and reversed CSR arrays from a :class:`Digraph`.
 
@@ -80,7 +80,7 @@ def digraph_from_csr(
     indptr: np.ndarray,
     indices: np.ndarray,
     idx_to_vertex: tuple[object, ...],
-) -> "Digraph":
+) -> Digraph:
     """Reconstruct a :class:`Digraph` from a forward CSR pair.
 
     Args:
@@ -104,7 +104,7 @@ def digraph_from_csr(
     return g
 
 
-def to_unweighted_digraph(graph: "WeightedDigraph") -> "Digraph":
+def to_unweighted_digraph(graph: WeightedDigraph) -> Digraph:
     """Return the underlying unweighted :class:`Digraph`.
 
     Insertion order is preserved.
@@ -126,7 +126,7 @@ def to_unweighted_digraph(graph: "WeightedDigraph") -> "Digraph":
 
 
 def digraph_from_csr_indices(
-    graph: "Digraph",
+    graph: Digraph,
 ) -> tuple[np.ndarray, np.ndarray, int, int]:
     """Convert a :class:`Digraph` to a forward CSR pair.
 
