@@ -18,7 +18,7 @@ from __future__ import annotations
 import math
 import random
 
-from reachq.config import RefinementConfig
+from reachq.config import RefinementConfig, runtime_omega
 from reachq.graph import WeightedDigraph
 from reachq.shortest_paths import (
     compute_d_descendants,
@@ -27,17 +27,6 @@ from reachq.shortest_paths import (
 from reachq.trace import trace
 
 OMEGA_DEFAULT = 2.5
-OMEGA_RUNTIME: float | None = None
-
-
-def get_runtime_omega() -> float:
-    """Return the runtime omega (cached after first read)."""
-    global OMEGA_RUNTIME
-    if OMEGA_RUNTIME is None:
-        from reachq.research.blas_omega import runtime_omega
-
-        OMEGA_RUNTIME = runtime_omega()
-    return OMEGA_RUNTIME
 
 
 def compute_truncated_sssp_structure(
@@ -96,7 +85,7 @@ def cfr_recursive(
 
     log_n = math.log2(n_global) if n_global > 1 else 0.0
 
-    omega = min(OMEGA_DEFAULT, get_runtime_omega())
+    omega = min(OMEGA_DEFAULT, runtime_omega())
     base_prob = min(1.0, omega * (k ** (level + 1)) * log_n / n_global)
 
     vertices = list(graph.vertices())
@@ -378,12 +367,8 @@ def build_hopset_for_sssp(
 
 __all__ = [
     "OMEGA_DEFAULT",
-    "bernoulli_weighted",
     "build_hopset_for_sssp",
-    "cfr_hopset",
     "cfr_partition",
     "cfr_recursive",
     "cfr_with_truncsssp_pruning",
-    "compute_truncated_sssp_structure",
-    "get_runtime_omega",
 ]

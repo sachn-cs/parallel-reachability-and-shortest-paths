@@ -1,104 +1,26 @@
-"""Detect the matrix-multiplication exponent omega of the runtime BLAS.
+"""Re-export of BLAS-detection helpers from :mod:`reachq.config`.
 
-The paper's bound (Theorem 2) holds for any omega < 2.371. The
-classical schoolbook algorithm achieves omega = 3.0; Strassen's
-algorithm 2.807; the current practical best (Williams 2024 / others)
-is ~2.37. Different BLAS vendors implement different algorithms
-under the hood.
-
-Returns a conservative runtime estimate of omega. Used by
-``shortcut_set.OMEGA_DEFAULT`` to tighten the TC trigger bound.
-
-Honest caveat: this function does NOT measure actual omega by
-benchmarking. It identifies the BLAS vendor and returns a literature
-upper bound for that vendor's published algorithm. Use the value as
-an upper bound in the Lemma 2.2 trigger; the actual achievable
-omega may be lower (faster) on the running hardware.
+``runtime_omega`` is hardware introspection that lives with the
+rest of the configuration layer; this module exists so existing
+``from reachq.research.blas_omega import runtime_omega`` imports
+keep working and so the research boundary stays explicit for
+``__experimental__ = True`` callers.
 """
-
-
-
 
 from __future__ import annotations
 
 __experimental__ = True
 
+from reachq.config import (
+    BLAS_OMEGA_TABLE,
+    detect_blas_vendor,
+    omega_table,
+    runtime_omega,
+)
 
-
-import numpy as np
-
-# Conservative omega upper bounds per BLAS vendor. Sources:
-#   - OpenBLAS 0.3.23 (Apr 2024): Strassen-class, ~2.37.
-#   - Accelerate (Apple): Strassen-class, ~2.37.
-#   - MKL (Intel): Strassen-class, ~2.37.
-#   - BLIS: Strassen-class, ~2.37.
-#   - netlib: schoolbook, 3.0.
-# All other vendors: default to schoolbook 3.0 unless overridden.
-BLAS_OMEGA_TABLE: dict[str, float] = {
-    "openblas": 2.5,
-    "accelerate": 2.5,
-    "mkl": 2.5,
-    "blis": 2.5,
-    "netlib": 3.0,
-}
-
-
-def detect_blas_vendor() -> str | None:
-    """Return the BLAS vendor name as a string, or None if undetected.
-
-    Inspects ``numpy.show_config()`` output for known vendor
-    substrings. ``show_config()`` prints (it doesn't return), so we
-    capture stdout.
-
-    Returns:
-        The detected vendor name (one of ``BLAS_OMEGA_TABLE`` keys, or
-        the normalised ``openblas64`` / ``mkl_rt`` variants), or
-        ``None`` if no vendor is detected.
-    """
-    import contextlib
-    import io
-
-    buf = io.StringIO()
-    with contextlib.redirect_stdout(buf):
-        try:
-            np.show_config()
-        except Exception:  # noqa: BLE001 - show_config output is not stable API; degrade gracefully
-            return None
-    text = buf.getvalue().lower()
-    for vendor in BLAS_OMEGA_TABLE:
-        if vendor in text:
-            return vendor
-    # numpy may report a vendor as 'openblas64' (ILP64) or 'mkl_rt'
-    # (Intel). Normalise those to the canonical name.
-    if "openblas" in text:
-        return "openblas"
-    if "mkl" in text:
-        return "mkl"
-    if "accelerate" in text:
-        return "accelerate"
-    if "blis" in text:
-        return "blis"
-    return None
-
-
-def runtime_omega() -> float:
-    """Return the conservative runtime omega estimate.
-
-    Defaults to 3.0 (schoolbook) if the vendor cannot be identified.
-
-    Returns:
-        The conservative omega for the detected vendor, or 3.0.
-    """
-    vendor = detect_blas_vendor()
-    if vendor is None:
-        return 3.0
-    return BLAS_OMEGA_TABLE[vendor]
-
-
-def omega_table() -> dict[str, float]:
-    """Return the full vendor -> omega mapping (for inspection).
-
-    Returns:
-        A copy of ``BLAS_OMEGA_TABLE``.
-    """
-    return dict(BLAS_OMEGA_TABLE)
+__all__ = [
+    "BLAS_OMEGA_TABLE",
+    "detect_blas_vendor",
+    "omega_table",
+    "runtime_omega",
+]
