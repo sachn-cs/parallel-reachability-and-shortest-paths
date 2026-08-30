@@ -23,13 +23,14 @@ from reachq.graph import WeightedDigraph
 from reachq.shortest_paths import (
     compute_d_descendants,
     dijkstra,
+    truncated_dijkstra,
 )
 from reachq.trace import trace
 
 OMEGA_DEFAULT = 2.5
 
 
-def compute_truncated_sssp_structure(
+def _truncated_sssp(
     graph: WeightedDigraph,
     vertex_subset,
     max_distance: int,
@@ -45,18 +46,6 @@ def compute_truncated_sssp_structure(
             if u != v and d <= max_distance:
                 edges[(u, v)] = d
     return edges
-
-
-def _compute_ancestors_with_rev(
-    graph: WeightedDigraph,
-    rev: WeightedDigraph,
-    vertex: object,
-    distance: int,
-) -> set[object]:
-    """Ancestors under ``distance`` using the precomputed reverse graph."""
-    from reachq.shortest_paths import truncated_dijkstra
-
-    return set(truncated_dijkstra(rev, vertex, distance).keys())
 
 
 def cfr_recursive(
@@ -117,7 +106,6 @@ def cfr_recursive(
     d = distance_scale * max(1, int(log_n))
 
     rev = graph.reversed()
-    dists_to_p_cache: dict[object, dict[object, int]] = {}
 
     if pruning:
         truncsssp_threshold = (k**2) * (log_n**2) * (rho**2)
@@ -125,11 +113,10 @@ def cfr_recursive(
         truncsssp_threshold = math.inf
 
     for pivot in pivots:
-        d_ancestors = _compute_ancestors_with_rev(graph, rev, pivot, d)
+        d_ancestors = set(truncated_dijkstra(rev, pivot, d).keys())
         d_descendants = compute_d_descendants(graph, pivot, d)
         dists_from_p = dijkstra(graph, pivot)
         dists_to_p = dijkstra(rev, pivot)
-        dists_to_p_cache[pivot] = dists_to_p
 
         for v in d_ancestors:
             w = dists_to_p.get(v, 1 << 62)
@@ -148,15 +135,13 @@ def cfr_recursive(
         if pruning:
             d_ball_set = d_ancestors | d_descendants | {pivot}
             if 0 < len(d_ball_set) <= truncsssp_threshold:
-                trunc_edges = compute_truncated_sssp_structure(
-                    graph, d_ball_set, d
-                )
+                trunc_edges = _truncated_sssp(graph, d_ball_set, d)
                 for edge, w in trunc_edges.items():
                     prev = hopset.get(edge)
                     if prev is None or w < prev:
                         hopset[edge] = w
 
-    parts = cfr_partition(graph, vertices, pivots)
+    parts = _cfr_partition(graph, vertices, pivots)
 
     if len(parts) <= 1 and f.skip_trivial_part:
         return hopset
@@ -186,7 +171,7 @@ def cfr_recursive(
     return hopset
 
 
-def cfr_partition(
+def _cfr_partition(
     graph: WeightedDigraph,
     vertices,
     pivots,
@@ -202,7 +187,7 @@ def cfr_partition(
     rev = graph.reversed()
     d = 1
     for pivot in pivots:
-        d_ancestors = _compute_ancestors_with_rev(graph, rev, pivot, d)
+        d_ancestors = set(truncated_dijkstra(rev, pivot, d).keys())
         d_descendants = compute_d_descendants(graph, pivot, d)
         for v in d_ancestors:
             anc_of.setdefault(v, set()).add(pivot)
@@ -214,13 +199,6 @@ def cfr_partition(
         key = (frozenset(anc_of.get(v, set())), frozenset(des_of.get(v, set())))
         groups.setdefault(key, set()).add(v)
     return list(groups.values())
-
-
-def bernoulli_weighted(prob: float, out_deg: int, rng: random.Random) -> bool:
-    """Improvement 5 (degree-aware pivot weighting): accept with prob / (1 + deg)."""
-    if prob >= 1.0:
-        return True
-    return rng.random() < prob / (1 + out_deg)
 
 
 def cfr_hopset(
@@ -368,7 +346,7 @@ def build_hopset_for_sssp(
 __all__ = [
     "OMEGA_DEFAULT",
     "build_hopset_for_sssp",
-    "cfr_partition",
+    "cfr_hopset",
     "cfr_recursive",
     "cfr_with_truncsssp_pruning",
 ]
