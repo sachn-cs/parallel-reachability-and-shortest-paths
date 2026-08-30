@@ -161,6 +161,7 @@ class ParallelExecutor:
         if self.mode == "sequential" or self.n_workers <= 1:
             return [func(t) for t in tasks]
         if self.mode == "processes":
+            self._warn_if_small_graph(graph)
             import multiprocessing
 
             ctx = multiprocessing.get_context("spawn")
@@ -169,6 +170,27 @@ class ParallelExecutor:
             ) as pool:
                 return list(pool.map(func, tasks))
         raise ValueError(f"unknown parallel mode: {self.mode!r}")
+
+    def _warn_if_small_graph(self, graph: Digraph) -> None:
+        """Log a one-line warning when spawn cost dominates the per-pivot BFS.
+
+        Rule of thumb: spawn cost (re-importing reachq + numpy +
+        scipy) exceeds per-pivot BFS work for graphs with fewer than
+        ~1000 vertices. Below that threshold, sequential mode is
+        faster. The warning is fired at most once per executor.
+        """
+        if getattr(self, "_warned", False):
+            return
+        if graph.num_vertices() < 1000:
+            import logging
+
+            logging.getLogger("reachq.core.shortcut_parallel").info(
+                "ParallelExecutor: graph has %d vertices; "
+                "process-pool spawn cost may exceed the per-pivot BFS. "
+                "Consider sequential mode for small graphs.",
+                graph.num_vertices(),
+            )
+            self._warned = True
 
     def __repr__(self) -> str:
         return f"ParallelExecutor(mode={self.mode!r}, n_workers={self.n_workers})"
