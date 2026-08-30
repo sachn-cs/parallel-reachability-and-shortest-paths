@@ -325,9 +325,8 @@ def build_hopset_for_sssp(
 
     Args:
         graph: The input weighted digraph.
-        epsilon: Approximation factor. Use
-            :func:`reachq.core.predict.predict_epsilon` for a heuristic
-            default based on graph size.
+        epsilon: Approximation factor. Common heuristic is
+            ``eps = 1 / sqrt(n)`` clamped to ``[0.01, 0.5]``.
         random_seed: Optional seed for reproducibility.
         refinement: Optional RefinementConfig or dict of toggles.
 
