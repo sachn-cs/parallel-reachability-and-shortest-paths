@@ -34,7 +34,6 @@ algorithm (Algorithm 1 in that paper).
 
 from __future__ import annotations
 
-
 __experimental__ = True
 
 

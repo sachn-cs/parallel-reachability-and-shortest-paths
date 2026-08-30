@@ -430,14 +430,19 @@ def build_shortcut_set_for_reachability(
 
     Args:
         graph: Input digraph (cycles handled by SCC condensation).
-        omega: Fast matrix multiplication exponent.
+        omega: Fast matrix multiplication exponent. Use
+            :func:`reachq.core.predict.predict_omega` for a heuristic
+            default based on graph density.
         random_seed: Optional seed for reproducibility.
         refinement: A :class:`reachq.core.config.RefinementConfig`.
         parallel_workers: When ``>1`` and ``refinement.parallel`` is
             True, the per-pivot BFS dispatches across a process pool.
 
     Returns:
-        ``(shortcuts, beta)`` where ``beta`` is the target hopbound.
+        ``(shortcuts, beta, realised_bound)``. ``beta`` is the
+        asymptotic target hop bound (Theorem 2);
+        ``realised_bound`` is the algorithm's actual guarantee
+        based on the chosen ``rho`` and recursion depth.
     """
     from reachq.core.config import RefinementConfig
     from reachq.core.prune import compute_tc_pruning_threshold
