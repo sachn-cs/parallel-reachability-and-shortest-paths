@@ -10,10 +10,21 @@ from reachq.core.predict import predict_epsilon, predict_omega, predict_rho
 
 
 def test_predict_omega_returns_float_in_range():
-    """predict_omega returns a runtime-detected omega in [2.0, 3.0]."""
-    omega = predict_omega()
+    """predict_omega returns a value in [2.0, 3.0]."""
+    omega = predict_omega(path_graph(20))
     assert isinstance(omega, float)
     assert 2.0 <= omega <= 3.0
+
+
+def test_predict_omega_small_graph_uses_strassen_bound():
+    """predict_omega returns 2.5 for small graphs."""
+    assert predict_omega(path_graph(50)) == 2.5
+
+
+def test_predict_omega_dense_graph_uses_strassen_bound():
+    """predict_omega returns 2.5 for dense graphs."""
+    g = dense_graph(200, 36000, random_seed=42)
+    assert predict_omega(g) == 2.5
 
 
 def test_predict_epsilon_decreases_with_n():
