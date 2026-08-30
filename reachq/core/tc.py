@@ -59,12 +59,12 @@ def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]
 
     Complexity: O(n * m) time, O(n^2) space in the worst case.
     """
-    from reachq.core.reachability import compute_r_plus
+    from reachq.core.reachability import bfs_reachability
 
     result: set[tuple[object, object]] = set()
-    for u in graph.vertices():
+    for u in graph.iter_vertices():
         result.add((u, u))
-        for v in compute_r_plus(graph, u):
+        for v in bfs_reachability(graph, u):
             if v != u:
                 result.add((u, v))
     return result

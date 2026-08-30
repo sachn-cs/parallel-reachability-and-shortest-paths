@@ -25,8 +25,8 @@ from typing import Any
 from reachq.core.config import get_logger
 from reachq.core.graph import Digraph
 from reachq.core.reachability import (
-    compute_r_minus,
-    compute_r_plus,
+    bfs_reachability,
+    reverse_bfs_reachability,
 )
 
 log = get_logger("reachq.fix_resample")
@@ -78,7 +78,7 @@ def fix_resample_shortcut_set(
     log.info("precomputing r_plus/r_minus for %d vertices", len(vertices))
     ball: dict[Any, tuple[set[Any], set[Any]]] = {}
     for v in vertices:
-        ball[v] = (compute_r_plus(graph, v), compute_r_minus(graph, v))
+        ball[v] = (bfs_reachability(graph, v), reverse_bfs_reachability(graph, v))
 
     H: set[tuple[Any, Any]] = set()
     reached: set[Any] = set()

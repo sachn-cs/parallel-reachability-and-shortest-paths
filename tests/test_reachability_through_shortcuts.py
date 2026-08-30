@@ -16,9 +16,11 @@ def test_empty_graph():
     g = Digraph()
     import pytest
 
-    with pytest.raises(KeyError):
+    from reachq.core.errors import ReachqGraphError
+
+    with pytest.raises(ReachqGraphError):
         parallel_bfs(g, 0, set())
-    with pytest.raises(KeyError):
+    with pytest.raises(ReachqGraphError):
         parallel_bfs(g, 0, {(0, 1)})
 
 

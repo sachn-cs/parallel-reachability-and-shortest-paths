@@ -2,13 +2,13 @@
 
 import pytest
 
+from reachq.core.errors import ReachqGraphError
 from reachq.core.graph import Digraph
 from reachq.core.reachability import (
     bfs_reachability,
     compute_ancestors,
     compute_bridges,
     compute_descendants,
-    compute_r_ball,
     parallel_bfs,
     reverse_bfs_reachability,
     strongly_connected_components,
@@ -50,7 +50,7 @@ class TestBfsReachability:
 
     def test_empty_graph(self):
         g = Digraph()
-        with pytest.raises(KeyError):
+        with pytest.raises(ReachqGraphError):
             bfs_reachability(g, 0)
 
     def test_single_vertex(self):
@@ -71,7 +71,7 @@ class TestBfsReachability:
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         g.add_edge(2, 0)
-        assert compute_r_ball(g, 0) == {0, 1, 2}
+        assert bfs_reachability(g, 0) | reverse_bfs_reachability(g, 0) == {0, 1, 2}
 
     def test_ancestors_descendants_bridges(self):
         g = Digraph()
@@ -122,7 +122,7 @@ class TestTopologicalSort:
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         g.add_edge(2, 0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ReachqGraphError):
             topological_sort(g)
 
     def test_empty(self):

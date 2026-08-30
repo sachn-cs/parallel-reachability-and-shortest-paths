@@ -62,15 +62,19 @@ class TestSspInputValidation:
     """Source membership and bound validation."""
 
     def test_dijkstra_unknown_source_raises(self):
+        from reachq.core.errors import ReachqGraphError
+
         g = WeightedDigraph()
         g.add_vertex(0)
-        with pytest.raises(KeyError):
+        with pytest.raises(ReachqGraphError):
             dijkstra(g, 1)
 
     def test_truncated_dijkstra_negative_bound(self):
+        from reachq.core.errors import ReachqValueError
+
         g = WeightedDigraph()
         g.add_vertex(0)
-        with pytest.raises(ValueError):
+        with pytest.raises(ReachqValueError):
             truncated_dijkstra(g, 0, -1)
 
     def test_shortest_path_hopbound_max_hops_zero(self):

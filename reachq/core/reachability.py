@@ -1,40 +1,48 @@
 """Reachability algorithms for directed graphs.
 
-Implements BFS (forward and reverse), SCC decomposition, topological
-ordering, and the ``r_plus`` / ``r_minus`` / ``r_ball`` claim-style
-sets used by the JLS shortcut-set construction. All algorithms are
-deterministic.
+Implements BFS (forward and reverse), SCC decomposition, and
+topological ordering. All algorithms are deterministic given the
+same input and the same insertion-ordered vertex iteration.
 
-Note: the BFS implementations here are the pure-Python fallback
-``deque``-based variants. For large graphs (n >= 500 vertices),
-``reachq.core.bfs.csr_reachable_forward`` (CSR numpy) is faster;
-the JLS construction switches between them via
-``reachq.core.bfs.should_use_csr``.
+Direct functions:
+
+* :func:`bfs_reachability` -- ``R^+(G, source)``
+* :func:`reverse_bfs_reachability` -- ``R^-(G, target)``
+* :func:`parallel_bfs` -- BFS over ``G ∪ H`` (H = shortcut set)
+* :func:`strongly_connected_components` -- Kosaraju SCC
+* :func:`topological_sort` -- Kahn's algorithm
+* :func:`compute_ancestors`, :func:`compute_descendants`,
+  :func:`compute_bridges`, :func:`compute_r_sets_for_vertices` -- set
+  operations on reachability sets.
 """
 
+from __future__ import annotations
+
 from collections import deque
-from collections.abc import Iterator
+from typing import TYPE_CHECKING
 
-from reachq.core.graph import Digraph
+from reachq.core.errors import ReachqGraphError
+
+if TYPE_CHECKING:
+    from reachq.core.graph import Digraph
 
 
-def bfs_reachability(graph: Digraph, source: object) -> set[object]:
+def bfs_reachability(graph: "Digraph", source: object) -> set[object]:
     """Compute ``R^+(G, source)``: all vertices reachable from ``source``.
 
     Args:
         graph: The input digraph.
-        source: Source vertex. Must be in the graph.
+        source: Source vertex.
 
     Returns:
-        Set of vertices reachable from ``source`` (including ``source``).
+        Set of vertices reachable from ``source`` (including
+        ``source``).
 
     Raises:
-        KeyError: If ``source`` is not in the graph.
-
-    Complexity: O(m) time, O(n) space.
+        ReachqGraphError: If ``source`` is not in the graph.
     """
     if source not in graph:
-        raise KeyError(f"source vertex {source!r} is not in the graph")
+        raise ReachqGraphError(f"source {source!r} not in graph")
     visited: set[object] = {source}
     queue: deque[object] = deque([source])
     out = graph.out_edges
@@ -47,23 +55,24 @@ def bfs_reachability(graph: Digraph, source: object) -> set[object]:
     return visited
 
 
-def reverse_bfs_reachability(graph: Digraph, target: object) -> set[object]:
+def reverse_bfs_reachability(graph: "Digraph", target: object) -> set[object]:
     """Compute ``R^-(G, target)``: all vertices that can reach ``target``.
 
     Runs BFS on the reversed graph.
 
     Args:
         graph: The input digraph.
-        target: Target vertex. Must be in the graph.
+        target: Target vertex.
 
     Returns:
-        Set of vertices that can reach ``target`` (including ``target``).
+        Set of vertices that can reach ``target`` (including
+        ``target``).
 
     Raises:
-        KeyError: If ``target`` is not in the graph.
+        ReachqGraphError: If ``target`` is not in the graph.
     """
     if target not in graph:
-        raise KeyError(f"target vertex {target!r} is not in the graph")
+        raise ReachqGraphError(f"target {target!r} not in graph")
     visited: set[object] = {target}
     queue: deque[object] = deque([target])
     inn = graph.in_edges
@@ -76,111 +85,70 @@ def reverse_bfs_reachability(graph: Digraph, target: object) -> set[object]:
     return visited
 
 
-def compute_r_plus(graph: Digraph, vertex: object) -> set[object]:
-    """Compute ``R^+(G, vertex)``: descendants of ``vertex``.
-
-    Args:
-        graph: The input digraph.
-        vertex: Pivot vertex.
-
-    Returns:
-        Set of vertices reachable from ``vertex`` (inclusive).
-    """
-    return bfs_reachability(graph, vertex)
-
-
-def compute_r_minus(graph: Digraph, vertex: object) -> set[object]:
-    """Compute ``R^-(G, vertex)``: ancestors of ``vertex``.
-
-    Args:
-        graph: The input digraph.
-        vertex: Pivot vertex.
-
-    Returns:
-        Set of vertices that can reach ``vertex`` (inclusive).
-    """
-    return reverse_bfs_reachability(graph, vertex)
-
-
-def compute_r_ball(graph: Digraph, vertex: object) -> set[object]:
-    """Compute ``R(G, vertex) = R^+(G, vertex) ∪ R^-(G, vertex)``.
-
-    Args:
-        graph: The input digraph.
-        vertex: Pivot vertex.
-
-    Returns:
-        Union of descendants and ancestors of ``vertex`` (inclusive).
-    """
-    return compute_r_plus(graph, vertex) | compute_r_minus(graph, vertex)
-
-
 def compute_r_sets_for_vertices(
-    graph: Digraph, vertices: list[object]
+    graph: "Digraph", vertices: list[object]
 ) -> tuple[set[object], set[object]]:
-    """Compute union of ``R^-`` and ``R^+`` for a set of vertices.
+    """Compute the union of ``R^-`` and ``R^+`` for a set of vertices.
 
     Args:
         graph: The input digraph.
         vertices: List of pivot vertices.
 
     Returns:
-        Tuple ``(union_of_r_minus, union_of_r_plus)``. Each is the
-        union of the corresponding set across all ``vertices``.
+        Tuple ``(union_of_r_minus, union_of_r_plus)``.
     """
     r_minus: set[object] = set()
     r_plus: set[object] = set()
     for v in vertices:
-        r_minus |= compute_r_minus(graph, v)
-        r_plus |= compute_r_plus(graph, v)
+        r_minus |= reverse_bfs_reachability(graph, v)
+        r_plus |= bfs_reachability(graph, v)
     return r_minus, r_plus
 
 
-def compute_ancestors(graph: Digraph, path_vertices: list[object]) -> set[object]:
-    r"""Compute ``R^-(G, P) \\ R^+(G, P)``: ancestors of path ``P``."""
+def compute_ancestors(graph: "Digraph", path_vertices: list[object]) -> set[object]:
+    r"""Compute ``R^-(G, P) \ R^+(G, P)``: ancestors of path ``P``."""
     r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_minus - r_plus
 
 
-def compute_descendants(graph: Digraph, path_vertices: list[object]) -> set[object]:
-    r"""Compute ``R^+(G, P) \\ R^-(G, P)``: descendants of path ``P``."""
+def compute_descendants(graph: "Digraph", path_vertices: list[object]) -> set[object]:
+    r"""Compute ``R^+(G, P) \ R^-(G, P)``: descendants of path ``P``."""
     r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_plus - r_minus
 
 
-def compute_bridges(graph: Digraph, path_vertices: list[object]) -> set[object]:
+def compute_bridges(graph: "Digraph", path_vertices: list[object]) -> set[object]:
     """Compute ``R^-(G, P) ∩ R^+(G, P)``: bridges of path ``P``."""
     r_minus, r_plus = compute_r_sets_for_vertices(graph, path_vertices)
     return r_minus & r_plus
 
 
 def parallel_bfs(
-    graph: Digraph,
+    graph: "Digraph",
     source: object,
     shortcut_edges: set[tuple[object, object]] | None = None,
 ) -> set[object]:
     """BFS on ``G ∪ H`` where ``H`` is a shortcut set.
 
-    Simulates the parallel reachability primitive from Section 1.1.
-    **Sequential simulation; span bounds are NOT DETERMINED.**
+    Sequentially simulates the parallel reachability primitive from
+    Section 1.1. Span bounds are NOT DETERMINED.
 
     Shortcuts whose target vertex is not present in the graph are
     silently ignored.
 
     Args:
         graph: The input digraph.
-        source: Source vertex. Must be in the graph.
-        shortcut_edges: Optional shortcut set ``H`` to merge with
-            the graph before the BFS.
+        source: Source vertex.
+        shortcut_edges: Optional shortcut set ``H``.
 
     Returns:
         Set of vertices reachable from ``source`` in ``G ∪ H``.
 
     Raises:
-        KeyError: If ``source`` is not in the graph.
+        ReachqGraphError: If ``source`` is not in the graph.
     """
     if source not in graph:
-        raise KeyError(f"source vertex {source!r} is not in the graph")
+        raise ReachqGraphError(f"source {source!r} not in graph")
     visited: set[object] = {source}
     queue: deque[object] = deque([source])
     out = graph.out_edges
@@ -202,18 +170,17 @@ def parallel_bfs(
     return visited
 
 
-def strongly_connected_components(graph: Digraph) -> list[list[object]]:
+def strongly_connected_components(graph: "Digraph") -> list[list[object]]:
     """Compute SCCs using Kosaraju's algorithm.
 
     Uses iterative DFS to avoid stack overflow on large graphs.
+    Vertices inside each SCC are returned in insertion order.
 
     Args:
         graph: The input digraph.
 
     Returns:
-        List of SCCs, each as a list of vertices. The order of the
-        outer list is not specified by the algorithm. Vertices
-        inside each SCC are returned in insertion order.
+        List of SCCs, each as a list of vertices.
 
     Complexity: O(n + m) time and space.
     """
@@ -221,23 +188,24 @@ def strongly_connected_components(graph: Digraph) -> list[list[object]]:
     finish_order: list[object] = []
     out = graph.out_edges
 
-    for v in graph.vertices():
+    for v in graph.iter_vertices():
         if v in visited:
             continue
-        stack: list[tuple[object, Iterator[object]]] = [
+        stack: list[tuple[object, "object"]] = [
             (v, iter(out.get(v, set())))
         ]
         visited.add(v)
         while stack:
             node, children = stack[-1]
-            for child in children:
-                if child not in visited:
-                    visited.add(child)
-                    stack.append((child, iter(out.get(child, set()))))
-                    break
-            else:
+            try:
+                child = next(children)
+            except StopIteration:
                 stack.pop()
                 finish_order.append(node)
+                continue
+            if child not in visited:
+                visited.add(child)
+                stack.append((child, iter(out.get(child, set()))))
 
     rev = graph.reversed()
     rev_out = rev.out_edges
@@ -262,7 +230,7 @@ def strongly_connected_components(graph: Digraph) -> list[list[object]]:
     return sccs
 
 
-def topological_sort(graph: Digraph) -> list[object]:
+def topological_sort(graph: "Digraph") -> list[object]:
     """Return a topological ordering of a DAG.
 
     Uses Kahn's algorithm.
@@ -274,11 +242,11 @@ def topological_sort(graph: Digraph) -> list[object]:
         A list of vertices in topological order.
 
     Raises:
-        ValueError: If ``graph`` contains a cycle.
-
-    Complexity: O(n + m) time and space.
+        ReachqGraphError: If ``graph`` contains a cycle.
     """
-    in_degree: dict[object, int] = {v: graph.degree_in(v) for v in graph.vertices()}
+    in_degree: dict[object, int] = {
+        v: graph.degree_in(v) for v in graph.iter_vertices()
+    }
     queue: deque[object] = deque(
         [v for v, d in in_degree.items() if d == 0]
     )
@@ -294,5 +262,18 @@ def topological_sort(graph: Digraph) -> list[object]:
                 queue.append(v)
 
     if len(result) != graph.num_vertices():
-        raise ValueError("Graph contains a cycle; topological sort not possible.")
+        raise ReachqGraphError("Graph contains a cycle; topological sort not possible.")
     return result
+
+
+__all__ = [
+    "bfs_reachability",
+    "compute_ancestors",
+    "compute_bridges",
+    "compute_descendants",
+    "compute_r_sets_for_vertices",
+    "parallel_bfs",
+    "reverse_bfs_reachability",
+    "strongly_connected_components",
+    "topological_sort",
+]

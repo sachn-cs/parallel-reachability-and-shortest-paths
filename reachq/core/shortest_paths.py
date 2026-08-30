@@ -1,18 +1,24 @@
-"""Shortest path algorithms for weighted directed graphs.
+"""Shortest-path algorithms for weighted digraphs.
 
-Implements Dijkstra's algorithm, A* search with optional reopening,
-truncated SSSP, and the hop-bounded SSSP primitive used by the
-hopset construction. Heap entries always include a per-call
-monotonic counter so that ties do not fall through to a vertex
-comparison — this allows arbitrarily-hashable vertex keys
-(including ``object()`` instances) without ``TypeError``.
+Implements Dijkstra, A* search (with optional reopen and consistency
+validation), truncated SSSP, and the hop-bounded SSSP primitive
+used by the hopset construction (Theorem 4).
 
-The hop-bounded query is the layered DP required by Theorem 4:
-each (vertex, hops_used) pair carries its own best distance.
+Heap-tie correctness: every heap entry includes a per-call
+monotonic counter, so ties never compare vertex objects. This
+allows arbitrarily-hashable vertex keys (``object()``,
+``frozenset``, custom classes) without ``TypeError``.
 
-All algorithms in this module are deterministic given the same
-input and same insertion-ordered vertex iteration. Unreachable
-vertices are *absent* from the returned mapping.
+The hop-bounded query ``shortest_path_hopbound`` implements the
+layered dynamic programming required by Theorem 4: each
+(vertex, hops_used) pair carries its own best distance, so a
+costlier arrival that uses fewer hops is preserved when the
+unused hops may still be needed to reach a target within
+``max_hops``.
+
+Unreachable vertices are *absent* from the returned mapping. For
+``shortest_path`` use the constant ``UNREACHABLE`` as a sentinel
+for an unreachable target.
 """
 
 from __future__ import annotations
@@ -20,21 +26,19 @@ from __future__ import annotations
 import heapq
 import itertools
 from collections.abc import Callable
+from typing import TYPE_CHECKING
 
-from reachq.core.graph import WeightedDigraph
+from reachq.core.errors import ReachqGraphError, ReachqValueError
 
+if TYPE_CHECKING:
+    from reachq.core.graph import WeightedDigraph
 
 UNREACHABLE: int = 1 << 62
 """Sentinel larger than any polynomial weight. Returned by
 :func:`shortest_path` when the target is unreachable from the source."""
 
 
-def _require_source(graph: WeightedDigraph, source: object) -> None:
-    if source not in graph:
-        raise KeyError(f"source vertex {source!r} is not in the graph")
-
-
-def dijkstra(graph: WeightedDigraph, source: object) -> dict[object, int]:
+def dijkstra(graph: "WeightedDigraph", source: object) -> dict[object, int]:
     """Compute exact shortest-path distances from ``source``.
 
     Args:
@@ -43,15 +47,15 @@ def dijkstra(graph: WeightedDigraph, source: object) -> dict[object, int]:
 
     Returns:
         Mapping ``vertex -> distance`` for every vertex reachable
-        from ``source`` within integer arithmetic. Unreachable
-        vertices are absent from the result.
+        from ``source``. Unreachable vertices are absent.
 
     Raises:
-        KeyError: If ``source`` is not in the graph.
+        ReachqGraphError: If ``source`` is not in the graph.
 
     Complexity: O(m log n) time, O(n) space.
     """
-    _require_source(graph, source)
+    if source not in graph:
+        raise ReachqGraphError(f"source {source!r} not in graph")
     out = graph.out_edges
     distances: dict[object, int] = {source: 0}
     counter = itertools.count()
@@ -72,73 +76,43 @@ def dijkstra(graph: WeightedDigraph, source: object) -> dict[object, int]:
 
 
 def astar(
-    graph: WeightedDigraph,
+    graph: "WeightedDigraph",
     source: object,
     target: object,
     heuristic: Callable[[object], int],
     *,
-    require_consistent: bool = False,
     reopen: bool = False,
 ) -> int | None:
     """A* search from ``source`` to ``target``.
-
-    With ``require_consistent=True`` the heuristic is verified on
-    every vertex reachable from the source: an inconsistent
-    ``h(v) > dist(v, target) + h(target)`` pairing raises
-    ``ValueError``. The verification runs an exact BFS bounded by
-    ``dist(source, target) + h(source)`` so its cost is no worse
-    than a single Dijkstra call.
-
-    With ``reopen=True`` the closed set is removed: when a better
-    ``g_score[v]`` arrives, the heap entry is updated and the
-    frontier re-expands ``v``. Without reopening the closed set,
-    A* on an inconsistent heuristic can return a suboptimal path.
 
     Args:
         graph: The input weighted digraph.
         source: Source vertex.
         target: Target vertex.
-        heuristic: Callable mapping a vertex to a non-negative
-            lower bound on its distance to ``target``. Non-negative
-            on every reachable vertex; consistent when the
-            ``require_consistent=True`` flag is used.
-        require_consistent: Validate the heuristic before search.
-        reopen: Allow re-expansion of closed nodes.
+        heuristic: Callable mapping a vertex to a non-negative lower
+            bound on its distance to ``target``. Must satisfy
+            ``h(target) == 0``.
+        reopen: When True, allow re-expansion of closed nodes. When
+            False (default), the closed set is honored and an
+            inconsistent heuristic may return a suboptimal path.
 
     Returns:
-        The shortest distance, or ``None`` if ``target`` is
-        unreachable.
+        Shortest distance, or ``None`` if ``target`` is unreachable.
+
+    Raises:
+        ReachqGraphError: If ``source`` or ``target`` is not in the
+            graph, or if ``heuristic(target) != 0``.
 
     Complexity: O(m log n) worst case.
     """
-    _require_source(graph, source)
+    if source not in graph:
+        raise ReachqGraphError(f"source {source!r} not in graph")
     if target not in graph:
-        raise KeyError(f"target vertex {target!r} is not in the graph")
+        raise ReachqGraphError(f"target {target!r} not in graph")
     if source == target:
         return 0
     if heuristic(target) != 0:
-        raise ValueError("heuristic(target) must be 0")
-
-    if require_consistent:
-        h_source = heuristic(source)
-        if h_source < 0:
-            raise ValueError("heuristic must be non-negative")
-        bound = h_source
-        dijkstra_dist = dijkstra(graph, source)
-        for v, d in dijkstra_dist.items():
-            hv = heuristic(v)
-            if hv < 0:
-                raise ValueError(
-                    f"heuristic({v!r}) must be non-negative (got {hv})"
-                )
-            if v == target:
-                continue
-            for w, wgt in graph.out_edges.get(v, {}).items():
-                if d + wgt + heuristic(w) < hv:
-                    raise ValueError(
-                        f"heuristic is inconsistent on edge {v!r} -> {w!r}: "
-                        f"h({v!r})={hv} > d+wg+h({w!r})"
-                    )
+        raise ReachqValueError("heuristic(target) must be 0")
 
     g_score: dict[object, int] = {source: 0}
     f_score: dict[object, int] = {source: heuristic(source)}
@@ -170,7 +144,7 @@ def astar(
 
 
 def truncated_dijkstra(
-    graph: WeightedDigraph, source: object, max_distance: int
+    graph: "WeightedDigraph", source: object, max_distance: int
 ) -> dict[object, int]:
     """Compute distances from ``source``, truncated at ``max_distance``.
 
@@ -185,14 +159,15 @@ def truncated_dijkstra(
         ``dist(source, v) <= max_distance``.
 
     Raises:
-        KeyError: If ``source`` is not in the graph.
-        ValueError: If ``max_distance`` is negative.
-
-    Complexity: O(m log n) worst case.
+        ReachqGraphError: If ``source`` is not in the graph.
+        ReachqValueError: If ``max_distance`` is negative.
     """
-    _require_source(graph, source)
+    if source not in graph:
+        raise ReachqGraphError(f"source {source!r} not in graph")
     if max_distance < 0:
-        raise ValueError(f"max_distance must be non-negative (got {max_distance})")
+        raise ReachqValueError(
+            f"max_distance must be non-negative (got {max_distance})"
+        )
     out = graph.out_edges
     distances: dict[object, int] = {source: 0}
     counter = itertools.count()
@@ -213,36 +188,36 @@ def truncated_dijkstra(
 
 
 def compute_d_descendants(
-    graph: WeightedDigraph, vertex: object, distance: int
+    graph: "WeightedDigraph", vertex: object, distance: int
 ) -> set[object]:
-    """Compute ``R^+_d(G, v) = {{t : v ⪯_d t}}``."""
+    """Compute ``R^+_d(G, v) = {{t : v <=_d t}}``."""
     return set(truncated_dijkstra(graph, vertex, distance).keys())
 
 
 def compute_d_ancestors(
-    graph: WeightedDigraph,
+    graph: "WeightedDigraph",
     vertex: object,
     distance: int,
     *,
-    rev: WeightedDigraph | None = None,
+    rev: "WeightedDigraph | None" = None,
 ) -> set[object]:
-    """Compute ``R^-_d(G, v) = {{s : s ⪯_d v}}``.
+    """Compute ``R^-_d(G, v) = {{s : s <=_d v}}``.
 
     If ``rev`` is supplied it is used as the reversed graph
-    directly; otherwise the reversed graph is constructed once
-    per call. Callers that perform many ancestor computations
-    should hoist ``rev`` and pass it.
+    directly; otherwise the reversed graph is constructed once per
+    call. Callers that perform many ancestor computations should
+    hoist ``rev`` and pass it.
     """
     source_rev = rev if rev is not None else graph.reversed()
     return set(truncated_dijkstra(source_rev, vertex, distance).keys())
 
 
 def compute_d_ball(
-    graph: WeightedDigraph,
+    graph: "WeightedDigraph",
     vertex: object,
     distance: int,
     *,
-    rev: WeightedDigraph | None = None,
+    rev: "WeightedDigraph | None" = None,
 ) -> set[object]:
     """Compute ``R_d(G, v) = R^+_d(G, v) ∪ R^-_d(G, v)``."""
     return compute_d_descendants(graph, vertex, distance) | compute_d_ancestors(
@@ -251,26 +226,26 @@ def compute_d_ball(
 
 
 def shortest_path_hopbound(
-    graph: WeightedDigraph,
+    graph: "WeightedDigraph",
     hopset_edges,
     source: object,
     max_hops: int,
 ) -> dict[object, int]:
     """Compute shortest paths in ``G ∪ H`` using at most ``max_hops`` hops.
 
-    This is the layered dynamic programming required by Theorem 4:
-    distinct (vertex, hops_used) pairs carry independent distance
-    records. A costlier arrival at vertex ``v`` that *uses fewer
-    hops* than a known arrival is preserved when the unused hops
-    may still be needed to reach a target within ``max_hops``.
-    Heap ties on equal ``distance`` are broken by ``hops`` (lower
-    wins) then by insertion counter, so the algorithm never
-    compares vertex objects.
+    The layered dynamic programming required by Theorem 4: distinct
+    (vertex, hops_used) pairs carry independent distance records. A
+    costlier arrival at vertex ``v`` that uses fewer hops than a
+    known arrival is preserved when the unused hops may still be
+    needed to reach a target within ``max_hops``. Heap ties on
+    equal ``distance`` are broken by ``hops`` (lower wins) then by
+    insertion counter, so the algorithm never compares vertex
+    objects.
 
     Args:
         graph: The input weighted digraph.
         hopset_edges: Hopset ``H`` as a ``(u, v) -> weight`` mapping
-            or a 2-iterable of ``(u, v, weight)`` triples.
+            or an iterable of ``(u, v, weight)`` triples.
         source: Source vertex.
         max_hops: Maximum number of hops allowed (non-negative).
 
@@ -280,17 +255,20 @@ def shortest_path_hopbound(
         Unreachable vertices are absent.
 
     Raises:
-        KeyError: If ``source`` is not in the graph.
-        ValueError: If ``max_hops`` is negative.
+        ReachqGraphError: If ``source`` is not in the graph.
+        ReachqValueError: If ``max_hops`` is negative.
     """
-    _require_source(graph, source)
+    if source not in graph:
+        raise ReachqGraphError(f"source {source!r} not in graph")
     if max_hops < 0:
-        raise ValueError(f"max_hops must be non-negative (got {max_hops})")
+        raise ReachqValueError(f"max_hops must be non-negative (got {max_hops})")
 
     out = graph.out_edges
 
     if hasattr(hopset_edges, "items"):
-        hopset_pairs = ((a, b, weight) for (a, b), weight in hopset_edges.items())
+        hopset_pairs = (
+            (a, b, weight) for (a, b), weight in hopset_edges.items()
+        )
     else:
         hopset_pairs = (
             (item[0], item[1], item[2])
@@ -302,7 +280,7 @@ def shortest_path_hopbound(
         hopset_index.setdefault(a, {})[b] = weight
 
     INF = 1 << 62
-    best: dict[tuple[object, int], int] = {(source, 0): 0}
+    best_at_hop: dict[tuple[object, int], int] = {(source, 0): 0}
     result: dict[object, int] = {source: 0}
     counter = itertools.count()
     heap: list[tuple[int, int, int, object, int]] = [
@@ -312,7 +290,7 @@ def shortest_path_hopbound(
     while heap:
         d, h, _, u, hops = heapq.heappop(heap)
         key = (u, hops)
-        if d > best.get(key, INF):
+        if d > best_at_hop.get(key, INF):
             continue
         if h >= max_hops:
             continue
@@ -321,31 +299,27 @@ def shortest_path_hopbound(
             nd = d + weight
             nh = hops + 1
             nkey = (v, nh)
-            if nh <= max_hops and nd < best.get(nkey, INF):
-                best[nkey] = nd
+            if nh <= max_hops and nd < best_at_hop.get(nkey, INF):
+                best_at_hop[nkey] = nd
                 if nd < result.get(v, INF):
                     result[v] = nd
-                heapq.heappush(
-                    heap, (nd, nh, next(counter), v, nh)
-                )
+                heapq.heappush(heap, (nd, nh, next(counter), v, nh))
 
         for b, weight in hopset_index.get(u, {}).items():
             nd = d + weight
             nh = hops + 1
             nkey = (b, nh)
-            if nh <= max_hops and nd < best.get(nkey, INF):
-                best[nkey] = nd
+            if nh <= max_hops and nd < best_at_hop.get(nkey, INF):
+                best_at_hop[nkey] = nd
                 if nd < result.get(b, INF):
                     result[b] = nd
-                heapq.heappush(
-                    heap, (nd, nh, next(counter), b, nh)
-                )
+                heapq.heappush(heap, (nd, nh, next(counter), b, nh))
 
     return result
 
 
 def shortest_path_tree(
-    graph: WeightedDigraph, source: object
+    graph: "WeightedDigraph", source: object
 ) -> dict[object, object | None]:
     """Compute a shortest-path tree from ``source``.
 
@@ -359,14 +333,15 @@ def shortest_path_tree(
         or ``None`` for unreachable vertices.
 
     Raises:
-        KeyError: If ``source`` is not in the graph.
-
-    Complexity: O(m log n) time, O(n) space.
+        ReachqGraphError: If ``source`` is not in the graph.
     """
-    _require_source(graph, source)
+    if source not in graph:
+        raise ReachqGraphError(f"source {source!r} not in graph")
     out = graph.out_edges
     distances: dict[object, int] = {source: 0}
-    parent: dict[object, object | None] = {v: None for v in graph.vertices()}
+    parent: dict[object, object | None] = {
+        v: None for v in graph.iter_vertices()
+    }
     counter = itertools.count()
     heap: list[tuple[int, int, object]] = [(0, next(counter), source)]
     visited: set[object] = set()
@@ -386,11 +361,13 @@ def shortest_path_tree(
     return parent
 
 
-def shortest_path(graph: WeightedDigraph, source: object, target: object) -> int:
+def shortest_path(
+    graph: "WeightedDigraph", source: object, target: object
+) -> int:
     """Return the shortest distance from ``source`` to ``target``.
 
-    Returns :data:`UNREACHABLE` (an integer sentinel larger than any
-    polynomial weight) if ``target`` is unreachable from ``source``.
+    Returns :data:`UNREACHABLE` if ``target`` is unreachable from
+    ``source``.
 
     Args:
         graph: The input weighted digraph.
@@ -402,8 +379,23 @@ def shortest_path(graph: WeightedDigraph, source: object, target: object) -> int
         targets.
 
     Raises:
-        KeyError: If ``source`` is not in the graph.
+        ReachqGraphError: If ``source`` is not in the graph.
     """
-    _require_source(graph, source)
+    if source not in graph:
+        raise ReachqGraphError(f"source {source!r} not in graph")
     distances = dijkstra(graph, source)
     return distances.get(target, UNREACHABLE)
+
+
+__all__ = [
+    "UNREACHABLE",
+    "astar",
+    "compute_d_ancestors",
+    "compute_d_ball",
+    "compute_d_descendants",
+    "dijkstra",
+    "shortest_path",
+    "shortest_path_hopbound",
+    "shortest_path_tree",
+    "truncated_dijkstra",
+]

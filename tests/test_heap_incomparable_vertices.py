@@ -99,9 +99,13 @@ def test_astar_incomparable_target():
 
 
 def test_unreachable_object_target_returns_sentinel():
+    import pytest
+
+    from reachq.core.errors import ReachqGraphError
+
     g, a, b, _c, _d = _build_object_graph()
     target = object()
     # target not in graph
     assert target not in g
-    with __import__("pytest").raises(KeyError):
+    with pytest.raises(ReachqGraphError):
         astar(g, a, target, lambda _v: 0)

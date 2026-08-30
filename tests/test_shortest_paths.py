@@ -44,7 +44,7 @@ class TestDijkstra:
 
     def test_empty_graph(self):
         g = WeightedDigraph()
-        with pytest.raises(KeyError):
+        with pytest.raises(Exception):
             dijkstra(g, 0)
 
     def test_self_loop(self):

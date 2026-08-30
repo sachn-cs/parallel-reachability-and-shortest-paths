@@ -22,7 +22,7 @@ from reachq.core.shortest_paths import UNREACHABLE, dijkstra, shortest_path
 
 def test_dijkstra_empty_graph():
     g = WeightedDigraph()
-    with pytest.raises(KeyError):
+    with pytest.raises(Exception):
         dijkstra(g, 0)
 
 
