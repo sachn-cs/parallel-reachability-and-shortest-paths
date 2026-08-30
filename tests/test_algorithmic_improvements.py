@@ -13,7 +13,7 @@ from importlib.util import find_spec
 
 import pytest
 
-from reachq import RefinementConfig as Flags
+from reachq import RefinementConfig
 from reachq.core.shortcut import build_shortcut_set_for_reachability
 from reachq.core.generators import random_dag, weighted_random_dag
 from reachq.core.hopset import build_hopset_for_sssp
@@ -22,7 +22,7 @@ from reachq.core.shortest_paths import dijkstra, shortest_path_hopbound
 
 
 def all_flag_names() -> list[str]:
-    return list(Flags.__dataclass_fields__)
+    return list(RefinementConfig.__dataclass_fields__)
 
 
 @pytest.mark.parametrize("off", all_flag_names())
@@ -64,7 +64,7 @@ def test_hopset_correctness_with_each_flag_off(off: str) -> None:
 
 def test_flags_dataclass_rejects_unknown_names() -> None:
     with pytest.raises(ValueError):
-        Flags.from_dict({"does_not_exist": True})
+        RefinementConfig.from_dict({"does_not_exist": True})
 
 
 def test_density_aware_constant_scales_with_rho() -> None:
@@ -121,7 +121,7 @@ def test_direct_jls_call_not_affected_by_previous_adaptive_build() -> None:
 
 def test_all_on_matches_dataclass_default() -> None:
     """All *algorithmic* refinements default on; parallel is opt-in."""
-    flags = Flags.from_dict(None)
+    flags = RefinementConfig.from_dict(None)
     algorithmic = [n for n in all_flag_names() if n != "parallel"]
     assert all(getattr(flags, name) is True for name in algorithmic)
     # parallel is opt-in because threading has overhead the user must
