@@ -107,7 +107,6 @@ from reachq.shortcut import (
 from reachq.shortest_paths import (
     astar,
     compute_d_ancestors,
-    compute_d_ball,
     compute_d_descendants,
     dijkstra,
     shortest_path,
@@ -117,11 +116,8 @@ from reachq.shortest_paths import (
 )
 from reachq.work_depth import WorkDepthAccountant
 
-Flags = RefinementConfig
-
 __all__ = [
     "Digraph",
-    "Flags",
     "RefinementConfig",
     "TransitiveClosureBudgetError",
     "WeightedDigraph",
@@ -134,7 +130,6 @@ __all__ = [
     "compute_ancestors",
     "compute_bridges",
     "compute_d_ancestors",
-    "compute_d_ball",
     "compute_d_descendants",
     "compute_descendants",
     "cycle_graph",

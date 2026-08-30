@@ -6,7 +6,6 @@ from reachq.graph import WeightedDigraph
 from reachq.shortest_paths import (
     astar,
     compute_d_ancestors,
-    compute_d_ball,
     compute_d_descendants,
     dijkstra,
     shortest_path_hopbound,
@@ -214,7 +213,7 @@ class TestDBall:
         g.add_edge(0, 1, 1)
         g.add_edge(1, 2, 2)
         g.add_edge(2, 0, 1)
-        ball = compute_d_ball(g, 0, 1)
+        ball = compute_d_descendants(g, 0, 1) | compute_d_ancestors(g, 0, 1)
         assert ball == {0, 1, 2}
 
 

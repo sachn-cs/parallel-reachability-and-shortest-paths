@@ -1,4 +1,4 @@
-"""Reached exceptions for reachq.
+"""Typed exception hierarchy for reachq.
 
 All public APIs raise ``ReachqError`` (or a subclass) instead of
 bare ``ValueError``/``TypeError`` so callers can catch the
@@ -11,8 +11,6 @@ Exception hierarchy::
         ReachqTypeError        -- argument of the wrong type
         ReachqGraphError       -- graph structure/precondition failure
             TransitiveClosureBudgetError
-        ReachqBackendError     -- execution backend failure
-        ReachqConfigError      -- invalid configuration
 """
 
 from __future__ import annotations
@@ -34,17 +32,7 @@ class ReachqGraphError(ReachqError):
     """Graph structure or precondition failure."""
 
 
-class ReachqBackendError(ReachqError):
-    """Execution backend failure."""
-
-
-class ReachqConfigError(ReachqError):
-    """Invalid configuration."""
-
-
 __all__ = [
-    "ReachqBackendError",
-    "ReachqConfigError",
     "ReachqError",
     "ReachqGraphError",
     "ReachqTypeError",

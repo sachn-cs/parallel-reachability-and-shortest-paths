@@ -212,19 +212,6 @@ def compute_d_ancestors(
     return set(truncated_dijkstra(source_rev, vertex, distance).keys())
 
 
-def compute_d_ball(
-    graph: WeightedDigraph,
-    vertex: object,
-    distance: int,
-    *,
-    rev: WeightedDigraph | None = None,
-) -> set[object]:
-    """Compute ``R_d(G, v) = R^+_d(G, v) ∪ R^-_d(G, v)``."""
-    return compute_d_descendants(graph, vertex, distance) | compute_d_ancestors(
-        graph, vertex, distance, rev=rev
-    )
-
-
 def shortest_path_hopbound(
     graph: WeightedDigraph,
     hopset_edges,
@@ -391,7 +378,6 @@ __all__ = [
     "UNREACHABLE",
     "astar",
     "compute_d_ancestors",
-    "compute_d_ball",
     "compute_d_descendants",
     "dijkstra",
     "shortest_path",

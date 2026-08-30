@@ -393,14 +393,5 @@ def main() -> None:
     args.func(args)
 
 
-def cli_main() -> None:
-    """Entry point exposed by ``pyproject.toml`` ``[project.scripts]``.
-
-    Currently a thin wrapper over ``main()``; the indirection is
-    kept for symmetry with package conventions.
-    """
-    main()
-
-
 if __name__ == "__main__":
     main()

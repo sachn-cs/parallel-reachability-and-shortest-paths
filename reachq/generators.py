@@ -12,6 +12,32 @@ import random
 from reachq.graph import Digraph, WeightedDigraph
 
 
+__all__ = [
+    "SNAP_BASE",
+    "SNAP_DATASETS",
+    "complete_dag",
+    "cycle_graph",
+    "dense_graph",
+    "erdos_renyi_digraph",
+    "graph_stats",
+    "graph_with_sccs",
+    "grid_graph",
+    "hamming_graph",
+    "layered_dag",
+    "load_dataset",
+    "paley_graph",
+    "parse_snap_file",
+    "path_graph",
+    "petersen_graph",
+    "random_dag",
+    "shrikhande_cayley",
+    "shrikhande_graph",
+    "weighted_dense_graph",
+    "weighted_path_graph",
+    "weighted_random_dag",
+]
+
+
 def path_graph(n: int) -> Digraph:
     """Create a directed path on n vertices: 0 → 1 → ... → n-1.
 
@@ -494,7 +520,7 @@ def paley_graph(q: int) -> Digraph:
     """
     if q <= 0 or (q - 1) % 4 != 0:
         raise ValueError(f"Paley graph requires q ≡ 1 (mod 4), got q={q}")
-    if not is_prime(q):
+    if not _is_prime(q):
         raise ValueError(
             f"paley_graph: only prime q supported (got q={q}). "
             f"Generalisation to prime powers requires finite-field machinery."
@@ -511,17 +537,11 @@ def paley_graph(q: int) -> Digraph:
     return g
 
 
-def is_prime(n: int) -> bool:
+def _is_prime(n: int) -> bool:
     """Return True iff ``n`` is a prime number.
 
     Used by ``paley_graph`` to validate the prime ``q`` argument.
     Trial division up to sqrt(n); fine for small n used in fixtures.
-
-    Args:
-        n: Candidate integer.
-
-    Returns:
-        True if ``n`` is prime, False otherwise.
     """
     if n < 2:
         return False
@@ -572,30 +592,21 @@ def hamming_graph(d: int, q: int) -> Digraph:
         g.add_vertex(i)
     # Neighbours: differ in exactly one coordinate.
     for v in range(n):
-        coords = int_to_base_q(v, q, d)
+        coords = _int_to_base_q(v, q, d)
         for c in range(d):
             for new_value in range(q):
                 if new_value == coords[c]:
                     continue
                 new_coords = list(coords)
                 new_coords[c] = new_value
-                u = base_q_to_int(new_coords, q)
+                u = _base_q_to_int(new_coords, q)
                 if u < v:
                     g.add_undirected_edge(u, v)
     return g
 
 
-def int_to_base_q(v: int, q: int, d: int) -> list[int]:
-    """Convert integer to base-q representation with d digits (LSB at index 0).
-
-    Args:
-        v: Integer to convert.
-        q: Base (must be >= 2).
-        d: Number of digits to emit.
-
-    Returns:
-        A list of ``d`` base-q digits, least-significant at index 0.
-    """
+def _int_to_base_q(v: int, q: int, d: int) -> list[int]:
+    """Convert integer to base-q representation with d digits (LSB at index 0)."""
     out = [0] * d
     for i in range(d):
         out[i] = v % q
@@ -603,16 +614,8 @@ def int_to_base_q(v: int, q: int, d: int) -> list[int]:
     return out
 
 
-def base_q_to_int(coords: list[int], q: int) -> int:
-    """Convert base-q digit list (LSB at index 0) back to integer.
-
-    Args:
-        coords: List of base-q digits, least-significant at index 0.
-        q: Base (must be >= 2).
-
-    Returns:
-        The reconstructed integer.
-    """
+def _base_q_to_int(coords: list[int], q: int) -> int:
+    """Convert base-q digit list (LSB at index 0) back to integer."""
     v = 0
     for i, x in enumerate(coords):
         v += x * (q**i)
