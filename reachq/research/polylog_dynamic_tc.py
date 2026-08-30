@@ -3,37 +3,37 @@
 Implements the classical Demetrescu-Italiano fully-dynamic
 transitive-closure algorithm (FOCS 2000), which achieves:
 
-- **O(n) amortised time per insertion/deletion** in the typical case.
-- **O(n^2) worst-case time per update** (degenerate sequences).
-- **O(n^2 / 64) bits of storage** (bitset matrix, one bit per pair).
+- **`O(n)` amortised time per insertion/deletion** in the typical case.
+- **`O(n^2)` worst-case time per update** (degenerate sequences).
+- **`O(n^2 / 64)` bits of storage** (bitset matrix, one bit per pair).
 
 The algorithm maintains the reachability matrix as a bitset
-``n × n`` and updates it incrementally:
+`n × n` and updates it incrementally:
 
 - **Insertion (u, v):** add (u, v) to the matrix; then for every
-  predecessor ``x`` of ``u`` (i.e., ``x →* u``), add ``(x, v)``;
-  and for every successor ``y`` of ``v`` (i.e., ``v →* y``),
-  add ``(u, y)``. Iterate to fixpoint: this propagates the new
-  edge through the matrix in O(n) total work.
+  predecessor `x` of `u` (i.e., `x →* u`), add `(x, v)`;
+  and for every successor `y` of `v` (i.e., `v →* y`),
+  add `(u, y)`. Iterate to fixpoint: this propagates the new
+  edge through the matrix in `O(n)` total work.
 
 - **Deletion (u, v):** remove (u, v); then recompute the
   reachability *from u* by BFS over the current matrix; and
   recompute the reachability *to v* by reverse BFS. For each
-  predecessor ``x`` of ``u`` and each successor ``y`` of ``v``
-  where ``(x, y)`` was previously in the matrix but no longer
-  is, remove ``(x, y)``. This is O(n) amortised but can be
-  O(n^2) worst case (when the deleted edge was critical for
+  predecessor `x` of `u` and each successor `y` of `v`
+  where `(x, y)` was previously in the matrix but no longer
+  is, remove `(x, y)`. This is `O(n)` amortised but can be
+  `O(n^2)` worst case (when the deleted edge was critical for
   many reachability pairs).
 
-We store the matrix as a Python list of ``int`` bitsets — one
-``int`` per vertex (using 64-bit chunks). For n > a few thousand,
+We store the matrix as a Python list of `int` bitsets — one
+`int` per vertex (using 64-bit chunks). For n > a few thousand,
 this is still memory-feasible (n^2 bits = n^2/64 ints = 16 KB
 per 1000 vertices). For very large graphs, use
-:class:`DynamicTransitiveClosure` (the naive O(n^2) Python-set
+:class:`DynamicTransitiveClosure` (the naive `O(n^2)` Python-set
 implementation in :mod:`reachq.research.dynamic_tc`) instead.
 
 Reference: Demetrescu, Italiano, "Fully dynamic transitive
-closure: breaking the O(n^2) barrier." FOCS 2000. See also
+closure: breaking the `O(n^2)` barrier." FOCS 2000. See also
 their J. ACM 2006 paper for the full analysis including the
 amortised bounds.
 
@@ -41,14 +41,14 @@ amortised bounds.
 
 | Operation | Worst case | Amortised |
 |---|---|---|
-| ``insert_edge`` | O(n) | O(n) |
-| ``delete_edge`` | O(n^2) | O(n) |
-| ``reaches`` | O(1) | O(1) |
-| ``reachable_from`` | O(n) | O(n) |
+| `insert_edge` | `O(n)` | `O(n)` |
+| `delete_edge` | `O(n^2)` | `O(n)` |
+| `reaches` | `O(1)` | `O(1)` |
+| `reachable_from` | `O(n)` | `O(n)` |
 
 The amortised bounds hold when the sequence of updates is
 "reasonable" (no adversarial sequence specifically designed to
-force O(n^2) per delete). For pathological workloads, use the
+force `O(n^2)` per delete). For pathological workloads, use the
 naive implementation.
 """
 
@@ -69,7 +69,7 @@ from reachq.core.graph import Digraph
 
 
 def chunk_count(n: int) -> int:
-    """Number of 64-bit chunks needed to store ``n`` bits."""
+    """Number of 64-bit chunks needed to store `n` bits."""
     return (n + 63) // 64
 
 
@@ -81,14 +81,14 @@ def bit_index(v: int) -> tuple[int, int]:
 class PolylogDynamicTC:
     """Fully-dynamic transitive closure with bitset matrix.
 
-    Maintains a ``n × n`` bitset of reachability pairs using 64-bit
+    Maintains a `n × n` bitset of reachability pairs using 64-bit
     chunks. Each vertex's reachability set is stored as one
-    ``list[int]`` of chunks (the "row"); the column structure is
+    `list[int]` of chunks (the "row"); the column structure is
     implicit (transposed on demand for reverse queries).
 
     Attributes:
-        graph: The underlying digraph (mutated by ``insert_edge``
-            and ``delete_edge`` to stay in sync with the matrix).
+        graph: The underlying digraph (mutated by `insert_edge`
+            and `delete_edge` to stay in sync with the matrix).
         n: Number of vertices.
     """
 
@@ -141,7 +141,7 @@ class PolylogDynamicTC:
         return bool(self._rows[row][chunk] & (1 << bit))
 
     def row_bits(self, row: int) -> set[int]:
-        """Return the set of vertex indices reachable from ``row``."""
+        """Return the set of vertex indices reachable from `row`."""
         bits: set[int] = set()
         for chunk_idx, chunk in enumerate(self._rows[row]):
             if chunk == 0:
@@ -160,7 +160,7 @@ class PolylogDynamicTC:
         For each pair (i, j) in the current matrix, if there's an
         intermediate vertex k that both reaches i (in row k) and
         that j reaches (column k), then (i, j) is set. We iterate
-        to fixpoint; this is O(n^3 / 64) in the worst case but
+        to fixpoint; this is `O(n^3 / 64)` in the worst case but
         converges fast in practice for sparse graphs.
         """
         n = self.n
@@ -195,13 +195,13 @@ class PolylogDynamicTC:
                                     changed = True
 
     def insert_edge(self, u: object, v: object) -> None:
-        """Insert edge (u, v) and update the TC matrix in O(n) amortised.
+        """Insert edge (u, v) and update the TC matrix in `O(n)` amortised.
 
-        Algorithm (Demetrescu-Italiano): for every predecessor ``x``
-        of ``u`` (i.e., ``x →* u``), add ``(x, v)``. For every
-        successor ``y`` of ``v`` (i.e., ``v →* y``), add ``(u, y)``.
-        Iterate to fixpoint: after ``i`` iterations, the set of
-        reachable vertices from ``x`` grows by ``i`` hops.
+        Algorithm (Demetrescu-Italiano): for every predecessor `x`
+        of `u` (i.e., `x →* u`), add `(x, v)`. For every
+        successor `y` of `v` (i.e., `v →* y`), add `(u, y)`.
+        Iterate to fixpoint: after `i` iterations, the set of
+        reachable vertices from `x` grows by `i` hops.
         """
         if u not in self._index or v not in self._index:
             raise KeyError(f"unknown vertex: {u!r} or {v!r}")
@@ -244,15 +244,15 @@ class PolylogDynamicTC:
         """Delete edge (u, v) and update the TC matrix.
 
         Algorithm: this is the expensive operation. We rebuild the
-        forward reachability of ``u`` by BFS over the *current*
+        forward reachability of `u` by BFS over the *current*
         adjacency (which has the edge removed), and the reverse
-        reachability of ``v`` similarly. For every pair (x, y)
+        reachability of `v` similarly. For every pair (x, y)
         that was previously in the matrix but no longer is, clear
-        it. Then propagate to predecessors of ``u`` and successors
-        of ``v`` as in the insert case.
+        it. Then propagate to predecessors of `u` and successors
+        of `v` as in the insert case.
 
-        Complexity: O(n + m) per delete where m is the number of
-        pairs affected; amortised O(n) over typical workloads.
+        Complexity: `O(n + m)` per delete where m is the number of
+        pairs affected; amortised `O(n)` over typical workloads.
         """
         if u not in self._index or v not in self._index:
             raise KeyError(f"unknown vertex: {u!r} or {v!r}")
@@ -301,7 +301,7 @@ class PolylogDynamicTC:
             self._out[iu].remove(iv)
 
     def bfs_forward(self, source: int) -> set[int]:
-        """BFS from ``source`` over the current adjacency."""
+        """BFS from `source` over the current adjacency."""
         visited: set[int] = {source}
         q: deque[int] = deque([source])
         while q:
@@ -313,13 +313,13 @@ class PolylogDynamicTC:
         return visited
 
     def reaches(self, source: object, target: object) -> bool:
-        """Test whether ``target`` is reachable from ``source`` in O(1)."""
+        """Test whether `target` is reachable from `source` in `O(1)`."""
         if source not in self._index or target not in self._index:
             return False
         return self.test_bit(self._index[source], self._index[target])
 
     def reachable_from(self, source: object) -> set[object]:
-        """Return all vertices reachable from ``source``."""
+        """Return all vertices reachable from `source`."""
         if source not in self._index:
             return set()
         idx = self._index[source]

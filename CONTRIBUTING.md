@@ -228,3 +228,23 @@ pytest -v
 ## Questions?
 
 Open an issue with the label `question` if you need help getting started.
+
+## Docstring pitfall: avoid ``O(...)``-looking tokens
+
+`pyproject.toml` enables pytest's `--doctest-modules` flag, which
+runs every module's docstring through Python's doctest parser. The
+parser is greedy: any line that looks like a Python expression
+(e.g. ``O(n^2)``, ``n*rho``, ``O(beta)``) is attempted, and
+expressions that fail to evaluate break the collection of an
+entire test file.
+
+When documenting complexity, prefer one of:
+
+* Write the symbol in plain prose: "quadratic", "linear in n",
+  "cubic in the edge count".
+* Use a backtick-quoted form: `` `O(n^2)` ``.
+* Use a different symbol: ``Theta(n^2)``, ``Big-O(n^2)``, ``n^2``.
+
+The `tests/test_docstring_no_doctest_collision.py` regression test
+greps every docstring in `reachq/` for collision-prone patterns;
+keep it passing.

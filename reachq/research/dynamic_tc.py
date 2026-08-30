@@ -7,13 +7,13 @@ achieve polylog amortised update time.
 
 **Complexity (honest scope):**
 
-- Insert: O(n^2) worst case. After inserting (u, v), every vertex x
+- Insert: `O(n^2)` worst case. After inserting (u, v), every vertex x
   that can reach u now also reaches every vertex in v's reachable
   set (R+(v)), and every vertex y that v reaches can also reach
   every vertex that u reaches. The implementation walks these
   relations explicitly.
 
-- Delete: O(n^2) worst case. After deleting (u, v), we recompute
+- Delete: `O(n^2)` worst case. After deleting (u, v), we recompute
   the affected rows and columns of the reachability matrix by BFS
   from u (for u's forward reachability) and from predecessors of u
   (for their forward reachability through u). The naive approach
@@ -49,12 +49,12 @@ class DynamicTransitiveClosure:
     """Incremental transitive closure with explicit edge updates.
 
     Internally maintains a boolean reachability matrix as a
-    ``set[tuple[int, int]]`` of (index_a, index_b) pairs. The
+    `set[tuple[int, int]]` of (index_a, index_b) pairs. The
     matrix is updated eagerly on every insertion and deletion.
 
     Attributes:
-        graph: The underlying digraph (mutated by ``insert_edge``
-            and ``delete_edge`` to stay in sync with the matrix).
+        graph: The underlying digraph (mutated by `insert_edge`
+            and `delete_edge` to stay in sync with the matrix).
         vertices: Tuple of vertex objects in canonical order.
     """
 
@@ -97,9 +97,9 @@ class DynamicTransitiveClosure:
     def insert_edge(self, u: object, v: object) -> None:
         """Insert edge (u, v) into the graph and update the closure.
 
-        Updates the graph adjacency (which ``self.graph`` owns) and
+        Updates the graph adjacency (which `self.graph` owns) and
         then augments the reachability matrix to reflect the new
-        edge. Cost: O(n^2) in the worst case (a hub vertex that
+        edge. Cost: `O(n^2)` in the worst case (a hub vertex that
         reaches or is reached by everything).
 
         Args:
@@ -107,8 +107,8 @@ class DynamicTransitiveClosure:
             v: Target vertex.
 
         Raises:
-            KeyError: If ``u`` or ``v`` is not in the graph's vertex
-                set. Use ``graph.add_vertex`` first.
+            KeyError: If `u` or `v` is not in the graph's vertex
+                set. Use `graph.add_vertex` first.
         """
         if u not in self._index:
             raise KeyError(f"vertex {u!r} not in graph")
@@ -146,7 +146,7 @@ class DynamicTransitiveClosure:
             v: Target vertex.
 
         Raises:
-            KeyError: If ``u`` or ``v`` is not in the graph's vertex
+            KeyError: If `u` or `v` is not in the graph's vertex
                 set.
         """
         if u not in self._index:
@@ -176,7 +176,7 @@ class DynamicTransitiveClosure:
             in_[v].discard(u)
 
     def reaches(self, source: object, target: object) -> bool:
-        """Test whether ``target`` is reachable from ``source``.
+        """Test whether `target` is reachable from `source`.
 
         Args:
             source: Source vertex.
@@ -186,14 +186,14 @@ class DynamicTransitiveClosure:
             True iff (source, target) is in the transitive closure.
 
         Raises:
-            KeyError: If ``source`` or ``target`` is not a vertex.
+            KeyError: If `source` or `target` is not a vertex.
         """
         if source not in self._index or target not in self._index:
             return False
         return (self._index[source], self._index[target]) in self._reach
 
     def reachable_from(self, source: object) -> set[object]:
-        """Return all vertices reachable from ``source``."""
+        """Return all vertices reachable from `source`."""
         if source not in self._index:
             return set()
         i = self._index[source]
@@ -226,7 +226,7 @@ def incremental_tc(
     Args:
         initial_graph: Starting digraph (not mutated by this function
             except via the constructed :class:`DynamicTransitiveClosure`'s
-            ``insert_edge``).
+            `insert_edge`).
         edges_to_insert: Iterable of (u, v) tuples to insert.
 
     Returns:

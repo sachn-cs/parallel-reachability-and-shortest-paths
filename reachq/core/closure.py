@@ -2,22 +2,22 @@
 
 The paper uses fast matrix multiplication for transitive closure::
 
-    TC(G) can be computed in eO(|V(G)|^omega) time using repeated
+    TC(G) can be computed in e`O(|V(G)`|^omega) time using repeated
     squaring of the adjacency matrix of G (Section 4.2).
 
 This implementation uses the Boolean semiring: the sparse datatype is
-``int8`` and squaring is ``(A @ A) > 0`` followed by a coalesce.
+`int8` and squaring is `(A @ A) > 0` followed by a coalesce.
 Overflow is impossible by construction. Output size is inherently
-quadratic in the worst case and is bounded by ``max_pairs``; graphs
+quadratic in the worst case and is bounded by `max_pairs`; graphs
 whose projected closure exceeds the budget raise
 :class:`TransitiveClosureBudgetError`.
 
 Memory characteristics:
 
-* adjacency / closure CSR: O(|TC|) entries.
-* Python set of (i, j) pairs: O(|TC|).
+* adjacency / closure CSR: `O(|TC|)` entries.
+* Python set of (i, j) pairs: `O(|TC|)`.
 
-There is no dense n x n backup; exact TC is honestly O(|TC|) memory.
+There is no dense n x n backup; exact TC is honestly `O(|TC|)` memory.
 """
 
 from __future__ import annotations
@@ -32,10 +32,10 @@ from reachq.core.reachability import bfs_reachability
 
 
 class TransitiveClosureBudgetError(Exception):
-    """Raised when the projected TC exceeds the configured ``max_pairs``.
+    """Raised when the projected TC exceeds the configured `max_pairs`.
 
     The Boolean semiring makes TC scale-free w.r.t. edge weights, but
-    worst-case |TC| is O(n^2). Carries ``partial_pairs`` so callers
+    worst-case |TC| is `O(n^2)`. Carries `partial_pairs` so callers
     can recover progress.
     """
 
@@ -45,19 +45,19 @@ class TransitiveClosureBudgetError(Exception):
 
 
 def transitive_closure_brute_force(graph: Digraph) -> set[tuple[object, object]]:
-    """Compute ``TC(G)`` using BFS from every vertex.
+    """Compute `TC(G)` using BFS from every vertex.
 
     This is the ground-truth oracle; it does not enforce a budget
-    and will gladly consume O(n^2) memory on dense inputs.
+    and will gladly consume `O(n^2)` memory on dense inputs.
 
     Args:
         graph: The input digraph.
 
     Returns:
-        Set of all pairs ``(u, v)`` such that there is a path from
-        ``u`` to ``v`` in ``G`` (including ``u == v``).
+        Set of all pairs `(u, v)` such that there is a path from
+        `u` to `v` in `G` (including `u == v`).
 
-    Complexity: O(n * m) time, O(n^2) space in the worst case.
+    Complexity: `O(n * m)` time, `O(n^2)` space in the worst case.
     """
     result: set[tuple[object, object]] = set()
     for u in graph.iter_vertices():
@@ -74,25 +74,25 @@ def transitive_closure(
     max_pairs: int | None = None,
     budget_strict: bool = True,
 ) -> set[tuple[object, object]]:
-    """Compute ``TC(G)`` in the Boolean semiring with sparse repeated squaring.
+    """Compute `TC(G)` in the Boolean semiring with sparse repeated squaring.
 
     Args:
         graph: The input digraph.
-        max_pairs: Maximum number of ``(u, v)`` pairs to emit.
-            ``None`` disables the budget.
-        budget_strict: When ``True`` (default), exceed the budget
+        max_pairs: Maximum number of `(u, v)` pairs to emit.
+            `None` disables the budget.
+        budget_strict: When `True` (default), exceed the budget
             exactly by raising
-            :class:`TransitiveClosureBudgetError`. When ``False``,
+            :class:`TransitiveClosureBudgetError`. When `False`,
             return whatever pairs fit under the budget without
             raising.
 
     Returns:
-        Set of all pairs ``(u, v)`` such that there is a path from
-        ``u`` to ``v`` in ``G`` (including ``u == v``).
+        Set of all pairs `(u, v)` such that there is a path from
+        `u` to `v` in `G` (including `u == v`).
 
     Raises:
-        TransitiveClosureBudgetError: when ``budget_strict=True``
-            and the budget is exceeded. Carries ``partial_pairs``
+        TransitiveClosureBudgetError: when `budget_strict=True`
+            and the budget is exceeded. Carries `partial_pairs`
             so callers can recover progress.
     """
     if max_pairs is not None and max_pairs < 0:
@@ -203,15 +203,15 @@ def transitive_closure_on_subset(
     *,
     max_pairs: int | None = None,
 ) -> set[tuple[object, object]]:
-    """Compute ``TC(G[subset])``: closure on the induced subgraph.
+    """Compute `TC(G[subset])`: closure on the induced subgraph.
 
     Args:
-        graph: The input digraph ``G``.
-        subset: Iterable of vertices already in ``graph``.
+        graph: The input digraph `G`.
+        subset: Iterable of vertices already in `graph`.
         max_pairs: Forwarded to :func:`transitive_closure`.
 
     Returns:
-        Set of reachable pairs in ``graph.induced_subgraph(subset)``.
+        Set of reachable pairs in `graph.induced_subgraph(subset)`.
     """
     subgraph = graph.induced_subgraph(set(subset))
     return transitive_closure(subgraph, max_pairs=max_pairs)
