@@ -37,7 +37,7 @@ class TestSparsifyBasic:
     def test_soundness_preserved(self):
         """Sparsification preserves R+(G, s) == R+(G+H, s) for all s."""
         g = random_dag(60, edge_probability=0.3, random_seed=42)
-        H_orig, _ = build_shortcut_set_for_reachability(
+        H_orig, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -54,7 +54,7 @@ class TestSparsifyBasic:
     def test_sparsify_reduces_or_preserves(self):
         """Sparsification never increases |H|."""
         g = random_dag(50, edge_probability=0.3, random_seed=42)
-        H_orig, _ = build_shortcut_set_for_reachability(
+        H_orig, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -64,7 +64,7 @@ class TestSparsifyBasic:
     def test_idempotent(self):
         """Sparsifying twice gives the same result as sparsifying once."""
         g = random_dag(40, edge_probability=0.2, random_seed=42)
-        H_orig, _ = build_shortcut_set_for_reachability(
+        H_orig, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -79,7 +79,7 @@ class TestSparsifyReducesJLS:
     def test_jls_shortcut_set_mostly_redundant_on_synthetic(self):
         """On random DAGs, sparsification should remove most shortcuts."""
         g = random_dag(100, edge_probability=0.3, random_seed=42)
-        H_orig, _ = build_shortcut_set_for_reachability(
+        H_orig, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -138,7 +138,7 @@ class TestSparsifyCorrectnessInvariant:
         g.add_edge(0, 1)
         g.add_edge(1, 2)
         g.add_edge(2, 0)  # SCC = {0, 1, 2}
-        H_orig, _ = build_shortcut_set_for_reachability(
+        H_orig, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)

@@ -71,7 +71,7 @@ def cmd_reachability(args: argparse.Namespace) -> None:
     accountant = WorkDepthAccountant()
     accountant.start_timer()
     start = time.perf_counter()
-    shortcuts, beta = build_shortcut_set_for_reachability(
+    shortcuts, beta, _ = build_shortcut_set_for_reachability(
         graph, omega=args.omega, random_seed=args.seed
     )
     elapsed = time.perf_counter() - start

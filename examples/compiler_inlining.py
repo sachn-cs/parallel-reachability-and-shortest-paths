@@ -52,7 +52,7 @@ def recommend_inlining(g, H, beta, max_inlines=3):
 def main():
     g = build_ir_graph(seed=42)
     print(f"IR graph: {g.num_vertices()} blocks, {g.num_edges()} edges")
-    H, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     print(f"shortcut set: {len(H)} pivots (beta={beta:.2f})")
     inlines = recommend_inlining(g, H, beta)
     print(f"recommended inlining order: {inlines}")

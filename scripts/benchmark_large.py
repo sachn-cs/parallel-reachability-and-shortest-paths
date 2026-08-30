@@ -70,7 +70,7 @@ def benchmark_reachability(
     try:
         with time_limit(timeout) if timeout else contextlib.nullcontext():
             start = time.perf_counter()
-            shortcuts, beta = build_shortcut_set_for_reachability(
+            shortcuts, beta, _ = build_shortcut_set_for_reachability(
                 graph,
                 omega=omega,
                 random_seed=seed,

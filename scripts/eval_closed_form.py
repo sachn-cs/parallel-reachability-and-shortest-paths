@@ -32,7 +32,7 @@ log = get_logger("reachq.closed_form_eval")
 def measure(name: str, g: Digraph, optimal_H: set) -> dict[str, object]:
     n = g.num_vertices()
     m = g.num_edges()
-    H, beta = build_shortcut_set_for_reachability(
+    H, beta, _ = build_shortcut_set_for_reachability(
         g,
         omega=3.0,
         random_seed=42,

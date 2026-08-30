@@ -174,7 +174,7 @@ def run_sampling(
             try:
                 with time_limit(timeout):
                     t0 = time.perf_counter()
-                    shortcuts, beta = build_shortcut_set_for_reachability(
+                    shortcuts, beta, _ = build_shortcut_set_for_reachability(
                         g,
                         omega=omega,
                         random_seed=seed,
@@ -309,7 +309,7 @@ def run_snap(
         try:
             with time_limit(timeout):
                 t0 = time.perf_counter()
-                shortcuts, beta = build_shortcut_set_for_reachability(
+                shortcuts, beta, _ = build_shortcut_set_for_reachability(
                     g,
                     omega=omega,
                     random_seed=seed,

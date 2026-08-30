@@ -55,7 +55,7 @@ def main():
     density = 0.05
     g = build_passage_graph(n, density, seed=42)
     print(f"passage graph: {g.num_vertices()} passages, {g.num_edges()} citations")
-    H, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     print(f"shortcut set: {len(H)} shortcuts (beta={beta:.2f})")
     query = 0
     ranking = rank_by_pivot_reach(g, H, query)

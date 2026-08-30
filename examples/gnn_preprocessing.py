@@ -73,7 +73,7 @@ def main():
     density = 0.02
     g = build_citation_graph(n, density, seed=42)
     print(f"citation graph: {g.num_vertices()} papers, {g.num_edges()} citations")
-    H, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     print(f"shortcut set: {len(H)} shortcuts (beta={beta:.2f})")
     # Verify soundness
     for s in range(0, n, 50):

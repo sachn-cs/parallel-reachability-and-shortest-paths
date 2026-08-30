@@ -133,7 +133,7 @@ class TestRegressionSccRepTrivialPath:
         from reachq.core.generators import random_dag
 
         g = random_dag(20, edge_probability=0.2, random_seed=42)
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,
@@ -150,7 +150,7 @@ class TestRegressionSccRepTrivialPath:
             g.add_vertex(i)
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,
@@ -176,7 +176,7 @@ class TestRegressionSccRepTrivialPath:
         # Cross-SCC edges
         g.add_edge(2, 3)
         g.add_edge(4, 5)
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,
@@ -203,7 +203,7 @@ class TestRegressionTcSelfLoops:
             g.add_vertex(i)
         for i in range(4):
             g.add_edge(i, i + 1)
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,
@@ -218,7 +218,7 @@ class TestRegressionTcSelfLoops:
             for j in range(n):
                 if i != j:
                     g.add_edge(i, j)
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,
@@ -234,7 +234,7 @@ class TestRegressionTcSelfLoops:
         g.add_edge(1, 0)  # SCC
         g.add_edge(1, 2)
         g.add_edge(2, 3)
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,

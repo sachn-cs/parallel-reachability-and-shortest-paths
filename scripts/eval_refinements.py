@@ -86,7 +86,7 @@ def run_one(
     }
     try:
         t0 = time.perf_counter()
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             graph,
             omega=omega,
             random_seed=seed,

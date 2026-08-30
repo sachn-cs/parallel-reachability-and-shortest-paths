@@ -61,7 +61,7 @@ def main() -> int:
         largest = float(eigs[-1])
         second_largest = float(eigs[-2]) if len(eigs) > 1 else 0.0
         t0 = time.perf_counter()
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42,

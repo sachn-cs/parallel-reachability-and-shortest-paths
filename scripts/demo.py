@@ -43,7 +43,7 @@ def demo_reachability():
     print(f"Input graph: n={g.num_vertices()}, m={g.num_edges()}")
 
     start = time.time()
-    shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    shortcuts, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     elapsed = time.time() - start
 
     print(f"Shortcut set size: {len(shortcuts)} edges")
@@ -157,7 +157,7 @@ def demo_scc_handling():
     for i, scc in enumerate(sccs):
         print(f"  SCC {i}: {scc}")
 
-    shortcuts, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    shortcuts, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     print(f"Shortcut set size: {len(shortcuts)} edges")
     print(f"Target hopbound beta: {beta:.2f}")
 

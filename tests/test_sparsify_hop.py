@@ -32,7 +32,7 @@ class TestSparsifyHopBounded:
     def test_global_hopbound_preserved_on_paths(self):
         for n in (20, 30, 50):
             g = path_graph(n)
-            H, beta = build_shortcut_set_for_reachability(
+            H, beta, _ = build_shortcut_set_for_reachability(
                 g,
                 omega=3.0,
                 random_seed=42)
@@ -44,7 +44,7 @@ class TestSparsifyHopBounded:
 
     def test_global_hopbound_preserved_on_dag(self):
         g = random_dag(40, edge_probability=0.2, random_seed=42)
-        H, beta = build_shortcut_set_for_reachability(
+        H, beta, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -55,7 +55,7 @@ class TestSparsifyHopBounded:
         from reachq.core.reachability import bfs_reachability, parallel_bfs
 
         g = random_dag(30, edge_probability=0.3, random_seed=42)
-        H, beta = build_shortcut_set_for_reachability(
+        H, beta, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -65,7 +65,7 @@ class TestSparsifyHopBounded:
 
     def test_size_guard_returns_input_unchanged(self):
         g = path_graph(30)
-        H, beta = build_shortcut_set_for_reachability(
+        H, beta, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -96,7 +96,7 @@ class TestVerifyHopboundPreserved:
 
     def test_shortcuts_shrink_effective_diameter(self):
         g = path_graph(20)
-        H, beta = build_shortcut_set_for_reachability(
+        H, beta, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)

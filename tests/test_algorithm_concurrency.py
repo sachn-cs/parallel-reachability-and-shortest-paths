@@ -17,7 +17,7 @@ from reachq.core.reachability import bfs_reachability, parallel_bfs
 
 
 def _build(graph, seed: int):
-    shortcuts, beta = build_shortcut_set_for_reachability(
+    shortcuts, beta, _ = build_shortcut_set_for_reachability(
         graph,
         omega=3.0,
         random_seed=seed,
@@ -77,7 +77,7 @@ def test_reentrant_concurrent_builds_with_workers():
 
     def run(idx: int):
         barrier.wait()
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=7,

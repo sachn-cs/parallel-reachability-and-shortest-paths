@@ -53,7 +53,7 @@ def test_lemma_2_1_tc_soundness_property(n, p, seed):
     """
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
     for flags in (PAPER_TC, TIGHT_TC, NO_TC):
-        shortcuts, _ = run(g, flags, seed)
+        shortcuts, _, _ = run(g, flags, seed)
         for v in g.vertices():
             original = bfs_reachability(g, v)
             augmented = parallel_bfs(g, v, shortcuts)
@@ -69,9 +69,9 @@ def test_lemma_2_1_tc_soundness_property(n, p, seed):
 def test_lemma_2_2_size_contribution_property(n, p, seed):
     """Lemma 2.2: tightened trigger never strictly increases |H|."""
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
-    _, _ = run(g, NO_TC, seed)
-    h_paper, _ = run(g, PAPER_TC, seed)
-    h_tight, _ = run(g, TIGHT_TC, seed)
+    _, _, _ = run(g, NO_TC, seed)
+    h_paper, _, _ = run(g, PAPER_TC, seed)
+    h_tight, _, _ = run(g, TIGHT_TC, seed)
     assert len(h_tight) <= len(h_paper)
 
 
@@ -84,7 +84,7 @@ def test_lemma_2_2_size_contribution_property(n, p, seed):
 def test_lemma_3_2_reachability_correctness_hop_bounded_property(n, p, seed):
     """Lemma 3.2: hop-bounded BFS preserves reachability."""
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
-    shortcuts, _ = run(g, HOP_BOUNDED, seed)
+    shortcuts, _, _ = run(g, HOP_BOUNDED, seed)
     for v in g.vertices():
         original = bfs_reachability(g, v)
         augmented = parallel_bfs(g, v, shortcuts)

@@ -45,7 +45,7 @@ def main():
     density = 0.05
     g = build_ppi_graph(n, density, seed=42)
     print(f"PPI: {g.num_vertices()} proteins, {g.num_edges()} interactions")
-    H, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     print(f"shortcut set: {len(H)} shortcuts (beta={beta:.2f})")
     query = "P0"
     hubs = find_hubs(g, H, beta, query)

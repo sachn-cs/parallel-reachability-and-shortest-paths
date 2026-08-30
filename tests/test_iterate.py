@@ -59,7 +59,7 @@ class TestIterativeRefines:
         candidate shortcuts include some that are not in H_1.
         """
         g = random_dag(60, edge_probability=0.1, random_seed=42)
-        H_direct, _ = build_shortcut_set_for_reachability(
+        H_direct, _, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42
         )
         for v in g.vertices():

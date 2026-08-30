@@ -23,7 +23,7 @@ def main():
         return
     g = load_dataset("cit-HepPh")
     print(f"SNAP cit-HepPh: {g.num_vertices()} nodes, {g.num_edges()} edges")
-    H, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     print(f"shortcut set: {len(H)} shortcuts (beta={beta:.2f})")
     print(f"|H|/|E| ratio: {len(H) / max(1, g.num_edges()):.2f}")
 

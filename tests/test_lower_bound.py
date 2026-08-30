@@ -44,7 +44,7 @@ class TestBoundGap:
         from reachq.core.shortcut import build_shortcut_set_for_reachability
 
         g = long_path_dag(20)
-        H, _ = build_shortcut_set_for_reachability(
+        H, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)

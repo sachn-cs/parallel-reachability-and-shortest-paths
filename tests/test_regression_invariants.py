@@ -156,6 +156,56 @@ class TestClosureBudget:
         assert transitive_closure(g) == transitive_closure_brute_force(g)
 
 
+class TestBuildReturnsThreeTuple:
+    """``build_shortcut_set_for_reachability`` returns
+    ``(shortcuts, beta, realised_bound)``."""
+
+    def test_three_tuple_on_small_dag(self):
+        from reachq.core.shortcut import build_shortcut_set_for_reachability
+        from reachq.core.generators import path_graph
+
+        g = path_graph(10)
+        result = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        assert isinstance(result, tuple)
+        assert len(result) == 3
+        shortcuts, beta, realised = result
+        assert isinstance(shortcuts, set)
+        assert isinstance(beta, float)
+        assert isinstance(realised, float)
+        assert realised >= beta or realised >= 1.0
+
+    def test_three_tuple_on_dense_dag(self):
+        from reachq.core.shortcut import build_shortcut_set_for_reachability
+        from reachq.core.generators import random_dag
+
+        g = random_dag(n=30, edge_probability=0.375, random_seed=0)
+        shortcuts, beta, realised = build_shortcut_set_for_reachability(
+            g, omega=3.0, random_seed=0
+        )
+        if not shortcuts:
+            return
+        for src in list(g.vertices())[:5]:
+            visited = set()
+            queue = [src]
+            dist = {src: 0}
+            si = {}
+            for a, b in shortcuts:
+                si.setdefault(a, []).append(b)
+            while queue:
+                u = queue.pop(0)
+                visited.add(u)
+                for v in g.out_edges.get(u, ()):
+                    if v not in dist:
+                        dist[v] = dist[u] + 1
+                        queue.append(v)
+                for b in si.get(u, ()):
+                    if b not in dist:
+                        dist[b] = dist[u] + 1
+                        queue.append(b)
+            max_obs = max(dist.values()) if dist else 0
+            assert max_obs <= realised + 1e-9
+
+
 class TestHeapAndReach:
     """Heap tuples use a monotonic counter; arbitrarily-hashable
     vertex types must not raise during Dijkstra."""

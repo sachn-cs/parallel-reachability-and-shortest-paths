@@ -3,7 +3,7 @@
 Usage::
 
     with trace("build_shortcut_set", n=graph.num_vertices()):
-        H, beta = build_shortcut_set_for_reachability(graph)
+        H, beta, _ = build_shortcut_set_for_reachability(graph)
 
 The ``trace()`` context manager logs entry/exit and timing. It is
 designed to be low-overhead: the hot path only pays for a

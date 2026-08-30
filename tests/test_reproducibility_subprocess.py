@@ -33,7 +33,7 @@ SCRIPT = textwrap.dedent(
         g.add_vertex(i)
     for i in range(19):
         g.add_edge(i, i + 1)
-    H, beta = build_shortcut_set_for_reachability(
+    H, beta, _ = build_shortcut_set_for_reachability(
         g, omega=3.0, random_seed=42
     )
     print(repr(sorted(H)))
@@ -78,7 +78,7 @@ def test_default_subprocess_shortcuts_match_main_process():
         g.add_vertex(i)
         if i > 0:
             g.add_edge(i - 1, i)
-    main_shortcuts, main_beta = build_shortcut_set_for_reachability(
+    main_shortcuts, main_beta, _ = build_shortcut_set_for_reachability(
         g, omega=3.0, random_seed=42
     )
 
@@ -93,7 +93,7 @@ def test_default_subprocess_shortcuts_match_main_process():
             g.add_vertex(i)
             if i > 0:
                 g.add_edge(i - 1, i)
-        H, beta = build_shortcut_set_for_reachability(
+        H, beta, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42
         )
         print(repr(sorted(H)))

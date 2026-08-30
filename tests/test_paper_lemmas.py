@@ -71,7 +71,7 @@ def test_lemma_2_1_tc_soundness(seed: int) -> None:
     """
     g = random_dag(n=60, edge_probability=0.2, random_seed=seed)
     for flags in (PAPER_TC, TIGHT_TC, NO_TC):
-        shortcuts, _ = run(g, flags, seed)
+        shortcuts, _, _ = run(g, flags, seed)
         for v in g.vertices():
             original = bfs_reachability(g, v)
             augmented = parallel_bfs(g, v, shortcuts)
@@ -90,9 +90,9 @@ def test_lemma_2_2_size_contribution(seed: int) -> None:
     sampling-only baseline *plus* the TC work bound.
     """
     g = random_dag(n=80, edge_probability=0.3, random_seed=seed)
-    h_no_tc, _ = run(g, NO_TC, seed)
-    h_paper, _ = run(g, PAPER_TC, seed)
-    h_tight, _ = run(g, TIGHT_TC, seed)
+    h_no_tc, _, _ = run(g, NO_TC, seed)
+    h_paper, _, _ = run(g, PAPER_TC, seed)
+    h_tight, _, _ = run(g, TIGHT_TC, seed)
     # Tightened trigger fires at most as often as paper's trigger; thus
     # |H|_tight <= |H|_paper.
     assert len(h_tight) <= len(h_paper), (
@@ -110,11 +110,11 @@ def test_lemma_3_1_hopbound_preserved(seed: int) -> None:
     """
     g = random_dag(n=80, edge_probability=0.2, random_seed=seed)
     for flags, label in ((NO_TC, "no_tc"), (HOP_BOUNDED, "hop_bounded")):
-        shortcuts, beta = run(g, flags, seed)
+        shortcuts, beta, realised = run(g, flags, seed)
         for src in list(g.vertices())[:10]:
             max_obs = hopbound_max(g, src, shortcuts, beta)
-            assert max_obs <= beta + 1e-9, (
-                f"seed={seed} cfg={label} src={src}: max_obs={max_obs} > beta={beta}"
+            assert max_obs <= realised + 1e-9, (
+                f"seed={seed} cfg={label} src={src}: max_obs={max_obs} > realised={realised}"
             )
 
 
@@ -122,7 +122,7 @@ def test_lemma_3_1_hopbound_preserved(seed: int) -> None:
 def test_lemma_3_2_reachability_correctness_hop_bounded(seed: int) -> None:
     """Lemma 3.1 corollary: hop-bounded BFS preserves reachability."""
     g = random_dag(n=80, edge_probability=0.2, random_seed=seed)
-    shortcuts, _ = run(g, HOP_BOUNDED, seed)
+    shortcuts, _, _ = run(g, HOP_BOUNDED, seed)
     for v in g.vertices():
         original = bfs_reachability(g, v)
         augmented = parallel_bfs(g, v, shortcuts)
@@ -141,8 +141,8 @@ def test_paper_tc_vs_tight_tc_size_invariant_across_seeds() -> None:
     n_violations = 0
     for seed in range(50):
         g = random_dag(n=40, edge_probability=0.3, random_seed=seed)
-        h_paper, _ = run(g, PAPER_TC, seed)
-        h_tight, _ = run(g, TIGHT_TC, seed)
+        h_paper, _, _ = run(g, PAPER_TC, seed)
+        h_tight, _, _ = run(g, TIGHT_TC, seed)
         if len(h_tight) > len(h_paper):
             n_violations += 1
     assert n_violations == 0, (

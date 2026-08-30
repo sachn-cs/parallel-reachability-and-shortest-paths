@@ -27,7 +27,7 @@ from reachq.core.invariants import (
 def test_reachability_preserved_after_sparsify(n, p, seed):
     """For any random DAG, the JLS shortcut set preserves reachability."""
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
-    H, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=seed)
+    H, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=seed)
     assert_reachability_preserved(g, H)
 
 
@@ -40,7 +40,7 @@ def test_reachability_preserved_after_sparsify(n, p, seed):
 def test_partition_correctness_random_dags(n, p, seed):
     """For any random DAG, the JLS partition covers all vertices."""
     g = random_dag(n=n, edge_probability=p, random_seed=seed)
-    H, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=seed)
+    H, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=seed)
     # Reachability preservation implies partition correctness
     # (if R+(G) = R+(G+H), then H doesn't change the partition
     # structure that the JLS labels induced).
@@ -54,7 +54,7 @@ def test_scc_shortcut_invariant_path():
         g.add_vertex(i)
     for i in range(4):
         g.add_edge(i, i + 1)
-    H, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    H, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     assert_scc_shortcuts_form_cliques(g, H)
 
 
@@ -65,7 +65,7 @@ def test_scc_shortcut_invariant_two_disjoint_cycles():
     g.add_edge(1, 0)
     g.add_edge(2, 3)
     g.add_edge(3, 2)
-    H, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    H, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     assert_scc_shortcuts_form_cliques(g, H)
 
 

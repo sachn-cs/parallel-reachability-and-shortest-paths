@@ -108,7 +108,7 @@ def benchmark_suite(
     env = _environment_metadata()
     for family_name, graph in _build_graphs(sizes, densities, seed):
         t0 = time.perf_counter()
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             graph, omega=omega, random_seed=seed
         )
         elapsed = time.perf_counter() - t0

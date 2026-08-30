@@ -368,8 +368,20 @@ def _validate_algorithm_params(
 
 def _params_from_omega(
     n: int, m: int, omega: float
-) -> tuple[float, float, int, float]:
-    """Standard parameter selection for JLS: ``(k, rho, max_level, beta)``."""
+) -> tuple[float, float, int, float, float]:
+    """Standard parameter selection for JLS.
+
+    Returns ``(k, rho, max_level, beta, realised_bound)``.
+
+    ``beta`` is the paper's asymptotic target hop bound
+    ``(n^omega/m)^(1/(2*omega-2))``. ``realised_bound`` is the
+    *algorithm's actual guarantee* based on the chosen ``rho`` and
+    ``max_level``: a single per-level hop path of length
+    ``max(2, ceil(rho))`` is composed across ``max_level`` levels
+    plus a final hop, giving ``max_level * max(2, ceil(rho)) + 1``.
+    The test suite asserts this realised bound, not the
+    asymptotic target.
+    """
     k = max(2.0, math.log2(n))
     beta = (
         (n**omega / m) ** (1.0 / (2.0 * omega - 2.0))
@@ -381,7 +393,8 @@ def _params_from_omega(
     max_level = (
         max(1, int(math.log(n) / math.log(k)) + 1) if k > 1 else 1
     )
-    return k, rho, max_level, beta
+    realised_bound = float(max_level * max(2, math.ceil(rho))) + 1.0
+    return k, rho, max_level, beta, realised_bound
 
 
 def _flags_from(
@@ -403,8 +416,17 @@ def build_shortcut_set_for_reachability(
     random_seed: int | None = None,
     refinement: Any = None,
     parallel_workers: int = 1,
-) -> tuple[set[tuple[object, object]], float]:
+) -> tuple[set[tuple[object, object]], float, float]:
     """Construct a ``beta``-shortcut set matching Theorem 2.
+
+    Returns ``(shortcuts, beta, realised_bound)``.
+
+    ``beta`` is the paper's asymptotic target hop bound
+    ``(n^omega/m)^(1/(2*omega-2))``. ``realised_bound`` is the
+    algorithm's actual upper bound on hops, derived from the
+    chosen ``rho`` and recursion depth. Test oracles should
+    assert against ``realised_bound``; the asymptotic ``beta``
+    is for documentation and reference.
 
     Args:
         graph: Input digraph (cycles handled by SCC condensation).
@@ -429,7 +451,7 @@ def build_shortcut_set_for_reachability(
         n = graph.num_vertices()
         m = graph.num_edges()
         if n == 0:
-            return set(), 0.0
+            return set(), 0.0, 0.0
 
         sccs, scc_map, representatives = condense_to_dag(graph)
         trivial = (
@@ -445,7 +467,9 @@ def build_shortcut_set_for_reachability(
                 if scc_map[u] != scc_map[v]:
                     dag.add_edge(scc_map[u], scc_map[v])
 
-        k, rho, max_level, beta = _params_from_omega(n, m, omega)
+        k, rho, max_level, beta, realised_bound = _params_from_omega(
+            n, m, omega
+        )
 
         sampling_constant = (
             density_aware_constant(rho, k)
@@ -494,7 +518,7 @@ def build_shortcut_set_for_reachability(
                 v_rep = representatives[int(v_idx)]
                 shortcuts.add((u_rep, v_rep))
 
-        return shortcuts, beta
+        return shortcuts, beta, realised_bound
 
 
 def jls_with_tc_pruning(

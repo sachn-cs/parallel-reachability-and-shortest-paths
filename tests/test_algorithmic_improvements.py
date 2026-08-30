@@ -30,7 +30,7 @@ def test_shortcut_set_correctness_with_each_flag_off(off: str) -> None:
     """Disabling any single flag must still preserve reachability."""
     g = random_dag(n=80, edge_probability=0.2, random_seed=7)
     flags = {name: name != off for name in all_flag_names()}
-    shortcuts, beta = build_shortcut_set_for_reachability(
+    shortcuts, beta, _ = build_shortcut_set_for_reachability(
         g,
         omega=3.0,
         random_seed=7,
@@ -150,7 +150,7 @@ def test_networkx_cross_check_shortcut_set() -> None:
     for u, v in g.edges():
         nxg.add_edge(u, v)
 
-    shortcuts, _ = build_shortcut_set_for_reachability(
+    shortcuts, _, _ = build_shortcut_set_for_reachability(
         g,
         omega=3.0,
         random_seed=42,

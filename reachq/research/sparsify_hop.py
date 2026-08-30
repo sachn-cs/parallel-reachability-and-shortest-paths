@@ -91,6 +91,19 @@ def verify_hopbound_preserved(
     return True
 
 
+def _beta_for(graph: Digraph, omega: float) -> float:
+    """Compute the realised hop bound for sparsify_hop_bounded.
+
+    Mirrors :func:`reachq.core.shortcut._params_from_omega`.
+    """
+    from reachq.core.shortcut import _params_from_omega
+
+    n = graph.num_vertices()
+    m = graph.num_edges()
+    _, _, _, beta, _ = _params_from_omega(n, m, omega)
+    return beta
+
+
 def sparsify_hop_bounded(
     graph: Digraph,
     shortcuts: set[tuple[Any, Any]],

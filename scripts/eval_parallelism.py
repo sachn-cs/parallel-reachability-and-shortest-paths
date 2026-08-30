@@ -32,7 +32,7 @@ log = get_logger("reachq.parallelism")
 def measure(n: int, density: float, seed: int, workers: int) -> dict[str, float]:
     g = random_dag(n=n, edge_probability=density, random_seed=seed)
     t0 = time.perf_counter()
-    shortcuts, beta = build_shortcut_set_for_reachability(
+    shortcuts, beta, _ = build_shortcut_set_for_reachability(
         g,
         omega=3.0,
         random_seed=seed,

@@ -23,7 +23,7 @@ class TestPivotSampling:
             g.add_vertex(i)
         for i in range(0, n - 1, 3):
             g.add_edge(i, i + 1)
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -43,7 +43,7 @@ class TestPivotSampling:
             for j in range(i + 1, n, 2):
                 if j - i <= 3:
                     g.add_edge(i, j)
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -75,8 +75,8 @@ class TestPivotSampling:
             g.add_vertex(i)
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        s1, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
-        s2, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        s1, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        s2, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
         assert s1 == s2
 
     def test_pivots_differ_with_different_seeds(self):
@@ -86,8 +86,8 @@ class TestPivotSampling:
             g.add_vertex(i)
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        s1, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=1)
-        s2, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=2)
+        s1, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=1)
+        s2, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=2)
         # Different seeds produce different pivot sets, hence possibly
         # different shortcut sets. We don't assert inequality (could
         # be the same by chance on small graphs) but verify both

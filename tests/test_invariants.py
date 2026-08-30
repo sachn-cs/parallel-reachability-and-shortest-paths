@@ -37,7 +37,7 @@ class TestReachabilityPreserved:
 
     def test_cycle_with_shortcuts(self):
         g = cycle_graph(5)
-        shortcuts, _ = build_shortcut_set_for_reachability(g, random_seed=1)
+        shortcuts, _, _ = build_shortcut_set_for_reachability(g, random_seed=1)
         assert_reachability_preserved(g, shortcuts)
 
     def test_preservation_failure(self):
@@ -73,7 +73,7 @@ class TestSccShortcuts:
 
     def test_cycle(self):
         g = cycle_graph(4)
-        shortcuts, _ = build_shortcut_set_for_reachability(g, random_seed=1)
+        shortcuts, _, _ = build_shortcut_set_for_reachability(g, random_seed=1)
         assert_scc_shortcuts_form_cliques(g, shortcuts)
 
     def test_sound_shortcut_set_satisfies_invariant(self):

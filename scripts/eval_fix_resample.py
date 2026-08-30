@@ -43,7 +43,7 @@ log = get_logger("reachq.fix_resample_eval")
 
 
 def jls_with_random_seed(g, seed):
-    shortcuts, beta = build_shortcut_set_for_reachability(
+    shortcuts, beta, _ = build_shortcut_set_for_reachability(
         g, omega=3.0, random_seed=seed
     )
     return shortcuts, beta

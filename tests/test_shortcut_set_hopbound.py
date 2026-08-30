@@ -53,7 +53,7 @@ class TestHopboundPreserved:
                 g.add_vertex(i)
             for i in range(n - 1):
                 g.add_edge(i, i + 1)
-            shortcuts, beta = build_shortcut_set_for_reachability(
+            shortcuts, beta, _ = build_shortcut_set_for_reachability(
                 g,
                 omega=3.0,
                 random_seed=42,
@@ -72,7 +72,7 @@ class TestHopboundPreserved:
             g.add_vertex(i)
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -89,7 +89,7 @@ class TestHopboundPreserved:
             g.add_vertex(i)
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -107,7 +107,7 @@ class TestHopboundPreserved:
         # Add an SCC.
         g.add_edge(2, 0)
         g.add_edge(5, 3)
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)
@@ -125,7 +125,7 @@ class TestHopboundPreserved:
             g.add_vertex(i)
         for i in range(0, n - 1, 2):
             g.add_edge(i, i + 1)
-        shortcuts, _ = build_shortcut_set_for_reachability(
+        shortcuts, _, _ = build_shortcut_set_for_reachability(
             g,
             omega=3.0,
             random_seed=42)

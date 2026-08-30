@@ -94,7 +94,7 @@ def main() -> int:
                 try:
                     with time_limit(args.timeout):
                         t0 = time.perf_counter()
-                        shortcuts, beta = build_shortcut_set_for_reachability(
+                        shortcuts, beta, _ = build_shortcut_set_for_reachability(
                             g,
                             omega=3.0,
                             random_seed=42,

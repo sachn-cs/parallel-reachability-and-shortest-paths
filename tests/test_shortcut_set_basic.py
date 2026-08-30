@@ -167,7 +167,7 @@ class TestTcPruningBasic:
 class TestWrapperBasic:
     def test_empty_graph_returns_empty(self):
         g = Digraph()
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42
         )
         assert shortcuts == set()
@@ -176,7 +176,7 @@ class TestWrapperBasic:
     def test_single_vertex_returns_empty(self):
         g = Digraph()
         g.add_vertex(0)
-        shortcuts, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+        shortcuts, _, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
         assert shortcuts == set()
 
     def test_dag_end_to_end(self):
@@ -185,7 +185,7 @@ class TestWrapperBasic:
         g.add_edge(1, 2)
         g.add_edge(2, 3)
         g.add_edge(0, 3)
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42
         )
         assert beta > 0
@@ -200,7 +200,7 @@ class TestWrapperBasic:
         g.add_edge(1, 2)
         g.add_edge(2, 0)
         g.add_edge(2, 3)
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42
         )
         assert beta > 0
@@ -213,8 +213,8 @@ class TestWrapperBasic:
         g = Digraph()
         for i in range(20):
             g.add_edge(i, i + 1)
-        s1, b1 = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=123)
-        s2, b2 = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=123)
+        s1, b1, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=123)
+        s2, b2, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=123)
         assert s1 == s2
         assert b1 == b2
 
@@ -223,7 +223,7 @@ class TestWrapperBasic:
         n = 50
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42
         )
         assert beta > 0
@@ -236,7 +236,7 @@ class TestWrapperBasic:
         n = 200
         for i in range(n - 1):
             g.add_edge(i, i + 1)
-        shortcuts, beta = build_shortcut_set_for_reachability(
+        shortcuts, beta, _ = build_shortcut_set_for_reachability(
             g, omega=3.0, random_seed=42
         )
         assert beta > 0

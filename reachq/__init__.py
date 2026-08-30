@@ -30,7 +30,7 @@ The recommended first test after install:
     >>> from reachq.core.graph import Digraph
     >>> from reachq.core.shortcut import build_shortcut_set_for_reachability
     >>> g = Digraph(); g.add_edge(0, 1); g.add_edge(1, 2)
-    >>> H, beta = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
+    >>> H, beta, _ = build_shortcut_set_for_reachability(g, omega=3.0, random_seed=42)
     >>> isinstance(H, set)
     True
     >>> beta > 0

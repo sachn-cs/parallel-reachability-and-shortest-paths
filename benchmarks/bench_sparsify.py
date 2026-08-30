@@ -24,7 +24,7 @@ def time_jls_only_n100():
 
 def time_jls_sparsify_n100():
     g = random_dag(n=100, edge_probability=0.3, random_seed=42)
-    H, _ = build_shortcut_set_for_reachability(
+    H, _, _ = build_shortcut_set_for_reachability(
         g, omega=3.0, random_seed=42
     )
     sparsify_shortcut_set(g, H)
@@ -32,7 +32,7 @@ def time_jls_sparsify_n100():
 
 def time_jls_hop_bounded_n100():
     g = random_dag(n=100, edge_probability=0.3, random_seed=42)
-    H, _ = build_shortcut_set_for_reachability(
+    H, _, _ = build_shortcut_set_for_reachability(
         g, omega=3.0, random_seed=42
     )
     sparsify_hop_bounded(g, H, beta=4)
