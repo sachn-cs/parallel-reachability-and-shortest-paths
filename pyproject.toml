@@ -54,7 +54,7 @@ dev = [
     "hypothesis>=6.0.0",
     "mypy>=1.0.0",
     "networkx>=3.0",
-    "ruff==0.16.3",
+    "ruff==0.16.5",
 ]
 research = [
     "networkx>=3.0",
